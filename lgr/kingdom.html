@@ -415,6 +415,8 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
       // Sheet and Dictation are not made yet: in this sample they give their star straight away so the whole trip can be tried
       // Sheet = the question part of the printed worksheet, online, with the speaking step (app/sheet)
       if (id === 'sheet') { sessionStorage.setItem('lgr2.sheet', w); return flash(() => { location.href = 'sheet/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
+      // Dictation = hear it from the horn, build it with tiles, then write it by hand (app/dictation)
+      if (id === 'dictation') { sessionStorage.setItem('lgr2.dict', w); return flash(() => { location.href = 'dictation/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
       toast(TOYS.find(t => t[0] === id)[1] + ': coming soon!', '샘플: 별만 받아요'); if (!parts(w)[id]) { await wait(500); give(id); }
     });
     $('#back').onclick = async () => { if (busy) return; busy = true; snd.pop(); await pen.dive(864, 120); await ger.dive(864, 120); flash(() => { sessionStorage.setItem('lgr2.arrive', ''); location.hash = '#/cave'; }); };
@@ -423,6 +425,9 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     await wait(350); await pen.land(864, 120); await ger.land(864, 120); mark(); busy = false;
     // back from a reading book: Alphabet Reading counts once a book has been read
     // back from the online worksheet: the Sheet star comes once one of this week's worksheets is finished
+    // back from Dictation: its star comes once one of this week's dictations is finished
+    if (sessionStorage.getItem('lgr2.dict') == w) { sessionStorage.removeItem('lgr2.dict'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.dictations') || '[]'); } catch (e) {}
+      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).dictation) give('dictation'); else if (!parts(w).dictation) toast('Finish one dictation to get the star!', '받아쓰기를 하나 끝내요'); }
     if (sessionStorage.getItem('lgr2.sheet') == w) { sessionStorage.removeItem('lgr2.sheet'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.sheets') || '[]'); } catch (e) {}
       if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).sheet) give('sheet'); else if (!parts(w).sheet) toast('Finish one worksheet to get the star!', '워크시트를 하나 끝내요'); }
     if (sessionStorage.getItem('lgr2.abc') == w) { sessionStorage.removeItem('lgr2.abc'); let n = 0; try { n = JSON.parse(localStorage.getItem('lgr.pages') || '[]').length; } catch (e) {}

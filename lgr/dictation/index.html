@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Let's Go Readers · Dictation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&family=Andika:wght@700&family=Noto+Sans+KR:wght@500;700&display=swap">
+<style>
+/* DICTATION · 받아쓰기 (21 Nov 2026; user chose "tiles, then writing"). The child HEARS it from the golden horn and
+   writes it. Nothing new is invented: the words and sentences are the week's own reading (app/sheet/data.js).
+     1 WORD      - hear a word, build it from letter tiles          (2 words: the reading's word + one more)
+     2 SENTENCE  - hear a sentence, put its word tiles in order     (2 sentences from the story)
+     3 WRITE IT  - hear a sentence, write it by hand on the lines, then the answer appears to compare (self-check:
+                   the page cannot read handwriting, so the child or a parent decides)
+   Voice: the browser's voice through the shared kit (vendor/talk.js) until recorded voices exist.
+   ?w=1 lists the week's readings; ?r=a-airplane opens one; ?back=URL; ?step=N jumps (for checking).
+   Finished readings are kept on this device in localStorage "lgr.dictations". */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:"Fredoka","Noto Sans KR",sans-serif;color:#3a2a55;user-select:none;overflow:hidden}
+body{background:#5a1f16 url(../art/kingdom/cabin.jpg) center/cover}
+body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);backdrop-filter:blur(5px)}
+#top{position:fixed;left:0;right:0;top:0;padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:5}
+.round{width:60px;height:60px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center;font-size:28px;text-decoration:none;color:#4a2508;flex:none}
+.round:active{translate:0 4px;box-shadow:0 2px 0 #b98a52}
+#title{margin:0 auto;background:linear-gradient(#f6d39a,#e0a660 60%,#cf8f48);border-radius:16px;padding:3px 26px 5px;font:800 26px/1.05 "Baloo 2";color:#4a2508;text-align:center;box-shadow:inset 0 2px 0 rgba(255,240,210,.6),0 5px 0 #9a5c26,0 10px 14px rgba(30,8,4,.45)}
+#title small{display:block;font:600 13px "Fredoka","Noto Sans KR";opacity:.85}
+#dots{display:flex;gap:8px;flex:none}
+#dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.35);border:3px solid #fff}#dots i.on{background:#ffd23f}
+#wrap{position:fixed;inset:86px 0 0 0;display:grid;place-items:center;padding:0 22px 22px}
+#card{position:relative;width:min(1180px,100%);max-height:100%;background:#fffdf6;border-radius:34px;box-shadow:0 10px 0 #e6cfa4,0 26px 40px rgba(0,0,0,.45);padding:22px 30px 24px;text-align:center}
+.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{0%{scale:.92}}
+.no{animation:shake .4s}@keyframes shake{25%{translate:-10px 0}75%{translate:10px 0}}
+.tag{display:inline-block;background:#e23b4a;color:#fff;border-radius:999px;padding:3px 18px;font:700 16px "Fredoka";letter-spacing:.4px;margin-bottom:6px}
+.ask{font:800 clamp(22px,2.6vw,34px)/1.15 "Baloo 2";margin-bottom:8px}
+/* the golden horn plays it */
+.play{display:flex;align-items:center;justify-content:center;gap:16px;margin:2px 0 12px}
+#horn{border:0;background:none;cursor:pointer;height:clamp(96px,16vh,150px);animation:nod 2.2s ease-in-out infinite;filter:drop-shadow(0 8px 8px rgba(0,0,0,.3))}
+#horn img{height:100%;display:block}
+#horn.playing{animation:toot .35s ease-in-out infinite}
+@keyframes nod{50%{rotate:-4deg;scale:1.04}}@keyframes toot{50%{scale:1.1;rotate:5deg}}
+.sm{width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffeccc);box-shadow:0 5px 0 #e2c9b0;font-size:24px;cursor:pointer}
+/* slots and tiles */
+.slots{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:86px;margin:6px 0 14px}
+.slot{min-width:64px;height:78px;border-radius:18px;border:4px dashed #d9c3a0;display:grid;place-items:center;font:800 44px "Baloo 2";color:#3a2a55;padding:0 10px;transition:background .2s}
+.slot.w{min-width:110px;font:700 clamp(22px,2.4vw,32px) "Fredoka";height:66px}
+.slot.next{border-color:#e23b4a;background:#fff1f1;animation:wp 1s ease-in-out infinite}@keyframes wp{50%{box-shadow:0 0 0 7px rgba(226,59,74,.2)}}
+.slot.in{border:4px solid #ffc93c;background:#fff7d6;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+.tiles{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.tile{min-width:74px;height:82px;border:0;border-radius:20px;background:linear-gradient(#ff6b78,#e23b4a);box-shadow:0 7px 0 #9c1f2c,inset 0 3px 0 rgba(255,255,255,.35);font:800 46px "Baloo 2";color:#fff;cursor:pointer;padding:0 14px;transition:transform .12s}
+.tile.w{font:700 clamp(22px,2.4vw,32px) "Fredoka";height:68px;background:linear-gradient(#ffd86b,#ffc02e);box-shadow:0 7px 0 #c9921a,inset 0 3px 0 rgba(255,255,255,.5);color:#4a2508}
+.tile:hover{transform:translateY(-4px) rotate(-3deg)}.tile.used{visibility:hidden}
+.done .slot{border-color:#8fd26f;background:#d9f7c9}
+/* writing */
+.pad{position:relative;margin:0 auto;width:min(1040px,100%);height:clamp(170px,30vh,250px);border-radius:22px;background:#fff;box-shadow:inset 0 0 0 4px #e6cfa4;overflow:hidden;touch-action:none}
+.pad::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 24%,#bcdcff 24% 25%,transparent 25% 49%,#ffb4b4 49% 50.5%,transparent 50.5% 74%,#bcdcff 74% 75%,transparent 75%);pointer-events:none}
+.pad canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.answer{min-height:1.5em;font:700 clamp(26px,3.2vw,44px)/1.2 "Andika","Fredoka";color:#1f9d57;margin:10px 0 4px;letter-spacing:.02em}
+.bar{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:10px;flex-wrap:wrap}
+.big{border:0;border-radius:999px;background:linear-gradient(#ffe36a,#ffc93c);box-shadow:0 6px 0 #c9921a;font:800 22px "Baloo 2";color:#4a2508;padding:7px 28px;cursor:pointer;display:inline-block;text-decoration:none}
+.big:active{translate:0 4px;box-shadow:0 2px 0 #c9921a}.big.w2{background:#fff;box-shadow:0 6px 0 #e2c9b0}.big[hidden]{display:none}
+.hint{font:600 16px "Fredoka","Noto Sans KR";color:#7a6a92}
+/* chooser + end */
+.shelf{width:min(1180px,100%)}
+.shelf h1{font:800 clamp(34px,4vw,56px)/1 "Baloo 2";color:#fff;text-shadow:0 4px 0 rgba(60,14,10,.55);margin:0 0 16px 6px}
+.shelf h1 small{font:600 .42em "Fredoka";letter-spacing:.1em;opacity:.8;margin-left:10px}
+.covers{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 26px}
+.bk{position:relative;height:clamp(150px,27vh,250px);border-radius:26px;overflow:hidden;text-decoration:none;color:#2b2d3a;box-shadow:0 10px 0 rgba(43,45,58,.3),0 22px 22px rgba(40,10,4,.35);display:block;transition:transform .14s}
+a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:translateY(5px)}
+.bk b{position:absolute;left:22px;top:14px;font:700 clamp(22px,2.3vw,34px)/1 "Fredoka"}.bk b span{color:#fff}
+.bk svg{position:absolute;right:12px;bottom:10px;max-height:72%;width:auto}
+.bk i{position:absolute;right:14px;top:8px;font-size:38px;font-style:normal}
+.stars{font-size:64px;color:#ffc93c;letter-spacing:6px;text-shadow:0 4px 0 #c9921a}
+@media (max-width:760px){.covers{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div></div>
+<div id="wrap"></div>
+<script src="../sheet/data.js"></script><script src="../book/data/set-a.js"></script><script src="../book/scene.js"></script><script src="../vendor/talk.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s), wrap = $('#wrap'), Q = new URLSearchParams(location.search);
+  const icon = (img, w) => window.LGR_SCENE.icon(img, w).split('"art/').join('"../book/art/');
+  const ALL = window.LGR_SHEETS, WEEK = { 1: 'a', 2: 'b', 3: 'c', 4: 'd' };
+  const wk = +Q.get('w') || 1, R = ALL.find(r => r.id === Q.get('r') && r.q10), BACK = Q.get('back') || '../kingdom.html';
+  const done = () => { try { return JSON.parse(localStorage.getItem('lgr.dictations') || '[]'); } catch (e) { return []; } };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1]);
+  const cheer = el => { const b = el.getBoundingClientRect(); Talk.burst(b.left + b.width / 2, b.top + b.height / 2, 16); Talk.ding(2); };
+  const shake = el => { el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); Talk.boop && Talk.boop(); };
+  let card;
+  const fresh = html => { wrap.innerHTML = '<div id="card" class="pop">' + html + '</div>'; card = $('#card'); };
+
+  // ---------- the week's readings: the same covers as ABC and Sheet ----------
+  if (!R) {
+    const list = ALL.filter(r => r.L === WEEK[wk]), got = done(), books = window.LGR_SET.books;
+    $('#back').href = BACK; $('#title').innerHTML = 'Dictation<small>Ruby · 1 · Week ' + wk + ' · 받아쓰기</small>';
+    wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Dictation <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(r => {
+      const b = books.find(x => x.id === r.id), [my, ...rest] = r.title.split(' '), inner = '<b>' + my + ' <span>' + rest.join(' ') + '</span></b>' + (b ? icon(b.img, b.img === 'apple' || b.img === 'arrow' ? 150 : 210) : '') + (got.includes(r.id) ? '<i>⭐</i>' : '');
+      return r.q10 ? '<a class="bk" style="background:' + (b ? b.color : '#e9d9bf') + '" href="?r=' + r.id + '&w=' + wk + '&back=' + encodeURIComponent(BACK) + '">' + inner + '</a>' : '<span class="bk" style="background:#cdbfae;opacity:.5">' + inner + '</span>'; }).join('') + '</div></div>';
+    Talk.say('Pick a reading!'); return;
+  }
+
+  $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
+  $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · dictation · 받아쓰기</small>';
+  // what is dictated, all from this reading: two words, two sentences to build, one sentence to write
+  const WORDS = [R.w, R.first.find(w => w !== R.w) || R.first[0]], BUILD = [R.lines[1], R.lines[7]], WRITE = R.lines[3];
+  const STEPS = [() => word(0), () => word(1), () => sentence(0), () => sentence(1), write, finish]; let at = 0;
+  $('#dots').innerHTML = STEPS.slice(0, -1).map(() => '<i></i>').join('');
+  const go = () => { [...$('#dots').children].forEach((d, i) => d.classList.toggle('on', i < at)); STEPS[at](); };
+  const next = () => { at++; go(); };
+
+  // the horn: tap to hear, the turtle to hear it slowly
+  const HORN = '<div class="play"><button id="horn" aria-label="Listen"><img src="../art/kingdom/toy-dictation.png" alt=""></button><button class="sm" id="slow" aria-label="Slowly">🐢</button></div>';
+  function horn(text) { const h = $('#horn'), play = slow => { speechSynthesis.cancel(); h.classList.add('playing'); Talk.say(text, { slow }).then(() => h.classList.remove('playing')); };
+    h.onclick = () => play(false); $('#slow').onclick = () => play(true); setTimeout(() => play(false), 500); }
+
+  // tiles: tap them in order; a wrong one shakes, the right one flies into the next slot
+  function build(tag, askText, target, pieces, extra, isWord, said, then) {
+    fresh('<span class="tag">' + tag + '</span><div class="ask">' + askText + '</div>' + HORN + '<div class="slots">' + pieces.map(() => '<span class="slot' + (isWord ? ' w' : '') + '"></span>').join('') + '</div>' +
+      '<div class="tiles">' + shuffle([...pieces, ...extra]).map(p => '<button class="tile' + (isWord ? ' w' : '') + '">' + p + '</button>').join('') + '</div>');
+    horn(said); const slots = [...card.querySelectorAll('.slot')]; let k = 0; slots[0].classList.add('next');
+    card.querySelectorAll('.tile').forEach(t => t.onclick = async () => {
+      if (t.textContent !== pieces[k]) return shake(t);
+      t.classList.add('used'); const s = slots[k]; s.textContent = pieces[k]; s.classList.remove('next'); s.classList.add('in'); Talk.pop(); k++;
+      if (k < pieces.length) return slots[k].classList.add('next');
+      card.querySelector('.slots').classList.add('done'); card.querySelectorAll('.tile').forEach(x => x.classList.add('used')); cheer(card.querySelector('.slots')); await Talk.say(said); await wait(500); then();
+    });
+  }
+  // 1 WORD: build the word you hear from letter tiles (two extra letters mixed in)
+  function word(i) { const w = WORDS[i], extra = shuffle('bcdfghklmnprst'.split('').filter(c => !w.includes(c))).slice(0, 2);
+    build('1 · WORD · 낱말 받아쓰기', 'Listen. Build the word!', w, w.split(''), extra, false, w, next); }
+  // 2 SENTENCE: put the word tiles in the order you hear
+  function sentence(i) { const s = BUILD[i]; build('2 · SENTENCE · 문장 받아쓰기', 'Listen. Put the words in order!', s, s.split(' '), [], true, s, next); }
+
+  // 3 WRITE IT: write the sentence by hand, then see the answer and compare
+  function write() {
+    fresh('<span class="tag">3 · WRITE IT · 손으로 쓰기</span><div class="ask">Listen. Write the sentence!</div>' + HORN + '<div class="pad"><canvas></canvas></div><div class="answer" id="ans"></div>' +
+      '<div class="bar"><button class="big w2" id="clear">Erase</button><button class="big" id="show">Show the answer</button><button class="big" id="ok" hidden>I wrote it! ⭐</button><button class="big w2" id="retry" hidden>Try again</button></div><div class="hint" id="hint"></div>');
+    horn(WRITE);
+    const cv = card.querySelector('canvas'), cx = cv.getContext('2d'); let down = false, last = null, inked = false;
+    const size = () => { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.scale(d, d); cx.lineWidth = 6; cx.lineCap = cx.lineJoin = 'round'; cx.strokeStyle = '#3a2a55'; };
+    size(); const pt = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    cv.addEventListener('pointerdown', e => { down = true; last = pt(e); cv.setPointerCapture(e.pointerId); cx.beginPath(); cx.arc(last[0], last[1], 3, 0, 7); cx.fillStyle = '#3a2a55'; cx.fill(); inked = true; });
+    cv.addEventListener('pointermove', e => { if (!down) return; const p = pt(e); cx.beginPath(); cx.moveTo(last[0], last[1]); cx.lineTo(p[0], p[1]); cx.stroke(); last = p; });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => cv.addEventListener(n, () => { down = false; }));
+    const wipe = () => { cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.restore(); inked = false; };
+    $('#clear').onclick = () => { wipe(); Talk.pop(); };
+    $('#show').onclick = () => { if (!inked) { shake($('.pad')); $('#hint').textContent = 'Write it first! · 먼저 써 보세요'; return; }
+      $('#ans').textContent = WRITE; $('#hint').textContent = 'Is yours the same? · 내가 쓴 것과 같나요?'; $('#show').hidden = true; $('#ok').hidden = false; $('#retry').hidden = false; Talk.say(WRITE, { slow: true }); };
+    $('#retry').onclick = () => { wipe(); $('#ans').textContent = ''; $('#hint').textContent = ''; $('#show').hidden = false; $('#ok').hidden = true; $('#retry').hidden = true; Talk.say(WRITE); };
+    $('#ok').onclick = async () => { cheer($('.pad')); await wait(700); next(); };
+  }
+  function finish() {
+    const got = done(); if (!got.includes(R.id)) { got.push(R.id); try { localStorage.setItem('lgr.dictations', JSON.stringify(got)); } catch (e) {} }
+    [...$('#dots').children].forEach(d => d.classList.add('on'));
+    fresh('<div class="stars">★★★</div><div class="ask">You did the dictation!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" href="' + BACK + '">Back to the cabin</a><a class="big w2" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
+    Talk.say('You did the dictation! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
+  }
+  if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));
+  go();
+})();
+</script><script src="../../ext/home.js" data-home="../../demo/street.html"></script></body></html>
