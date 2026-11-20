@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fresh Math · space world (sample)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+KR:wght@500;700&display=swap">
+<link rel="stylesheet" href="world.css?v=1795196380">
+</head>
+<body>
+<!-- Fresh Math space world, sample (2026-11-20). The WORLD only: 4 galaxies = 4 levels, 6 planets each = 24 months.
+     The five stops of a mission are empty slots: the math activities come later from the 목차 worksheets.
+     Not here on purpose (shared parts of the GPFIS kids' site): opening, choosing the child, sound switch, "today", badges. -->
+<div id="stage">
+  <img id="bg" src="art/bg.jpg" alt="">
+  <canvas id="fx" width="1180" height="820"></canvas>
+  <section class="screen" id="uni"></section>
+  <section class="screen" id="gal"></section>
+  <section class="screen" id="land"></section>
+  <section class="screen" id="mine"></section>
+  <section class="screen" id="map"></section>
+  <section class="screen" id="game"></section>
+  <img id="rocket" src="art/rocket.png" alt="">
+  <canvas id="fx2" width="1180" height="820"></canvas>
+  <div id="top"><button class="pill" id="back" hidden><span>←</span><span class="l">Galaxies<small>은하</small></span></button>
+    <div id="title"></div><button class="pill" id="mapb"><span class="l">Map<small>24 행성</small></span></button><button class="pill" id="pass"><span class="l">Passport<small>여권</small></span></button><div class="chip" id="stars"><i class="st"></i><b>0</b></div></div>
+  <div id="toast" hidden></div>
+  <div id="card" hidden></div>
+  <div id="levelup" hidden></div>
+  <button id="reset" title="Start the sample again">↺ sample</button>
+</div>
+<script src="voice/clips.js"></script>
+<script src="world.js?v=1795196380"></script>
+<script src="../ext/home.js" data-home="../demo/street.html"></script></body>
+</html>

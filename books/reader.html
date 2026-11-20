@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPFIS · Literacy and Math 1</title>
+
+<style>
+@font-face{font-family:Fredoka;src:url(../ext/fonts/Fredoka.ttf)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#f4e3c8;font-family:Fredoka,"Malgun Gothic",sans-serif;color:#2b2d3a;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+#stage{position:absolute;left:0;top:0;width:1536px;height:1024px;transform-origin:0 0;overflow:hidden}
+#rot{position:fixed;left:0;top:0;overflow:hidden;transform-origin:0 0}
+.bg{position:absolute;inset:-30px;background:url(../options/art/pano/street-pano.webp) center/cover;filter:blur(10px) saturate(1.05)}
+.veil{position:absolute;inset:0;background:linear-gradient(rgba(255,246,228,.62),rgba(255,240,215,.45))}
+/* page */
+#book{position:absolute;left:160px;top:26px;width:658px;height:930px;perspective:2000px}
+#page{position:absolute;inset:0;border-radius:10px;background:#fff center/100% 100% no-repeat;box-shadow:0 0 0 10px #fff,0 30px 60px rgba(70,40,0,.35);transform-origin:0 50%;transition:transform .45s cubic-bezier(.5,0,.3,1),opacity .45s}
+#page.out-l{transform:rotateY(-80deg);opacity:0}#page.out-r{transform:translateX(60px) rotateY(20deg);opacity:0}
+#page canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:10px;touch-action:none}
+#page.pen canvas{cursor:crosshair}
+.item{position:absolute;display:grid;place-items:center;font-weight:700;color:#2b2d3a;cursor:pointer;border-radius:8px;transition:transform .2s,box-shadow .2s,background .2s}
+.item.num{font-size:38px;background:rgba(255,255,255,.01)}
+.item.cmp{border-radius:50%;font-size:46px}
+.item.round{border-radius:50%}
+.item.say{background:rgba(255,255,255,.01);box-shadow:0 0 0 4px rgba(255,197,49,.0)}
+.item.say:not(.ok){animation:beat 1.4s ease-in-out infinite}
+@keyframes beat{50%{box-shadow:0 0 0 7px rgba(255,197,49,.85),0 0 22px 8px rgba(255,197,49,.5)}}
+.item.say.ok{background:rgba(47,191,131,.16)}
+.item.opt{background:rgba(255,255,255,.01)}.item.opt.sel:not(.ok):not(.shown){background:rgba(255,250,225,.35);box-shadow:0 0 0 4px #ffc531}
+.item.opt.ok{background:rgba(47,191,131,.2)}.item.opt.shown{background:rgba(87,168,220,.22)}
+.item.opt.ok::after{content:"✓";position:absolute;right:-8px;top:-14px;width:30px;height:30px;border-radius:50%;background:#2fbf83;color:#fff;font-size:20px;display:grid;place-items:center}
+.item.spot{font-size:26px;background:rgba(255,255,255,.01)}.item.spot.sel:not(.ok){box-shadow:0 0 0 4px #ffc531;background:rgba(255,250,225,.5)}
+.item.spot.ok{background:#fff;color:#118a57;box-shadow:0 0 0 4px #2fbf83}
+#pad.say{grid-template-columns:1fr 1fr}#pad.say .said{grid-column:span 2;font-size:30px;height:96px}
+#ttl.say{color:#d6336c}
+.item.sel{box-shadow:0 0 0 5px #ffc531,0 0 24px 6px rgba(255,197,49,.6);background:rgba(255,250,225,.92)}
+.item.ok{background:#e3f8ec;color:#118a57;box-shadow:0 0 0 4px #2fbf83;animation:pop .35s}
+.item.shown{background:#e6f3fb;color:#1f6fa5;box-shadow:0 0 0 4px #57a8dc}
+.item.bad{background:#fff1e3;color:#e07a1f;box-shadow:0 0 0 4px #ff9f43;animation:shake .4s}
+@keyframes pop{50%{transform:scale(1.18)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.spark{position:absolute;width:14px;height:14px;border-radius:50%;pointer-events:none;animation:spark .7s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+/* arrows */
+.arrow{position:absolute;top:440px;width:110px;height:110px;border-radius:50%;border:0;background:linear-gradient(#fff,#f1ece4);box-shadow:0 10px 0 rgba(0,0,0,.14),0 16px 24px rgba(0,0,0,.16);font:700 56px Fredoka;color:#2b2d3a;cursor:pointer}
+.arrow:disabled{opacity:.3}
+#prev{left:30px}#next{left:838px}
+.arrow.wiggle{animation:wig 1s ease-in-out infinite}
+@keyframes wig{50%{transform:translateX(10px) scale(1.06)}}
+/* top */
+.btn{position:absolute;z-index:40;width:100px;height:100px;border-radius:50%;background:linear-gradient(#fff,#f1ece4);box-shadow:0 10px 0 rgba(0,0,0,.14),0 16px 24px rgba(0,0,0,.16);display:grid;place-items:center;cursor:pointer;border:0;font:700 40px Fredoka;color:#2b2d3a}
+.btn svg{width:56px;height:56px}
+#home{left:28px;top:26px}
+#snd{right:28px;top:26px}#snd.off svg path:last-child{opacity:.15}
+#pen{left:28px;top:150px}#pen.on{box-shadow:0 0 0 6px #ff7d55,0 10px 0 rgba(0,0,0,.14)}
+#pen[hidden]{display:none}
+#cover{position:absolute;left:28px;bottom:30px;width:86px;border-radius:5px;box-shadow:0 0 0 5px #fff,0 10px 18px rgba(0,0,0,.25)}
+#pg{position:absolute;left:591px;bottom:2px;transform:translateX(-50%);font-size:22px;font-weight:600;color:#6b5a44}
+/* right side: card, pad, Penny */
+#card{position:absolute;left:984px;top:140px;width:522px;background:#fff;border-radius:36px;padding:28px 32px;box-shadow:0 12px 0 rgba(0,0,0,.07),0 24px 50px rgba(70,40,0,.22);transition:transform .3s cubic-bezier(.3,1.5,.5,1),opacity .2s;transform-origin:85% 110%}
+#card.pop{transform:scale(.9);opacity:.3}
+#card h2{margin:0 0 8px;font-size:52px;line-height:1.05}
+#card h2.ok{color:#14a06a}#card h2.try{color:#f08a24}#card h2.show{color:#2b84c0}#card h2.read{color:#e8492e;font-size:40px}
+#card p{margin:0;font-size:32px;line-height:1.32;font-weight:500}
+#card .row{display:flex;gap:14px;margin-top:20px}
+.ko,.again,.done{height:60px;border-radius:999px;border:0;font:600 24px Fredoka;cursor:pointer;display:grid;place-items:center;padding:0 20px;white-space:nowrap}
+.ko{width:60px;padding:0;background:#2b2d3a;color:#fff;font-family:"Malgun Gothic",sans-serif;font-weight:700}
+.again{background:#f1ece4;color:#2b2d3a}
+.done{background:#2fbf83;color:#fff}
+#card .kotext{margin-top:12px;font-size:24px;color:#6f6a60;font-family:"Malgun Gothic",sans-serif}
+#pad{position:absolute;left:992px;top:560px;width:296px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;transition:opacity .2s,transform .2s}
+
+#pad button{height:84px;border:0;border-radius:22px;background:linear-gradient(#fff,#f3eee6);box-shadow:0 7px 0 rgba(0,0,0,.13);font:700 44px Fredoka;color:#2b2d3a;cursor:pointer}
+#pad button:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.13)}
+#pad .go{background:linear-gradient(#3fd193,#22a96f);color:#fff}
+#pad .del{font-size:34px}
+#pad.cmp{grid-template-columns:1fr 1fr}#pad.cmp button{height:120px;font-size:70px}
+#pad .wide{grid-column:span 2;height:60px;font-size:26px}
+#penny{position:absolute;left:1300px;top:570px;height:440px;filter:drop-shadow(0 16px 12px rgba(60,30,0,.25));pointer-events:none}
+#dots{position:absolute;left:489px;bottom:22px;transform:translateX(-50%);display:flex;gap:10px}
+#dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:inset 0 0 0 3px rgba(43,45,58,.2)}
+#dots i.done{background:#2fbf83;box-shadow:none}#dots i.now{background:#ffc531;box-shadow:0 0 0 4px rgba(255,197,49,.35)}
+#party{position:absolute;inset:0;pointer-events:none;z-index:60}
+</style>
+<div id="rot">
+<div class="bg"></div><div class="veil"></div>
+<div id="stage">
+  <button class="btn" id="home" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M16 50 L50 18 L84 50 L84 86 L60 86 L60 62 L40 62 L40 86 L16 86 Z" fill="#2b2d3a"/></svg></button>
+  <button class="btn" id="pen" aria-label="Crayon" hidden><svg viewBox="0 0 100 100"><path d="M24 76 L66 22 L80 33 L38 87 L20 92 Z" fill="#ff7d55"/><path d="M66 22 L72 14 L86 25 L80 33 Z" fill="#2b2d3a"/></svg></button>
+  <button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
+  <button class="arrow" id="prev" aria-label="Previous page">‹</button>
+  <div id="book"><div id="page"><canvas id="ink"></canvas></div></div>
+  <button class="arrow" id="next" aria-label="Next page">›</button>
+  <img id="cover" alt="">
+  <div id="dots"></div>
+  <div id="card"><h2 class="read" id="ttl"></h2><p id="msg"></p><div class="kotext" id="kotext" hidden></div>
+    <div class="row"><button class="ko" id="ko" hidden>가</button><button class="again" id="again">▶ Hear it again</button><button class="done" id="done" hidden>I’m done!</button></div></div>
+  <div id="pad" hidden></div>
+  <img id="penny" src="../lgr/art/mates/penny/mate-idle.webp" alt="Penny">
+  <div id="party"></div>
+</div>
+</div>
+<script src="../voice/clips.js"></script>
+<script src="../kit/voice.js"></script>
+<script src="../kit/turn.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('b') || 'eps-lm-1';
+const s = document.createElement('script'); s.src = id + '/book.js'; s.onload = start; document.head.appendChild(s);
+const $ = q => document.querySelector(q), stage = $('#stage'), page = $('#page'), ink = $('#ink'), pad = $('#pad'), penny = $('#penny');
+const ART = '../lgr/art/mates/penny/';
+function fit() { Turn.update(); const W = Turn.W, H = Turn.H, k = Math.min(W / 1536, H / 1024); stage.style.transform = `scale(${k})`; stage.style.left = (W - 1536 * k) / 2 + 'px'; stage.style.top = (H - 1024 * k) / 2 + 'px'; }
+addEventListener('resize', fit); fit();
+
+let B, P = 0, sel = null, sound = true, lastSay = '', lastKo = '';
+const state = {};                     // per page: { v: {i: value}, t: {i: tries}, st: {i: 'ok'|'shown'}, done }
+const S = n => state[n] || (state[n] = { v: {}, t: {}, st: {}, done: false });
+
+function start() {
+  B = window.BOOK; [tx, ty, tw, th] = B.trim; document.title = 'GPFIS · ' + B.title + ' ' + B.number; $('#cover').src = id + '/pages/0.webp';
+  $('#dots').innerHTML = B.pages.map(p => p.items || p.draw ? `<i data-n="${p.n}"></i>` : '').join('');
+  const q = new URLSearchParams(location.search), want = +q.get('p');   // ?p=12 opens printed page 12 of the PDF
+  const at0 = Math.max(0, B.pages.findIndex(p => p.n === want));
+  show(at0, 0);
+  // ?try=7,7,6 types those answers one after another (for checking pictures only)
+  if (q.get('try')) setTimeout(() => q.get('try').split(',').forEach((v, i) => setTimeout(() => {
+    if (sel == null) return; const it = B.pages[P].items[sel]; if (it.k !== 'num' && it.k !== 'cmp') return;
+    if (it.k === 'cmp') pad.querySelector(`[data-c="${v}"]`).click();
+    else { [...v].forEach(d => pad.querySelector(`[data-d="${d}"]`).click()); pad.querySelector('[data-x="go"]').click(); }
+  }, i * 150)), 900);
+}
+/* page → screen position (percent of the trimmed page) */
+let tx, ty, tw, th;
+const px = x => (x - tx) / tw * 100 + '%', py = y => (y - ty) / th * 100 + '%', pw = w => w / tw * 100 + '%', ph = h => h / th * 100 + '%';
+
+function show(i, dir) {
+  if (i < 0 || i >= B.pages.length) return;
+  page.className = dir > 0 ? 'out-l' : dir < 0 ? 'out-r' : '';
+  setTimeout(() => {
+    P = i; const pg = B.pages[i]; sel = null;
+    page.style.backgroundImage = `url(${id}/pages/${pg.n}.webp)`;
+    page.querySelectorAll('.item').forEach(e => e.remove());
+    (pg.items || []).forEach((it, k) => {
+      const st = S(pg.n), circ = (x, y, r) => [x - r, y - r, r * 2, r * 2];
+      const mk = (cls, [x, y, w, h], o) => { const e = document.createElement('div'); e.className = 'item ' + cls; e.dataset.i = k; if (o != null) e.dataset.o = o;
+        Object.assign(e.style, { left: px(x), top: py(y), width: pw(w), height: ph(h) }); e.onclick = ev => { ev.stopPropagation(); tapItem(k, o); }; page.appendChild(e); return e; };
+      if (it.k === 'num' || it.k === 'cmp') { const e = mk(it.k, it.k === 'num' ? [it.x, it.y, it.w, it.h] : circ(it.x, it.y, it.r)); e.textContent = st.v[k] || ''; if (st.st[k]) e.classList.add(st.st[k]); }
+      else if (it.k === 'say') { const e = mk('say' + (it.r ? ' round' : ''), it.r ? circ(it.x, it.y, it.r) : [it.x, it.y, it.w, it.h]); if (st.st[k]) e.classList.add('ok'); }
+      else if (it.k === 'pick') it.opts.forEach((b, j) => { const e = mk('opt' + (b.length === 3 ? ' round' : ''), b.length === 3 ? circ(...b) : b, j); if (st.st[k] && st.v[k] === j) e.classList.add(st.st[k] === 'shown' ? 'shown' : 'ok'); });
+      else if (it.k === 'order') it.spots.forEach((b, j) => { const e = mk('spot round', circ(b[0], b[1], it.r || 46), j); const n = st.v[k] == null ? (it.from || 0) : st.v[k]; if (j < n && j >= (it.from || 0)) { e.textContent = j + 1; e.classList.add('ok'); } });
+    });
+    sizeInk(); drawInk(); $('#pen').hidden = !pg.draw; setPen(!!pg.draw);
+    $('#prev').disabled = i === 0; $('#next').disabled = i === B.pages.length - 1; $('#next').classList.remove('wiggle');
+    document.querySelectorAll('#dots i').forEach(d => { d.classList.toggle('now', +d.dataset.n === pg.n); d.classList.toggle('done', !!(state[d.dataset.n] || {}).done); });
+    pad.hidden = true;
+    $('#done').hidden = !pg.draw || S(pg.n).done || !!pg.items;
+    if (S(pg.n).done && pg.right) card('ok', 'You did it!', pg.right, pg.ko);
+    else card('read', pg.items ? (pg.items.some(t => t.k === 'say' || t.say || t.says) ? 'Let’s speak!' : 'Let’s try!') : pg.draw ? 'Let’s draw!' : i === 0 ? 'Book ' + (B.number || 1) : 'Listen', pg.say || '', null, true);
+    page.className = dir ? (dir > 0 ? 'out-r' : 'out-l') : '';
+    requestAnimationFrame(() => requestAnimationFrame(() => { page.className = pg.draw && pen ? 'pen' : ''; }));
+    if (pg.items) { const first = pg.items.findIndex((_, k) => !S(pg.n).st[k]); if (first >= 0 && !S(pg.n).done && (pg.items[first].k === 'num' || pg.items[first].k === 'cmp')) setTimeout(() => pick(first, true), 500); }   // speaking pages wait for the child's tap, so Penny can finish her line
+  }, dir ? 260 : 0);
+}
+/* card + Penny */
+function card(kind, title, text, ko, speak = true) {
+  const c = $('#card'); c.classList.add('pop'); setTimeout(() => c.classList.remove('pop'), 60);
+  const h = $('#ttl'); h.className = kind; h.textContent = title; $('#msg').textContent = text;
+  $('#ko').hidden = !ko; $('#kotext').hidden = true; $('#kotext').textContent = ko || '';
+  lastSay = (title && kind !== 'read' && kind !== 'say' ? title + ' ' : '') + text; lastKo = ko || '';
+  if (speak) say(lastSay);
+}
+let talkT;
+function say(text, lang = 'en-US') {
+  clearInterval(talkT); let n = 0;
+  const words = text.split(/\s+/).length; const ticks = Math.min(60, words * 3);
+  talkT = setInterval(() => { penny.src = ART + (n++ % 2 ? 'mate-idle.webp' : 'mate-talk.webp'); if (n > ticks) { clearInterval(talkT); penny.src = ART + 'mate-idle.webp'; } }, 130);
+  if (!sound || !text) return;
+  Voice.say(text, { who: 'penny', lang });
+}
+setInterval(() => { if (penny.src.endsWith('mate-idle.webp')) { penny.src = ART + 'mate-blink.webp'; setTimeout(() => { if (penny.src.endsWith('mate-blink.webp')) penny.src = ART + 'mate-idle.webp'; }, 140); } }, 3300);
+$('#again').onclick = () => say(lastSay);
+$('#ko').onclick = () => { $('#kotext').hidden = false; say(lastKo, 'ko-KR'); };
+$('#snd').onclick = e => { sound = !sound; e.currentTarget.classList.toggle('off', !sound); Voice.mute(!sound); };
+$('#prev').onclick = () => show(P - 1, -1); $('#next').onclick = () => show(P + 1, 1);
+$('#home').onclick = () => { location.href = '../demo/street.html'; };
+/* swipe */
+let sx = null; page.addEventListener('pointerdown', e => { if (!pen) sx = { x: e.clientX, y: e.clientY }; });
+addEventListener('pointerup', e => { if (sx) { const d = Turn.dx(e, sx); if (Math.abs(d) > 80) show(P + (d < 0 ? 1 : -1), d < 0 ? 1 : -1); } sx = null; });
+
+/* ---------- Play and Speak kinds: say a sentence, choose, tap the words in order ----------
+   say   { k:'say', x,y,r | x,y,w,h, text }             Penny says it, the child says it back
+   pick  { k:'pick', opts:[[x,y,r] | [x,y,w,h]...], a, any, ask, say | says:[...] }   tap the right one (any = the child's own choice);
+                                                         then the child SAYS the sentence (say, or says[choice])
+   order { k:'order', spots:[[x,y]...] in sentence order, text, from }                tap the words in order: numbers appear; then say it */
+function tapItem(k, o) {
+  const pg = B.pages[P], it = pg.items[k], st = S(pg.n);
+  if (st.st[k]) return;
+  if (it.k === 'num' || it.k === 'cmp') return pick(k);
+  if (sel !== k) { pick(k); if (it.k === 'say') return; }
+  if (st.saying === k) return;                                   // already at the "say it" step
+  const el = page.querySelector(`.item[data-i="${k}"][data-o="${o}"]`);
+  if (it.k === 'pick') {
+    if (it.any || o === it.a) { st.v[k] = o; el.classList.add('ok'); sparks(el); const t = it.says ? it.says[o] : it.say; return t ? sayPhase(k, t) : finishItem(k); }
+    st.t[k] = (st.t[k] || 0) + 1; el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad');
+    if (st.t[k] < 2) { card('try', 'Let’s look again!', it.hint || pg.hint || 'Look at the page again.', null); return; }
+    st.v[k] = it.a; page.querySelector(`.item[data-i="${k}"][data-o="${it.a}"]`).classList.add('shown'); st.shown = st.shown || {}; st.shown[k] = 1;
+    card('show', 'Here it is!', (it.why || 'This is the one.') + ' Let’s keep going.', null);
+    setTimeout(() => { const t = it.says ? it.says[it.a] : it.say; if (sel === k) t ? sayPhase(k, t) : finishItem(k); }, 2600);
+    return;
+  }
+  if (it.k === 'order') {
+    const n = st.v[k] == null ? (it.from || 0) : st.v[k];
+    if (o === n) { el.textContent = n + 1; el.classList.add('ok'); sparks(el); st.v[k] = n + 1;
+      if (st.v[k] >= it.spots.length) setTimeout(() => { if (sel === k) it.nosay ? finishItem(k) : sayPhase(k, it.text); }, 500); return; }
+    if (o < n) return;
+    el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad'); setTimeout(() => el.classList.remove('bad'), 500);
+    card('try', 'Listen again!', it.text, null);
+  }
+}
+function sayPhase(k, text) {
+  const pg = B.pages[P], st = S(pg.n); st.saying = k; st.sayText = text;
+  pad.className = 'say'; pad.hidden = false;
+  pad.innerHTML = '<button data-s="hear" title="Listen">🔊</button><button data-s="slow" title="Slowly">🐢</button><button class="go said" data-s="said">I said it! ✋</button>';
+  card('say', 'Say it!', text);
+}
+function finishItem(k) {
+  const pg = B.pages[P], it = pg.items[k], st = S(pg.n);
+  st.st[k] = st.shown && st.shown[k] ? 'shown' : 'ok'; st.saying = null;
+  page.querySelectorAll(`.item[data-i="${k}"]`).forEach(e => { if (it.k === 'say') { e.classList.add('ok'); sparks(e); } });
+  say(CHEERS[Math.floor(Math.random() * CHEERS.length)]); setTimeout(nextItem, 700);
+}
+pad.addEventListener('click', e => {
+  const b = e.target.closest('button[data-s]'); if (!b || sel == null) return; const st = S(B.pages[P].n);
+  if (b.dataset.s === 'hear') say(st.sayText);
+  if (b.dataset.s === 'slow') { if (sound) Voice.say(st.sayText, { who: 'penny', slow: true }); }
+  if (b.dataset.s === 'said') { for (let i = 0; i < 3; i++) setTimeout(() => sparks(b.parentElement.previousElementSibling || page), i * 120); finishItem(sel); }
+});
+
+/* answering */
+function pick(k, quiet) {
+  const pg = B.pages[P], it = pg.items[k], st = S(pg.n);
+  if (st.st[k]) return;
+  sel = k; page.querySelectorAll('.item').forEach(e => e.classList.toggle('sel', +e.dataset.i === k));
+  if (it.k === 'say') return sayPhase(k, it.text);
+  if (it.k === 'pick') { pad.hidden = true; card('read', it.any ? 'You choose!' : 'Which one?', it.ask || '', null, !!it.ask); return; }
+  if (it.k === 'order') { pad.hidden = true; card('read', 'Tap the words in order!', it.text); return; }
+  pad.className = it.k === 'cmp' ? 'cmp' : '';
+  pad.innerHTML = it.k === 'cmp'
+    ? '<button data-c="<">&lt;</button><button data-c=">">&gt;</button>'
+    : '1 2 3 4 5 6 7 8 9'.split(' ').map(d => `<button data-d="${d}">${d}</button>`).join('') + '<button class="del" data-x="del">⌫</button><button data-d="0">0</button><button class="go" data-x="go">✓</button>';
+  pad.hidden = false;
+}
+pad.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || sel == null || b.dataset.s) return;
+  const pg = B.pages[P], st = S(pg.n), el = page.querySelector(`.item[data-i="${sel}"]`);
+  if (b.dataset.c) { st.v[sel] = b.dataset.c; el.textContent = b.dataset.c; check(sel); return; }
+  if (b.dataset.d) { if (el.classList.contains('bad')) { st.v[sel] = ''; el.classList.remove('bad'); }   // after a wrong try, start fresh
+    const v = (st.v[sel] || '') + b.dataset.d; if (v.length <= 3) { st.v[sel] = v; el.textContent = v; } el.classList.remove('bad'); return; }
+  if (b.dataset.x === 'del') { st.v[sel] = (st.v[sel] || '').slice(0, -1); el.textContent = st.v[sel]; return; }
+  if (b.dataset.x === 'go' && st.v[sel]) check(sel);
+});
+addEventListener('keydown', e => {
+  if (sel == null) { if (e.key === 'ArrowRight') show(P + 1, 1); if (e.key === 'ArrowLeft') show(P - 1, -1); return; }
+  const it = B.pages[P].items[sel]; if (it.k !== 'num' && it.k !== 'cmp') return;
+  const q = it.k === 'cmp' ? { '<': '[data-c="<"]', '>': '[data-c=">"]' }[e.key] : /^\d$/.test(e.key) ? `[data-d="${e.key}"]` : e.key === 'Backspace' ? '[data-x="del"]' : e.key === 'Enter' ? '[data-x="go"]' : null;
+  if (q) { const b = pad.querySelector(q); if (b) b.click(); }
+});
+const CHEERS = ['Yes!', 'Great!', 'That’s it!', 'Good job!', 'Super!'];
+function check(k) {
+  const pg = B.pages[P], it = pg.items[k], st = S(pg.n), el = page.querySelector(`.item[data-i="${k}"]`);
+  const ok = [].concat(it.a).includes(st.v[k]) && pairOk(pg, k);
+  if (ok) {
+    st.st[k] = 'ok'; el.className = 'item ' + it.k + ' ok'; sparks(el);
+    say(CHEERS[Math.floor(Math.random() * CHEERS.length)]); nextItem();
+    return;
+  }
+  st.t[k] = (st.t[k] || 0) + 1; el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad');
+  if (st.t[k] < 2) { card('try', 'Let’s look again!', pg.hint || 'Look at the page again.', null); return; }
+  // second try: Penny shows the answer and why
+  const ans = [].concat(it.a)[0]; st.v[k] = ans; st.st[k] = 'shown'; el.textContent = ans; el.className = 'item ' + it.k + ' shown';
+  card('show', 'Here it is!', (it.why || `The answer is ${ans}.`) + ' Let’s keep going.', null);
+  setTimeout(nextItem, 2600);
+}
+function pairOk(pg, k) {             // two boxes that may be in either order (5 × 10 or 10 × 5): together they must be the pair
+  const it = pg.items[k]; if (!it.pair) return true;
+  const st = S(pg.n), j = pg.items.findIndex((o, n) => n !== k && o.pair === it.pair);
+  if (st.v[j] == null || st.v[j] === '') return true;
+  return [st.v[k], st.v[j]].sort().join() === [].concat(it.a).slice().sort().join();
+}
+function nextItem() {
+  const pg = B.pages[P], st = S(pg.n), left = pg.items.findIndex((_, n) => !st.st[n]);
+  if (left >= 0) { pick(left); return; }
+  sel = null; pad.hidden = true; page.querySelectorAll('.item').forEach(e => e.classList.remove('sel'));
+  pageDone(pg);
+}
+function pageDone(pg) {
+  const st = S(pg.n); st.done = true;
+  const shown = pg.items && pg.items.some((_, n) => st.st[n] === 'shown');
+  card('ok', shown ? 'All done!' : 'You got it!', pg.right || 'Great work!', pg.ko);
+  party(); document.querySelector(`#dots i[data-n="${pg.n}"]`)?.classList.add('done');
+  $('#next').classList.add('wiggle'); $('#done').hidden = true;
+}
+function sparks(el) {
+  const bk = $('#book'), cx = bk.offsetLeft + el.offsetLeft + el.offsetWidth / 2, cy = bk.offsetTop + el.offsetTop + el.offsetHeight / 2;   // stage units, turned or not
+  for (let i = 0; i < 10; i++) { const d = document.createElement('i'); d.className = 'spark'; const a = i / 10 * Math.PI * 2;
+    Object.assign(d.style, { left: cx + 'px', top: cy + 'px', background: ['#ffc531', '#2fbf83', '#ff7d55', '#57a8dc'][i % 4], '--dx': Math.cos(a) * 70 + 'px', '--dy': Math.sin(a) * 70 + 'px' });
+    $('#party').appendChild(d); setTimeout(() => d.remove(), 720); }
+}
+function party() {
+  for (let i = 0; i < 40; i++) { const d = document.createElement('i'); d.className = 'spark';
+    Object.assign(d.style, { left: 590 + Math.random() * 100 - 50 + 'px', top: '520px', width: '18px', height: '18px', borderRadius: i % 2 ? '50%' : '3px',
+      background: ['#ffc531', '#2fbf83', '#ff7d55', '#57a8dc', '#e8492e'][i % 5], '--dx': (Math.random() - .5) * 900 + 'px', '--dy': (Math.random() - .8) * 700 + 'px', animationDuration: '1.1s' });
+    $('#party').appendChild(d); setTimeout(() => d.remove(), 1150); }
+}
+/* crayon (drawing pages): lines are kept per page */
+let pen = false, strokes = {}, cur = null;
+function setPen(on) { pen = on; $('#pen').classList.toggle('on', on); page.classList.toggle('pen', on); }
+$('#pen').onclick = () => setPen(!pen);
+function sizeInk() { const r = page.getBoundingClientRect(); ink.width = 658 * 2; ink.height = 930 * 2; }
+function drawInk() {
+  const g = ink.getContext('2d'); g.clearRect(0, 0, ink.width, ink.height); g.lineCap = g.lineJoin = 'round'; g.lineWidth = 14; g.strokeStyle = '#e8492e';
+  (strokes[B.pages[P].n] || []).forEach(l => { g.beginPath(); l.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); });
+}
+const at = e => { const [fx, fy] = Turn.frac(e, ink); return [fx * ink.width, fy * ink.height]; };
+ink.addEventListener('pointerdown', e => { if (!pen) return; cur = [at(e)]; (strokes[B.pages[P].n] ||= []).push(cur); ink.setPointerCapture(e.pointerId); });
+ink.addEventListener('pointermove', e => { if (!cur) return; cur.push(at(e)); drawInk(); });
+ink.addEventListener('pointerup', () => { if (cur && B.pages[P].draw) $('#done').hidden = false; cur = null; });
+$('#done').onclick = () => { const pg = B.pages[P]; if (pg.draw) pageDone(pg); };
+</script>
+</html>

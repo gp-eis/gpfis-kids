@@ -1,0 +1,118 @@
+/* Let's Go Readers reading book: cover, one sentence per page, final activity, ending. Toy Box room, 1280x800 stage. */
+:root{--ink:#2b2d3a;--vow:#e0473a;--con:#2f62c9;--verb:#e8492e;--teal:#4bb3a8;--orange:#f5a623;--coral:#ef6f5e;--purple:#8a7ce0;--gold:#f7c531}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden}
+body{background:radial-gradient(ellipse 70% 60% at 50% 30%,#fff8ea,transparent 70%),linear-gradient(#ffeccd 0,#ffe3bd calc(50% + 200px * var(--s,1)),#c78f5a 0,#e9bf8f calc(50% + 230px * var(--s,1)),#d9a774 100%);
+  font-family:"Baloo 2",sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:800px;transform-origin:0 0}
+.floor{position:absolute;left:-2000px;right:-2000px;top:586px;height:22px;background:linear-gradient(#fffaf0,#efe0c6);box-shadow:0 3px 0 #c9945f}
+.planks{position:absolute;left:-2000px;right:-2000px;top:611px;height:400px;background:repeating-linear-gradient(transparent 0 38px,rgba(120,72,30,.18) 38px 41px),repeating-linear-gradient(90deg,transparent 0 238px,rgba(120,72,30,.12) 238px 241px)}
+button{all:unset;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:5px solid var(--ink);outline-offset:5px;border-radius:20px}
+.round{position:absolute;top:26px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#eee6d8);border:5px solid var(--ink);display:grid;place-items:center;font-size:30px;font-weight:800;box-shadow:0 5px 0 rgba(30,39,82,.2);text-decoration:none;color:inherit}
+#home{left:30px}
+#ko{right:30px;font:500 26px "Noto Sans KR",sans-serif}
+#ko[aria-pressed=true]{background:var(--ink);color:#fff}
+.L{font-family:"Andika",sans-serif;font-weight:700}
+
+/* the book */
+#book{position:absolute;left:150px;top:44px;width:980px;height:664px;border-radius:34px;background:linear-gradient(160deg,#9d8ff0,#6a5cc0);padding:16px;box-shadow:0 12px 0 #5546a8,0 30px 34px rgba(110,62,20,.35)}
+#book::before{content:"";position:absolute;left:8px;top:30px;bottom:30px;width:10px;border-radius:5px;background:rgba(255,255,255,.3)}
+#page{position:relative;width:100%;height:100%;border-radius:22px;background:#fffdf7;overflow:hidden;display:flex;flex-direction:column}
+#page.turn{animation:turn .32s ease}
+@keyframes turn{from{transform:translateX(40px);opacity:.2}}
+.pic{position:relative;flex:1;min-height:0;overflow:hidden}
+.pic svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.text{flex:none;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 70px;position:relative}
+.sent{font:600 48px/1.15 "Fredoka",sans-serif;white-space:nowrap;color:var(--ink)}
+.sent .v{color:var(--verb)}
+.sent .w.on{background:#ffe680;border-radius:10px}
+.kor{font:500 23px "Noto Sans KR",sans-serif;color:#5c6478}
+.kor[hidden]{display:none}
+.no{position:absolute;right:22px;bottom:14px;font:600 20px "Fredoka";color:#b9ad97}
+.say{position:absolute;left:18px;top:50%;margin-top:-30px;width:60px;height:60px;border-radius:50%;background:var(--gold);display:grid;place-items:center;font-size:28px;box-shadow:0 5px 0 #c99a12}
+.arrow{position:absolute;top:320px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#fff,#eee6d8);border:6px solid var(--ink);display:grid;place-items:center;font:800 64px/1 "Baloo 2";padding-bottom:10px;box-shadow:0 7px 0 rgba(30,39,82,.22)}
+.arrow:active{transform:translateY(5px)}
+#prev{left:30px}#next{right:30px}
+.arrow[disabled]{opacity:.25;pointer-events:none}
+#next.glow{animation:pulse 1.2s ease-in-out infinite;background:var(--gold)}
+@keyframes pulse{50%{transform:scale(1.1)}}
+#dots{position:absolute;left:0;right:0;top:734px;display:flex;gap:10px;justify-content:center}
+#dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 3px rgba(30,39,82,.25)}
+#dots i.on{background:var(--ink)}
+
+/* moving parts: every animated piece turns or slides around its own box */
+svg [class^="m-"],svg [class^="p-"],svg .open{transform-box:fill-box;transform-origin:center}
+.m-float{animation:float 3.2s ease-in-out infinite}
+@keyframes float{50%{translate:0 -14px}}
+.m-hop{animation:hopy 1s ease-in-out infinite}
+@keyframes hopy{50%{translate:0 -16px}}
+.m-zoom{animation:zoom .5s linear infinite}
+@keyframes zoom{50%{translate:-7px 3px}}
+.m-zoomr{animation:zoomr .5s linear infinite}
+@keyframes zoomr{50%{translate:7px -3px}}
+.m-swim{animation:swim 2.4s ease-in-out infinite}
+@keyframes swim{50%{translate:-34px 8px}}
+.m-wag{animation:float 3.2s ease-in-out infinite}
+.m-fall{animation:fall 1.5s ease-in infinite}
+@keyframes fall{0%{translate:0 -40px;opacity:0}20%{opacity:1}100%{translate:0 50px}}
+.m-chop{animation:chop 1s ease-in-out infinite;transform-origin:90% 50%!important}
+/* the ax head is on the left and the handle end on the right is the pivot: the head lifts, then the sharp edge comes down */
+@keyframes chop{0%,100%{rotate:1deg}50%{rotate:26deg}}
+.m-drift{animation:drift 9s ease-in-out infinite alternate}
+@keyframes drift{from{translate:-40px 0}to{translate:40px 0}}
+.m-dash{animation:dash .6s linear infinite}
+@keyframes dash{from{translate:-30px 0;opacity:1}to{translate:50px 0;opacity:0}}
+.m-blink{animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.m-draw{stroke-dasharray:700;animation:draw 2.6s ease-in-out infinite}
+@keyframes draw{from{stroke-dashoffset:700}60%,to{stroke-dashoffset:0}}
+/* two-pose pictures: one pose shows, then the other */
+.f-a{animation:fa 1.3s steps(1) infinite}
+.f-b{animation:fb 1.3s steps(1) infinite}
+@keyframes fa{0%{opacity:1}55%{opacity:0}}
+@keyframes fb{0%{opacity:0}55%{opacity:1}}
+/* object parts */
+.p-jaw{transform-origin:92% 70%!important;animation:jaw 1.6s ease-in-out infinite}
+.p-jawlow{transform-origin:96% 30%!important;animation:jaw 1.6s ease-in-out infinite}
+@keyframes jaw{0%,100%{rotate:var(--jaw)}50%{rotate:calc(var(--jaw) * .3)}}
+.open .p-jaw{animation-duration:2.4s}
+.p-tail{transform-origin:0 80%!important;animation:tail 1.4s ease-in-out infinite}
+@keyframes tail{50%{rotate:-9deg}}
+.m-wag .p-tail{animation-duration:.45s}
+.p-leg,.p-leg2{transform-origin:50% 0!important;animation:leg .5s ease-in-out infinite alternate}
+.p-leg2{animation-direction:alternate-reverse}
+@keyframes leg{from{rotate:-9deg}to{rotate:9deg}}
+.p-ant{transform-origin:100% 100%!important;animation:leg 1.2s ease-in-out infinite alternate}
+.p-leaf{transform-origin:0 100%!important;animation:leg 2s ease-in-out infinite alternate}
+
+/* cover, in the worksheet style: bold colour, big two-tone title */
+.cover{position:absolute;inset:0;background:var(--c);overflow:hidden}
+.cover .art{position:absolute;inset:0;width:100%;height:100%}
+.cover .kick{position:absolute;left:56px;top:44px;font:600 21px "Fredoka";letter-spacing:.14em;color:var(--ink);opacity:.75}
+.cover h1{position:absolute;left:54px;top:76px;font:700 96px/.98 "Fredoka";color:var(--ink)}
+.cover h1 span{color:#fff}
+.cover .aa{position:absolute;left:58px;bottom:36px;font:700 84px/1 "Andika";color:#fff;background:var(--ink);border-radius:26px;padding:6px 28px 12px}
+.cover .tag{position:absolute;right:30px;top:30px;background:#fff;border-radius:999px;padding:8px 20px;font:600 20px "Fredoka"}
+.big{font:600 32px "Fredoka";border-radius:26px;padding:14px 32px;background:#1f8a8a;color:#fff;box-shadow:0 8px 0 #166868;display:inline-block;text-decoration:none}
+.big:active{transform:translateY(5px);box-shadow:0 3px 0 #166868}
+.big.alt{background:#ffd23f;color:var(--ink);box-shadow:0 8px 0 #c99a12}
+.row{display:flex;gap:16px;justify-content:center}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:30px;background:#fffaf0}
+.center h2{font:700 62px/1 "Fredoka"}
+.center .line{font:500 28px "Fredoka"}
+.center .small{font:500 22px "Fredoka";color:#6a6f8c}
+.big-sent{font-size:54px}
+.tiles{display:flex;gap:10px;justify-content:center}
+.tile{font:600 40px "Fredoka";white-space:nowrap;background:#fff;border-radius:18px;padding:10px 18px;box-shadow:0 7px 0 #e1d8c6;border:4px solid #efe6d4}
+.tile.ok{background:var(--verb);color:#fff;border-color:var(--verb);box-shadow:0 7px 0 #b5371f;animation:hop .5s}
+.tile.no{animation:wob .45s}
+@keyframes hop{40%{transform:translateY(-22px) rotate(-4deg)}}
+@keyframes wob{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.stars{display:flex;gap:10px;font-size:44px}
+.stars span{opacity:.25}.stars span.on{opacity:1}
+.shelfbook{display:flex;gap:14px}
+.slot{width:132px;height:164px;border-radius:16px;border:4px dashed #cdbf9f;display:grid;place-items:center;font:600 19px "Fredoka";color:#b9ad97;text-align:center;padding:6px;text-decoration:none}
+.slot.got{border:0;color:var(--ink);box-shadow:0 8px 0 rgba(43,45,58,.25);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;font:600 22px "Fredoka"}
+.slot.new{animation:hop .7s .3s}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}

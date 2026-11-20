@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPFIS · Story Street</title>
+
+<style>
+@font-face{font-family:Fredoka;src:url(../ext/fonts/Fredoka.ttf)}
+html,body{margin:0;height:100%;background:linear-gradient(#8fcff5 0 45%,#79c066 45%);overflow:hidden;font-family:Fredoka,sans-serif;color:#2b2d3a;-webkit-user-select:none;user-select:none}
+#rot{position:fixed;left:0;top:0;overflow:hidden;transform-origin:0 0}
+#world{position:absolute;left:0;top:0;width:3608px;height:1024px;transform-origin:0 0}
+#fill{position:absolute;inset:-60px;background:url(../options/art/pano/street-pano.webp) center/cover;filter:blur(18px) brightness(1.05)}   /* only seen above/below the picture on tall windows */
+#stage{position:absolute;left:0;top:0;width:3608px;height:1024px;background:url(../options/art/pano/street-pano.webp) 0 0/3608px 1024px no-repeat}
+#penny,#bub,.dust{z-index:900}
+/* Gerry: same build as Penny (feet at the origin) */
+#gerry{position:absolute;left:0;top:0;width:0;height:0;z-index:890;pointer-events:none}
+#gerry .shadow{position:absolute;left:-80px;top:-18px;width:160px;height:36px;border-radius:50%;background:radial-gradient(rgba(70,40,10,.5),rgba(70,40,10,.18) 45%,rgba(70,40,10,0) 72%)}
+#gerry .body{position:absolute;left:0;top:0;width:0;height:0;transition:opacity .45s,transform .45s;pointer-events:auto;cursor:pointer}
+#gimg{position:absolute;display:block;max-width:none;filter:drop-shadow(0 4px 3px rgba(80,40,0,.25));transform-origin:50% 100%;animation:pbreathe 3.1s ease-in-out infinite}
+#gerry.walk #gimg{animation:pstep .3s ease-in-out infinite}
+#gerry.gone .body{opacity:0;transform:translateY(-40px) scale(.55)}
+/* the Hall of Fame end of the panorama: its tap area, sign and back arrow (in the hall painting's own coordinates) */
+#stage2{position:absolute;left:2072px;top:0;width:1536px;height:1024px;z-index:2}   /* above the wide street layer, so the Hall of Fame can be tapped */
+.hof{position:absolute;left:712px;top:262px;width:352px;height:78px;display:grid;place-items:center;align-content:center;text-align:center;color:#7a4b0c;pointer-events:none;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.hof b{font-size:38px;line-height:1;letter-spacing:.5px}.hof span{font-size:20px;margin-top:4px;font-family:"Malgun Gothic",sans-serif;font-weight:700;color:#9a6a1c}
+.hof.on{transform:translateY(-6px) scale(1.05)}
+/* Street View-style arrows on the path */
+.go{position:absolute;width:104px;height:104px;border-radius:50%;border:0;background:rgba(255,255,255,.92);box-shadow:0 0 0 6px rgba(255,214,110,.55),0 10px 22px rgba(60,30,0,.3);display:grid;place-items:center;cursor:pointer;z-index:3000;animation:nudge 1.4s ease-in-out infinite}
+.go svg{width:58px;height:58px}
+.go.r{--d:10px}.go.l{--d:-10px}
+@keyframes nudge{50%{transform:translateX(var(--d))}}
+.spot{position:absolute;cursor:pointer;border-radius:30px}
+.spot::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(255,236,150,0);transition:box-shadow .3s}
+.spot.on::after{box-shadow:none}   /* no box around a building: its sign lifts and Penny speaks instead */
+.sign{position:absolute;display:grid;place-items:center;pointer-events:none;transform:rotate(var(--rot,0deg));transition:transform .35s cubic-bezier(.3,1.6,.5,1)}  /* each logo is centred in its painted sign, with even space all round, tilted like the sign */
+.sign img{max-width:100%;max-height:100%}
+.sign.on{transform:translateY(-6px) rotate(var(--rot,0deg)) scale(1.06)}
+.cover{position:absolute;object-fit:contain;transform:skewX(var(--sk,0deg));filter:drop-shadow(0 2px 2px rgba(80,50,0,.35));pointer-events:none;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}  /* each cover sits inside its painted easel frame, slanted like the frame */
+.cover.on{transform:translateY(-6px) skewX(var(--sk,0deg))}
+.pill{position:absolute;left:160px;top:412px;transform:translateX(-50%);background:#e8492e;color:#fff;font-size:30px;font-weight:700;padding:6px 22px;border-radius:999px;box-shadow:0 6px 0 rgba(0,0,0,.18);pointer-events:none}
+/* Penny: positioned by her feet */
+#penny{position:absolute;left:0;top:0;width:0;height:0;z-index:20;pointer-events:none}
+#penny .shadow{position:absolute;left:-88px;top:-18px;width:176px;height:36px;border-radius:50%;background:radial-gradient(rgba(70,40,10,.5),rgba(70,40,10,.18) 45%,rgba(70,40,10,0) 72%)}
+#penny.walk .shadow{animation:shadowWalk .28s ease-in-out infinite}@keyframes shadowWalk{50%{transform:scale(.9);opacity:.8}}
+/* Penny puppet: pieces in rig pixels, origin = between her feet; .rig is scaled to stage size */
+#penny .body{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;transition:opacity .45s,transform .45s}
+#pimg{position:absolute;display:block;max-width:none;filter:drop-shadow(0 4px 3px rgba(80,40,0,.25));transform-origin:50% 100%;animation:pbreathe 2.8s ease-in-out infinite}
+@keyframes pbreathe{50%{transform:scaleY(1.012)}}
+#penny.walk #pimg{animation:pstep .3s ease-in-out infinite}@keyframes pstep{50%{transform:translateY(-9px)}}
+#penny .rig{position:absolute;left:0;top:0;width:0;height:0;transform:scale(.53);transform-origin:0 0;filter:drop-shadow(0 3px 2px rgba(80,40,0,.22)) saturate(1.04)}   /* a little bigger next to the doors; warm soft edge so she sits in the painting */
+#penny .lean{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform .25s}
+#penny.walk.right .lean{transform:rotate(2deg)}#penny.walk.left .lean{transform:rotate(-2deg)}
+.pc{position:absolute;display:block}
+.pc img{display:block}
+.leg{top:-291px;transform-origin:50% 0}
+.leg.l{left:-124px}.leg.r{left:-15px}
+.torso{left:-180px;top:-563px;transform-origin:50% 100%}
+.arm{top:-528px}
+.arm.l{left:-178px;transform-origin:84px 24px;transform:rotate(11deg)}.arm.r{left:64px;transform-origin:32px 24px;transform:rotate(-11deg)}   /* shoulders at the dress edge, so the P badge and buttons stay visible */
+.head{left:-235px;top:-920px;transform-origin:50% 92%}
+.up{position:absolute;left:0;top:0;transform-origin:0 0}
+/* idle: breathe, arms sway a little */
+#penny .torso{animation:breathe 2.6s ease-in-out infinite}
+#penny .head{animation:nod 2.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.015)}}
+@keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(1.5deg) translateY(-3px)}}
+/* walk: legs step in turn, arms swing the other way, body and head bob */
+#penny.walk .leg.l{animation:stepL .56s ease-in-out infinite}
+#penny.walk .leg.r{animation:stepL .56s ease-in-out infinite;animation-delay:-.28s}
+@keyframes stepL{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-46px) rotate(3deg) scaleY(.93)}50%{transform:translateY(0) rotate(0)}}
+#penny.walk .leg.r{animation-name:stepR}
+@keyframes stepR{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-46px) rotate(-3deg) scaleY(.93)}50%{transform:translateY(0) rotate(0)}}
+#penny.walk .arm.l{animation:swingL .56s ease-in-out infinite}
+#penny.walk .arm.r{animation:swingR .56s ease-in-out infinite}
+/* an arm coming forward looks shorter (foreshortened) and moves in; the other goes back and out. Left arm forward while the right foot is up. */
+@keyframes swingL{0%,50%,100%{transform:rotate(13deg)}25%{transform:rotate(24deg)}75%{transform:rotate(4deg)}}
+@keyframes swingR{0%,50%,100%{transform:rotate(-13deg)}25%{transform:rotate(-4deg)}75%{transform:rotate(-24deg)}}
+#penny.walk .torso{animation:none}
+@keyframes sway{0%,50%,100%{transform:rotate(0)}25%{transform:rotate(1.8deg)}75%{transform:rotate(-1.8deg)}}
+#penny.walk .up{animation:bobUp .28s ease-in-out infinite}
+@keyframes bobUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+#penny.walk .head{animation:headWalk .56s ease-in-out infinite}
+@keyframes headWalk{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+/* arrive: hop with arms up */
+#penny.hop .body{animation:hop .55s cubic-bezier(.3,0,.4,1)}
+@keyframes hop{0%{transform:translateY(0) scale(1,1)}25%{transform:translateY(0) scale(1.06,.93)}55%{transform:translateY(-38px) scale(.97,1.04)}100%{transform:translateY(0) scale(1,1)}}
+#penny.hop .arm.l{animation:cheerL .9s ease-out}
+#penny.hop .arm.r{animation:cheerR .9s ease-out}
+/* arms sit behind the dress so the sleeve tops never show; a happy lift, not straight up */
+@keyframes cheerL{0%{transform:rotate(13deg)}30%{transform:rotate(140deg)}45%{transform:rotate(122deg)}60%{transform:rotate(140deg)}100%{transform:rotate(13deg)}}
+@keyframes cheerR{0%{transform:rotate(-13deg)}30%{transform:rotate(-140deg)}45%{transform:rotate(-122deg)}60%{transform:rotate(-140deg)}100%{transform:rotate(-13deg)}}
+/* wave hello: right hand up, waving */
+#penny.wave .arm.r{animation:waveR 1.5s ease-in-out}
+@keyframes waveR{0%{transform:rotate(-13deg)}18%{transform:rotate(-150deg)}30%{transform:rotate(-128deg)}42%{transform:rotate(-155deg)}54%{transform:rotate(-128deg)}66%{transform:rotate(-155deg)}82%{transform:rotate(-150deg)}100%{transform:rotate(-13deg)}}
+#penny.wave .head{animation:tilt 1.5s ease-in-out}@keyframes tilt{30%,70%{transform:rotate(-4deg)}}
+#penny.gone .body{opacity:0;transform:translateY(-40px) scale(.55)}
+.dust{position:absolute;width:26px;height:26px;border-radius:50%;background:rgba(255,248,230,.85);z-index:19;pointer-events:none;animation:dust .7s ease-out forwards}
+@keyframes dust{from{transform:translate(-50%,-50%) scale(.4);opacity:.9}to{transform:translate(-50%,-90%) scale(1.6);opacity:0}}
+.bub{position:absolute;z-index:1100;background:#fff;border:6px solid #2b2d3a;border-radius:34px;padding:14px 30px;font-size:44px;font-weight:600;white-space:nowrap;transform:translate(0,-100%) scale(.6);transform-origin:0 100%;opacity:0;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;pointer-events:none}
+.bub.on{transform:translate(0,-100%) scale(1);opacity:1}
+.bub.flip{transform:translate(-100%,-100%) scale(.6);transform-origin:100% 100%}.bub.flip.on{transform:translate(-100%,-100%) scale(1)}
+.bub::after{content:"";position:absolute;bottom:18px;left:-30px;border:16px solid transparent;border-right:26px solid #2b2d3a;border-left:0}
+.bub.up::after{left:auto;right:70px;bottom:-40px;border:16px solid transparent;border-top:26px solid #2b2d3a;border-bottom:0}
+.bub.flip::after{left:auto;right:-30px;border-right:16px solid transparent;border-left:26px solid #2b2d3a}
+.btn{position:fixed;z-index:4000;width:112px;height:112px;border-radius:50%;background:linear-gradient(#fff,#f1ece4);box-shadow:0 10px 0 rgba(0,0,0,.16),0 16px 24px rgba(0,0,0,.18);display:grid;place-items:center;cursor:pointer;border:0}
+.btn svg{width:62px;height:62px}
+.btn.off svg path:last-child{opacity:.15}
+#me{left:24px;top:20px;transform-origin:0 0;overflow:hidden;padding:0;box-shadow:0 0 0 8px #ffc531,0 10px 0 rgba(0,0,0,.18)}
+#me img{width:100%;height:100%;object-fit:cover}
+#snd{right:24px;top:20px;transform-origin:100% 0}
+#inside{--x:50vw;--y:60vh;visibility:hidden;position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:radial-gradient(circle at var(--x) var(--y),#fff6d8 0,#ffd977 40%,#f2a93b 100%);clip-path:circle(0 at var(--x) var(--y));transition:clip-path .7s cubic-bezier(.6,0,.3,1),visibility 0s .7s}
+#inside.on{transition:clip-path .7s cubic-bezier(.6,0,.3,1),visibility 0s}
+#inside.on{visibility:visible;clip-path:circle(150% at var(--x) var(--y))}
+#inside > div{text-align:center;font-size:64px;font-weight:700;transform:scale(var(--k,1))}
+#inTxt small{display:block;font:700 34px "Malgun Gothic",sans-serif;color:#8a5a12;margin-top:10px}
+#inside img{max-width:520px;max-height:170px;display:block;margin:0 auto 30px}
+#shelf{display:flex;gap:56px;justify-content:center;margin-top:10px}
+#shelf[hidden]{display:none}
+.bk{display:grid;justify-items:center;gap:14px;text-decoration:none;color:#2b2d3a;cursor:pointer;transition:transform .2s}
+.bk:hover{transform:translateY(-10px) rotate(-1deg)}
+#inside .bk img{max-width:none;max-height:none;margin:0;width:260px;aspect-ratio:1406/1989;object-fit:cover;object-position:center;border-radius:8px 14px 14px 8px;box-shadow:0 0 0 8px #fff,0 24px 40px rgba(80,40,0,.35)}
+.bk.soon img{filter:saturate(.75) brightness(.95)}
+.bk b{font-size:34px}.bk i{font-style:normal;font-size:24px;background:#fff;border-radius:999px;padding:4px 16px;margin-top:-6px}
+.bk.soon.wob{animation:wob .4s}@keyframes wob{25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+#inside button{margin-top:40px;font:600 36px Fredoka;border:0;border-radius:999px;padding:16px 40px;background:#2b2d3a;color:#fff;cursor:pointer}
+#tip{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font:500 15px system-ui,sans-serif;padding:6px 14px;border-radius:999px;z-index:60;white-space:nowrap}
+</style>
+<div id="rot">
+<div id="fill"></div>
+<div id="world">
+<div id="stage2">
+  <div class="spot" data-k="hall" style="left:390px;top:180px;width:1010px;height:650px"></div>
+  <div class="hof" data-s="hall"><b>Hall of Fame</b><span>나의 명예의 전당</span></div>
+  <button class="go l" id="toStreet" style="left:250px;top:840px" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M62 18 L28 50 L62 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
+<div id="stage">
+  <button class="go r" id="toHall" style="left:1392px;top:738px" aria-label="Go to the Hall of Fame"><svg viewBox="0 0 100 100"><path d="M38 18 L72 50 L38 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <!-- tap areas: sign + door of each shop, and the book stand -->
+  <div class="spot" data-k="pbl" style="left:300px;top:310px;width:400px;height:450px"></div>
+  <div class="spot" data-k="lgr" style="left:720px;top:300px;width:340px;height:460px"></div>
+  <div class="spot" data-k="fm" style="left:1080px;top:320px;width:440px;height:440px"></div>
+  <div class="spot" data-k="books" style="left:0px;top:420px;width:310px;height:400px"></div>
+  <div class="sign" data-s="pbl" style="left:424px;top:377px;width:146px;height:46px;--rot:0deg"><img src="../ext/logos/start-pbl.png" alt="Start PBL"></div>
+  <div class="sign" data-s="lgr" style="left:811px;top:372px;width:150px;height:46px;--rot:0deg"><img src="../ext/logos/lets-go-readers.png" alt="Let's Go Readers"></div>
+  <div class="sign" data-s="fm" style="left:1215px;top:366px;width:146px;height:48px;--rot:0deg"><img src="../ext/logos/fresh-math.png" alt="Fresh Math"></div>
+  <!-- two books per number (as on the GPEIS platform): 1–12 Literacy and Math + Play and Speak; 13–24 Daily Essay + ECS -->
+  <img class="cover" data-s="books" style="left:82px;top:655px;width:67px;height:82px;--sk:11deg" src="../books/covers/lm1.webp" alt="">
+  <img class="cover" data-s="books" style="left:186px;top:654px;width:64px;height:81px;--sk:9.8deg" src="../books/covers/ps1.webp" alt="">
+  <div class="pill">Book 1</div>
+  <div id="penny"><div class="shadow"></div><div class="body"><img id="pimg" src="../art/penny/stand.webp" alt="Penny" draggable="false"></div></div>
+  <div class="bub" id="bub"></div>
+</div>
+</div>
+<div id="inside"><div><img id="inImg" alt=""><span id="inTxt"></span>
+    <div id="shelf" hidden>
+      <a class="bk" href="../books/reader.html?b=eps-lm-1"><img src="../books/covers/lm1.webp" alt="Literacy and Math 1"><b>Literacy and Math</b></a>
+      <a class="bk" href="../books/reader.html?b=eps-ps-1"><img src="../books/covers/ps1.webp" alt="Play and Speak 1"><b>Play and Speak</b></a>
+    </div><br><button id="back">← Back to the street</button></div></div>
+<button class="btn" id="me" aria-label="Who's playing"><img src="../ext/faces/face-ria.webp" alt=""></button>
+<button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
+</div>
+<script src="../voice/clips.js"></script>
+<script src="../kit/voice.js"></script>
+<script src="../kit/turn.js"></script>
+<script>
+const stage = document.getElementById('stage'), P = document.getElementById('penny'), img = document.getElementById('pimg'), bub = document.getElementById('bub');
+/* Penny is whole-body pose pictures drawn from GP's Penny (art/penny, one ChatGPT pose sheet so she is the same girl in
+   every pose): stand, blink, talk, wave, cheer, point and walking steps. The page only adds classes (walk / left / right /
+   hop / wave) and says when she talks; this picks the picture. No cut-apart limbs any more. */
+/* two helpers, the child picks: Penny or Gerry (GP's own characters; Gerry wears his uniform). Each has the same set of
+   pose pictures in art/<id>/. Chosen with the round face button (kept on this device as gpfis.mate) or ?mate=gerry. */
+const MATES = {
+  penny: { name: 'Penny', pitch: 1.4, stand: 431, poses: { stand: [281, 431], blink: [281, 431], talk: [280, 431], wave: [281, 431, -4], cheer: [293, 431], point: [307, 441, -10],
+    r1: [260, 440], r2: [222, 441], r3: [248, 443], r4: [225, 444], l1: [255, 445], l2: [223, 445], l3: [250, 442], l4: [232, 449] } },
+  gerry: { name: 'Gerry', pitch: 1.15, stand: 446, poses: { stand: [194, 446], blink: [198, 447], talk: [194, 447], wave: [246, 448, -22], cheer: [282, 443], point: [263, 452, 28], think: [196, 454], thumb: [215, 455, -8], pointl: [261, 452, -14], pointr: [265, 452, 12],   // pointl = the same way Penny points
+   
+    r1: [229, 451], r2: [196, 448], r3: [224, 451], r4: [202, 446], l1: [235, 455], l2: [192, 453], l3: [221, 455], l4: [194, 451] } },
+};
+const mateId = 'penny';   // Penny leads the way; Gerry walks along behind her (see "Gerry follows" below). Both are always there.
+const MATE = MATES[mateId], ART = '../art/' + mateId + '/', PK = 440 / MATE.stand, POSES = MATE.poses;   // both helpers stand 440 stage px tall (a little smaller so the two fit side by side)
+img.alt = MATE.name;
+const WALK = { right: ['r1', 'r2', 'r3', 'r4'], left: ['l1', 'l2', 'l3', 'l4'] };
+Object.keys(POSES).forEach(k => { new Image().src = ART + k + '.webp'; });
+let arrivedAt = -1e9, poseNow = '', talking = false, blinkT = 0, cheerT = 0, waveT = 0, pointT = 0;
+function setPose(k) {
+  if (k === poseNow || !POSES[k]) return; poseNow = k; const [w, h, dx = 0] = POSES[k];
+  img.src = ART + k + '.webp'; Object.assign(img.style, { width: w * PK + 'px', height: h * PK + 'px', left: (-w / 2 + dx) * PK + 'px', top: -h * PK + 'px' });
+}
+new MutationObserver(() => { const now = performance.now();
+  if (P.classList.contains('hop') && !P._hop) cheerT = now + 750; P._hop = P.classList.contains('hop');
+  if (P.classList.contains('wave') && !P._wave) waveT = now + 1500; P._wave = P.classList.contains('wave');
+}).observe(P, { attributes: true, attributeFilter: ['class'] });
+setInterval(() => { const now = performance.now(), c = P.classList;
+  if (c.contains('walk')) return setPose(WALK[c.contains('left') ? 'left' : 'right'][Math.floor(now / 140) % 4]);
+  if (now < cheerT) return setPose('cheer');
+  if (now < waveT) return setPose('wave');
+  if (now < pointT) return setPose('point');   // she HOLDS the point while she names the place (no flicking between pictures)
+  if (talking) return setPose(Math.floor(now / 180) % 2 ? 'talk' : 'stand');
+  setPose(now < blinkT ? 'blink' : 'stand');
+}, 50);
+setInterval(() => { blinkT = performance.now() + 150; }, 3200);
+document.getElementById('world').appendChild(document.getElementById('penny')); document.getElementById('world').appendChild(document.getElementById('bub'));
+/* where Penny stands (her feet) in front of each place, and what she says */
+const PLACES = {
+  home:  { x: 1060, y: 885, say: '' },
+  /* the pair stands just to the RIGHT of each sign (Penny, then Gerry on her right), so when they both point up-left they point at that place's own sign */
+  pbl:   { x: 610,  y: 850, say: 'Start PBL!', logo: '../ext/logos/start-pbl.png' },
+  lgr:   { x: 995,  y: 835, say: "Let's Go Readers!", logo: '../ext/logos/lets-go-readers.png' },
+  fm:    { x: 1385, y: 850, say: 'Fresh Math!', logo: '../ext/logos/fresh-math.png' },
+  books: { x: 345,  y: 905, say: 'Our new books!', logo: '' },
+  hall:  { x: 3060, y: 900, say: 'My Hall of Fame!', logo: '' },
+};
+/* the cobblestone path: Penny walks via these points so she stays on it */
+/* one path through the whole panorama: Hall of Fame → garden bridge (painted path curving down) → street */
+const PATH = [[2852, 895], [2500, 920], [2200, 930], [1960, 915], [1880, 890], [1830, 850], [1760, 803], [1700, 792], [1536, 795], [1440, 805], [1250, 845], [1060, 885], [700, 900], [420, 930]];
+const sceneOf = p => (p.x >= 1700 ? 1 : 0);
+
+/* ONE panorama (options/art/pano/street-pano.png, 3608 x 1024): the street (0–1536), a painted garden bridge, and the
+   Hall of Fame (centre x 2852). The whole height is always shown (nothing cut off, no mirrored copies); the window shows
+   as much of the panorama's width as fits, and the camera slides along it. While Penny is on the street the camera rests
+   on the street; on the garden path it glides with her; at the Hall of Fame it rests there. */
+const PW = 3608, world = document.getElementById('world'); let FIT = { s: 1, left: 0, top: 0, ox: 0 }, SCN = 0;
+let pos = { x: PLACES.home.x, y: PLACES.home.y }, at = null, target = null, raf = 0, sound = true;
+const focusFor = x => x <= 1500 ? 768 : x >= 2700 ? 2852 : 768 + (x - 1500) / 1200 * (2852 - 768);
+function fit() {
+  Turn.update(); const w = Turn.W, h = Turn.H;
+  let s = h / 1024; if (w / s < 1400) s = w / 1400;              // tall windows: keep most of the street's width, soft fill above/below
+  const top = (h - 1024 * s) / 2;
+  const focus = Math.max(focusFor(pos.x), pos.x + 320 - w / s / 2);   // on narrow windows the view slides a little so Gerry, on her right, is never cut off
+  const left = Math.min(0, Math.max(w - PW * s, w / 2 - focus * s));
+  world.style.transform = `translate(${left}px,${top}px) scale(${s})`; FIT = { s, left, top, ox: left };
+  const k = Math.max(.55, Math.min(1, s)); ['me', 'snd'].forEach(id => document.getElementById(id).style.transform = `scale(${k})`);
+}
+addEventListener('resize', fit);
+function pan(sc) { SCN = sc; }   // kept for the fun layer (whoosh when Penny heads to the other end)
+
+/* ---------- Gerry follows: he walks along Penny's own footsteps, about a step and a half behind her ---------- */
+const G = document.createElement('div'); G.id = 'gerry';
+G.innerHTML = '<div class="shadow"></div><div class="body"><img id="gimg" src="../art/gerry/stand.webp" alt="Gerry" draggable="false"></div>';
+const gimg = G.querySelector('img'), GM = MATES.gerry, GK = 440 / GM.stand, GAP = 190, BESIDE = 200;
+document.getElementById('world').appendChild(G);
+Object.keys(GM.poses).forEach(k => { new Image().src = '../art/gerry/' + k + '.webp'; });
+let gSide = 1, trail = [], gpos = null, gPose = '', gDir = 'left', gMovedAt = 0, gWaveT = 0, gThumbT = 0, gTalking = false;
+function crumb() {
+  const last = trail[trail.length - 1];
+  if (!last || Math.hypot(pos.x - last.x, pos.y - last.y) > 260) { trail = [{ x: pos.x + 200, y: pos.y }, { x: pos.x, y: pos.y }]; gpos = null; gSide = 1; }   // start, or a jump: he stands beside her
+  else if (Math.hypot(pos.x - last.x, pos.y - last.y) > 3) { trail.push({ x: pos.x, y: pos.y }); if (trail.length > 400) trail.shift(); }
+}
+function gSet(k) { if (k === gPose || !GM.poses[k]) return; gPose = k; const [w, h, dx = 0] = GM.poses[k];
+  gimg.src = '../art/gerry/' + k + '.webp'; Object.assign(gimg.style, { width: w * GK + 'px', height: h * GK + 'px', left: (-w / 2 + dx) * GK + 'px', top: -h * GK + 'px' }); }
+setInterval(() => {
+  if (!trail.length) return; const now = performance.now();
+  // the point GAP px back along the trail from Penny
+  let left = GAP, i = trail.length - 1, t = trail[i];
+  while (i > 0 && left > 0) { const a = trail[i], b = trail[i - 1], d = Math.hypot(a.x - b.x, a.y - b.y); if (d >= left) { t = { x: a.x + (b.x - a.x) * left / d, y: a.y + (b.y - a.y) * left / d }; left = 0; } else { left -= d; t = b; i--; } }
+  if (!gpos) gpos = { x: t.x, y: t.y };
+  /* when Penny stands still he comes to stand SIDE BY SIDE with her (same line, never in front of or behind her) */
+  if (P.classList.contains('walk')) gSide = 0;
+  else { gSide = 1; t = { x: pos.x + BESIDE, y: pos.y }; }   // always on her right
+  const dx = t.x - gpos.x, dy = t.y - gpos.y, d = Math.hypot(dx, dy), step = Math.min(d, 24);
+  if (d > 1) { gpos.x += dx / d * step; gpos.y += dy / d * step; gMovedAt = now; if (Math.abs(dx) > 1) gDir = dx < 0 ? 'left' : 'right'; }
+  const moving = now - gMovedAt < 130;
+  G.style.transform = `translate(${gpos.x}px,${gpos.y}px) scale(${depth(gpos.y)})`; G.style.zIndex = Math.round(gpos.y) - 1;
+  G.classList.toggle('walk', moving); G.classList.toggle('gone', P.classList.contains('gone'));
+  if (moving) return gSet(WALK[gDir][Math.floor(now / 140) % 4]);
+  if (now < cheerT + 180) return gSet('cheer');            // he cheers with her, a beat later
+  if (now < gWaveT) return gSet('wave');
+  if (gTalking) return gSet(Math.floor(now / 180) % 2 ? 'talk' : 'stand');
+  if (now < gThumbT) return gSet('thumb');
+  if (now < pointT) return gSet(GM.poses.pointl ? 'pointl' : 'stand');            // he points the SAME way as Penny while she names the place
+  gSet(now < blinkT + 900 && now > blinkT + 750 ? 'blink' : 'stand');
+}, 40);
+const depth = y => 0.72 + (y - 780) / 240 * 0.28;            // further up the street = smaller
+const vx = x => x;
+let camX = null;
+function place() {
+  P.style.transform = `translate(${pos.x}px,${pos.y}px) scale(${depth(pos.y)})`; P.style.zIndex = Math.round(pos.y);
+  crumb();
+  const f = Math.round(pos.x); if (f !== camX) { camX = f; fit(); }   // the camera follows her along the garden path
+}
+place(); fit();
+
+/* route: from where she is, along the path, to the place */
+function along(PATH, from, to) {
+  const nearest = p => PATH.reduce((b, q, i) => Math.hypot(q[0] - p.x, q[1] - p.y) < Math.hypot(PATH[b][0] - p.x, PATH[b][1] - p.y) ? i : b, 0);
+  const a = nearest(from), b = nearest(to), pts = [];
+  if (a <= b) for (let i = a; i <= b; i++) pts.push(PATH[i]); else for (let i = a; i >= b; i--) pts.push(PATH[i]);
+  return [...pts.map(([x, y]) => ({ x, y })), { x: to.x, y: to.y }];
+}
+const route = to => along(PATH, pos, to);
+function walkTo(k) {
+  if (k === target || (k === at && !target)) { if (k === at && performance.now() - arrivedAt > 4000) arrive(k); return; }   // already here: don't cheer and point again on every hover
+  target = k; hush(); cancelAnimationFrame(raf);
+  const pts = route(PLACES[k]); let i = 0, last = performance.now(), dustT = 0;
+  pan(sceneOf(PLACES[k]));
+  P.classList.add('walk');
+  const step = now => {
+    const dt = Math.min(50, now - last) / 1000; last = now;
+    let goal = pts[i]; let dx = goal.x - pos.x, dy = goal.y - pos.y, d = Math.hypot(dx, dy);
+    while (d < 6 && i < pts.length - 1) { i++; goal = pts[i]; dx = goal.x - pos.x; dy = goal.y - pos.y; d = Math.hypot(dx, dy); }
+    if (d < 6 && i === pts.length - 1) { pos = { x: goal.x, y: goal.y }; place(); P.classList.remove('walk'); target = null; at = k; arrive(k); return; }
+    const v = 520 * depth(pos.y) * dt;                          // speed (px per second, slower far away)
+    pos.x += dx / d * Math.min(v, d); pos.y += dy / d * Math.min(v, d);
+    if (Math.abs(dx) > 4) { P.classList.toggle('left', dx < 0); P.classList.toggle('right', dx > 0); }
+    place();
+    if ((dustT += dt) > .16) { dustT = 0; puff(); }
+    raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+function puff() {
+  const d = document.createElement('div'); d.className = 'dust';
+  d.style.left = vx(pos.x) + (Math.random() * 40 - 20) + 'px'; d.style.top = pos.y - 6 + 'px';
+  world.appendChild(d); setTimeout(() => d.remove(), 720);
+}
+/* at the door: turn to us, hop, say the name */
+function arrive(k) {
+  P.classList.remove('left', 'right', 'wave'); P.classList.remove('hop'); void P.offsetWidth; P.classList.add('hop');
+  light(k);
+  const say = PLACES[k].say; if (!say) return;
+  pointT = performance.now() + 1800; arrivedAt = performance.now();
+  const s = depth(pos.y); bub.textContent = say;
+  const side = -1;   /* Penny's bubble always opens to her LEFT: Gerry stands on her right */ bub.classList.toggle('flip', side < 0);   /* the bubble opens on the side away from Gerry */
+  bub.style.left = vx(pos.x) + side * 120 * s + 'px'; bub.style.top = pos.y - 250 * s + 'px'; bub.classList.add('on');
+  fixBub();
+  talk(say);
+}
+/* Penny's bubble opens to her left. If that would run off the screen (the book stand, at the left edge), it sits above
+   the two of them instead. Worked out from the bubble's own width, so it is right from the first moment. */
+function fixBub() {
+  const s = depth(pos.y), w = bub.offsetWidth, leftEdge = (pos.x - 120 * s - w) * FIT.s + FIT.left;
+  bub.classList.remove('up');
+  if (leftEdge < 12) { bub.classList.remove('flip'); bub.classList.add('up'); bub.style.left = (14 - FIT.left) / FIT.s + 'px'; bub.style.top = pos.y - 455 * s + 'px'; }   // against the left edge, just above her head, tail pointing down to her
+}
+let talkT = 0, talkN = 0;
+function talk(text) {   // Penny says a line: recorded clip (kit/voice.js), her mouth moves until it ends
+  clearTimeout(talkT); talking = true; const mine = ++talkN;
+  const end = () => { if (mine === talkN) talking = false; };
+  talkT = setTimeout(end, 900 + text.length * 90);                    // also ends if the sound is off or blocked
+  return Voice.say(text, { who: 'penny' }).then(() => { if (sound) end(); });
+}
+function hush() { bub.classList.remove('on'); light(null); clearTimeout(talkT); talking = false; talkN++; }
+function light(k) {
+  document.querySelectorAll('.spot').forEach(e => e.classList.toggle('on', e.dataset.k === k));
+  document.querySelectorAll('[data-s]').forEach(e => e.classList.toggle('on', e.dataset.s === k));
+}
+/* blink now and then */
+
+/* computer: hover walks; click goes in. Tablet/phone: first tap walks, second tap goes in. */
+let hoverT = 0, touch = false;
+addEventListener('touchstart', () => { touch = true; }, { passive: true, once: true });
+document.querySelectorAll('.spot').forEach(el => {
+  const k = el.dataset.k;
+  el.addEventListener('mouseenter', () => { if (touch) return; clearTimeout(hoverT); hoverT = setTimeout(() => walkTo(k), 120); });
+  el.addEventListener('mouseleave', () => clearTimeout(hoverT));
+  el.addEventListener('click', () => { if (at === k && !target) goIn(k); else { walkTo(k); if (!touch) waitThen(k, goIn); } });
+});
+function waitThen(k, fn) { const t = setInterval(() => { if (at === k && !target) { clearInterval(t); setTimeout(() => fn(k), 500); } }, 60); }
+/* the three programmes are not live yet: their doors open to an Opening soon screen (the door links go here when a programme goes live) */
+const SOON = { pbl: 'Start PBL opens in January! See you soon!', lgr: "Let's Go Readers opens in January! See you soon!", fm: 'Fresh Math opens in January! See you soon!' };
+const LIVE = { pbl: '../pbl/index.html', lgr: '../lgr/kingdom.html', fm: '../fm/index.html' };   // put a programme's address here to make its door open it
+function goIn(k) {
+  if (LIVE[k]) { hush(); P.classList.add('gone'); setTimeout(() => { location.href = LIVE[k]; }, 600); return; }
+  const ins = document.getElementById('inside'), r = document.querySelector(`.spot[data-k="${k}"]`);
+  const off = 0;
+  ins.style.setProperty('--x', FIT.ox + (off + parseInt(r.style.left) + parseInt(r.style.width) / 2) * FIT.s + 'px');
+  ins.style.setProperty('--y', FIT.top + (parseInt(r.style.top) + parseInt(r.style.height) * .7) * FIT.s + 'px');
+  ins.style.setProperty('--k', Math.max(.4, Math.min(1.2, Turn.W / 1536, Turn.H / 1024)));
+  const im = document.getElementById('inImg'); im.hidden = !PLACES[k].logo; if (PLACES[k].logo) im.src = PLACES[k].logo;
+  document.getElementById('inTxt').innerHTML = k === 'books' ? 'Book 1 · pick a book!' : k === 'hall' ? 'My Hall of Fame' : 'Opening soon!<small>2027년 1월 OPEN</small>';
+  if (SOON[k]) setTimeout(() => { if (ins.classList.contains('on')) Voice.say(SOON[k], { who: 'penny' }); }, 900);
+  document.getElementById('shelf').hidden = k !== 'books';
+  hush(); P.classList.add('gone');
+  setTimeout(() => ins.classList.add('on'), 380);
+  if (k === 'hall') setTimeout(() => { location.href = 'hall.html'; }, 1000);   // the hall's door opens into the room
+}
+document.querySelectorAll('.bk.soon').forEach(b => b.onclick = () => { b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); talk('Coming soon!'); });
+document.getElementById('toHall').onclick = () => walkTo('hall');
+document.getElementById('toStreet').onclick = () => walkTo('home');
+document.getElementById('back').onclick = () => { document.getElementById('inside').classList.remove('on'); setTimeout(() => { P.classList.remove('gone'); arrive(at); }, 500); };
+document.getElementById('snd').onclick = e => { sound = !sound; e.currentTarget.classList.toggle('off', !sound); Voice.mute(!sound); };
+/* coming back from inside the Hall of Fame starts at its door once; the marker is then taken out of the address,
+   so refreshing the page starts on the street again */
+const fromHall = /scene=hall/.test(location.hash); if (fromHall) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+if (fromHall) { pan(1); fit(); pos = { x: PLACES.hall.x, y: PLACES.hall.y }; place(); at = 'hall'; setTimeout(() => arrive('hall'), 200); }   // for checking pictures
+if (/walk=hall/.test(location.hash)) setTimeout(() => document.getElementById('toHall').click(), 1500);   // for checking pictures
+if (/open=books/.test(location.hash)) setTimeout(() => goIn('books'), 100);
+/* checking stills: street.html#pose=walk-0.14 freezes the walk at that moment (seconds); #pose=stand, #pose=cheer */
+const pose = (location.hash.match(/pose=([a-z0-9]+)(?:-([0-9.]+))?/) || []);
+if (pose[1]) { pos = { x: 760, y: 900 }; place(); if (POSES[pose[1]]) { setPose(pose[1]); poseNow = 'frozen'; setPose = () => {}; }
+  img.style.animation = 'none';
+} else
+/* opening: Penny walks in from the corner */
+if (!fromHall && !/scene=/.test(location.hash)) { pos = { x: 1620, y: 793 }; place(); P.classList.add('left'); setTimeout(() => walkTo('home'), 300);   /* she walks in along the garden path */ }
+</script>
+<script src="../kit/talk.js"></script>
+<script src="street-fun.js"></script>
+</html>

@@ -1,0 +1,517 @@
+/* Inside a place: one painted room where each thing is one worksheet page.
+   Every page is PLAY first, then SAY IT (shared GPFIS speaking kit), then Done. Free order; a tick on each finished thing;
+   nothing is given until SPEECH TIME at the end (boss, 21 Nov: Start PBL = Speech Time: answer the week's key question out loud).
+   A room is DATA (see ROOMS at the bottom): its painting, its key question, and for each thing an activity TYPE plus that page's words.
+   So when a worksheet page changes, only its entry in ROOMS changes.
+   Every finished page is saved per month and week (localStorage spbl.pages) so a library can later bind the month's book. */
+window.Room = (() => {
+  const K = () => window.__kit, PKEY = 'spbl.pages';
+  const load = () => { try { return JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (e) { return {}; } };
+  let all = load(), D = null, ctx = null, box = null, rp = null, R = null;
+  const save = () => { try { localStorage.setItem(PKEY, JSON.stringify(all)); } catch (e) {} };
+  const sc = () => innerHeight / 820, rnd = (a, b) => a + Math.random() * (b - a), wait = ms => new Promise(r => setTimeout(r, ms));
+  const isDone = id => !!(D[id] && D[id].ok);
+  const plays = () => R.things.filter(t => t.type !== 'book' && t.type !== 'stage');
+  const allPlayed = () => plays().every(t => isDone(t.id));
+  const bookT = () => R.things.find(t => t.type === 'book');
+  const count = () => R.things.filter(t => isDone(t.id)).length;
+  const lockedNow = t => (t.type === 'book' && !allPlayed()) || (t.type === 'stage' && !(allPlayed() && (!bookT() || isDone(bookT().id))));
+
+  // ---------- talking and listening ----------
+  function say(text, el) {
+    return new Promise(res => {
+      if (el) el.classList.add('saying');
+      let fin = false; const end = () => { if (fin) return; fin = true; if (el) el.classList.remove('saying'); res(); };
+      try {
+        const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .85; u.pitch = 1.15; u.onend = end; u.onerror = end;
+        speechSynthesis.cancel(); speechSynthesis.speak(u); setTimeout(end, 900 + text.length * 95);
+      } catch (e) { setTimeout(end, 600); }
+    });
+  }
+
+  // ---------- small tools ----------
+  function pad(cv, getCol, onInk, getStamp) {
+    const c = cv.getContext('2d'); c.lineCap = c.lineJoin = 'round'; let on = false, last = null;
+    const p = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; };
+    cv.addEventListener('pointerdown', e => {
+      e.stopPropagation(); last = p(e); onInk && onInk(); const st = getStamp && getStamp();
+      if (st) { c.font = '64px serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(st, last.x, last.y); K().snd.boing(); return; }
+      on = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} c.fillStyle = getCol(); c.beginPath(); c.arc(last.x, last.y, 5, 0, 7); c.fill();
+    });
+    cv.addEventListener('pointermove', e => { if (!on) return; const q = p(e); c.strokeStyle = getCol(); c.lineWidth = 10; c.beginPath(); c.moveTo(last.x, last.y); c.lineTo(q.x, q.y); c.stroke(); last = q; });
+    const up = () => { on = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    return { clear: () => c.clearRect(0, 0, cv.width, cv.height), data: () => cv.toDataURL('image/png'), put: d => { if (!d) return; const im = new Image(); im.onload = () => c.drawImage(im, 0, 0); im.src = d; } };
+  }
+  const DOTS = ['#1f2a4d', '#e8492e', '#ff9f1c', '#ffd23f', '#2fb86a', '#3a86ff', '#b9a5e6', '#8d5a3b'];
+  const dots = st => `<div class="dots">${DOTS.map((c, i) => `<i style="background:${c}" data-c="${c}"${i ? '' : ' class="on"'}></i>`).join('')}${(st || []).map(s => `<s data-s="${s}">${s}</s>`).join('')}<b class="wipe">↺</b></div>`;
+  function wireDots(root, getPad) {
+    let col = DOTS[0], stamp = '';
+    const els = [...root.querySelectorAll('.dots i, .dots s')];
+    els.forEach(d => d.addEventListener('click', () => { col = d.dataset.c || col; stamp = d.dataset.s || ''; els.forEach(x => x.classList.toggle('on', x === d)); K().snd.pop(); }));
+    root.querySelector('.wipe').addEventListener('click', () => { getPad().clear(); K().snd.boing(); });
+    return { col: () => col, stamp: () => stamp };
+  }
+  // drag a thing with a finger; onDrop(target) says whether it was right (wrong ones spring back)
+  function drag(el, targets, onDrop) {
+    let sx, sy, on = false;
+    el.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); if (el.classList.contains('gone')) return; on = true; sx = e.clientX; sy = e.clientY; el.classList.add('drag'); try { el.setPointerCapture(e.pointerId); } catch (er) {} K().snd.pop(); });
+    el.addEventListener('pointermove', e => { if (on) el.style.translate = `${(e.clientX - sx) / sc()}px ${(e.clientY - sy) / sc()}px`; });
+    const up = () => {
+      if (!on) return; on = false; el.classList.remove('drag');
+      const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const t = targets().find(q => { const b = q.getBoundingClientRect(); return cx > b.left && cx < b.right && cy > b.top && cy < b.bottom; });
+      if (!(t && onDrop(t))) { el.style.translate = ''; if (t) wrong(el); }
+    };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  }
+  const at = el => { const r = el.getBoundingClientRect(); return K().pt({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }); };
+  function right(el, n = 22) { const o = at(el); K().snd.ding(3); K().burst(o.x, o.y, n, 320); K().again(el, 'yes'); cheer(); }
+  function wrong(el) { K().snd.nope(); K().again(el, 'no'); }
+  function cheer() { if (!box) return; box.querySelectorAll('#act .hl').forEach(m => K().again(m, 'jump')); }
+  const clap = () => { for (let i = 0; i < 14; i++) setTimeout(() => K().snd.rattle(), i * 90 + rnd(0, 40)); };
+  const chipsOf = (list, cls, on) => list.map(([e, w], i) => `<button class="${cls}${on.includes(w) ? ' on' : ''}" data-w="${w}" style="--a:${i * (360 / list.length) - 90}deg;--d:${i * -.45}s"><i>${e}</i>${w}</button>`).join('');
+  const emo = (t, w) => ((t.words || t.items || t.likes || []).find(x => x[1] === w) || [''])[0];
+
+  // ---------- the room ----------
+  function lay() {
+    if (!rp) return; const k = K(), w = k.W(), h = w * 941 / 1672;   // always the room's full width; pinned to the top so the TV shows
+    rp.style.cssText = `left:0;top:0;width:${w}px;height:${h}px`;
+  }
+  function open(c) {
+    ctx = c; R = ROOMS[c.month + '-' + c.week] || ROOMS['1-1'];
+    all = load(); all[c.month] = all[c.month] || {}; D = all[c.month][c.week] = all[c.month][c.week] || {};
+    box = document.querySelector('#inside');
+    const pc = z => `left:${z[0] * 100}%;top:${z[1] * 100}%;width:${z[2] * 100}%;height:${z[3] * 100}%`;
+    box.innerHTML = `<div class="rpic"><img class="bg" src="${R.art}" alt="">` +
+      `<div class="hz tv" data-id="tv" style="${pc(R.tv)}"><b class="watch">▶ Watch <small>영상 보기</small></b></div>` +
+      R.things.map(t => `<div class="hz" data-id="${t.id}" style="${pc(t.zone)}"><em></em></div>`).join('') +
+      `<img class="rm g" src="art/gerry.png" alt=""><img class="rm p" src="art/penny.png" alt=""></div>` +
+      `<button class="out pill">← Outside <small>밖으로</small></button><div class="keyq pill"><i>?</i>${R.key}</div><div class="prog pill"><span><u></u></span><b></b></div><div id="act"></div>`;
+    rp = box.querySelector('.rpic'); lay(); box.classList.add('on'); document.body.classList.add('inroom'); K().snd.boing();
+    box.querySelectorAll('.hz').forEach(z => z.addEventListener('click', () => press(z.dataset.id, z)));
+    box.querySelector('.out').addEventListener('click', () => close(false));
+    box.querySelector('.keyq').addEventListener('click', () => say(R.key));
+    paint();
+    setTimeout(() => { K().toast(count() ? 'Welcome back! Keep going. <small>계속해요!</small>' : 'Press anything in the room! <small>방 안의 물건을 눌러 봐요</small>'); if (!count()) say(R.key); }, 400);
+  }
+  function paint() {
+    const n = count(), N = R.things.length;
+    box.querySelector('.prog u').style.width = n / N * 100 + '%'; box.querySelector('.prog b').textContent = n + ' of ' + N;
+    box.querySelectorAll('.hz').forEach(z => {
+      const t = R.things.find(x => x.id === z.dataset.id); if (!t) return;
+      z.classList.toggle('done', isDone(t.id)); z.classList.toggle('locked', lockedNow(t));
+    });
+  }
+  function close(ok) { try { speechSynthesis.cancel(); } catch (e) {} box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); }
+  function crew() { box.querySelectorAll('.rm').forEach(m => K().again(m, 'jump')); }
+  function press(id, z) {
+    const k = K(); k.again(z, 'tap');
+    if (id === 'tv') return video();
+    const t = R.things.find(x => x.id === id);
+    if (lockedNow(t)) {
+      k.snd.nope(); k.again(z, 'no');
+      return k.toast(t.type === 'book' ? 'Your book fills up when you play the other things. <small>다른 활동을 먼저 해요</small>' : 'Speech Time opens when everything else is done. <small>다 하면 무대가 열려요</small>');
+    }
+    k.snd.pop(); crew(); TYPES[t.type](t);
+  }
+
+  // ---------- one activity: PLAY, then SAY IT, then Done ----------
+  // The speaking turn is the shared GPFIS kit (kit/talk.js, the same piece as gpfis-site/demo/speak.html):
+  // it listens, shows the words it hears, lights up each word the child said, gives 1-3 stars and a score, and lets them try again.
+  function screen(t, sub, body) {
+    const a = box.querySelector('#act'), T = window.Talk, id = t.id, stage = t.type === 'stage';
+    a.style.setProperty('--c', t.col);
+    a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2><p class="sub">${sub}</p><div class="body">${body}</div>` +
+      `<img class="hl g" src="art/gerry.png" alt=""><img class="hl p" src="art/penny.png" alt="">` +
+      `<div class="sayit${stage ? ' speech' : ''}"><div class="row"><i>${stage ? 'Speech Time!' : 'Say it!'}</i><p class="words"></p><div class="res"><b class="st"></b><span class="num"></span></div></div>` +
+      `<div class="row"><button class="hear" title="Listen">🔊</button><button class="slow" title="Listen slowly">🐢</button><button class="me" title="Press and speak">🎤</button>` +
+      `<button class="mine" title="Hear me" disabled>🙋</button><span class="heard"></span><button class="saidit">I said it! ✋</button></div></div><button class="ok">Done ✓</button>`;
+    a.classList.add('on');
+    const ok = a.querySelector('.ok'), bar = a.querySelector('.sayit'), txt = bar.querySelector('.words'), me = bar.querySelector('.me'), mine = bar.querySelector('.mine');
+    const heard = bar.querySelector('.heard'), res = bar.querySelector('.res'), manual = bar.querySelector('.saidit');
+    let fin = null, line = () => '', played = false, said = false, url = null, after = null, tries = 0, best = 0, listening = false;
+    const sync = () => { bar.classList.toggle('on', played); ok.classList.toggle('on', played && said); };
+    const setLine = () => { txt.innerHTML = line().split(' ').map(w => `<span class="w">${w}</span>`).join(' '); res.classList.remove('on'); heard.textContent = ''; };
+    const tell = (msg, speak) => { heard.textContent = msg; if (speak !== false) return say(msg); };
+    const give = (n, s) => {
+      best = Math.max(best, n); res.querySelector('.st').innerHTML = '★'.repeat(n) + '<i>' + '★'.repeat(3 - n) + '</i>'; res.querySelector('.num').textContent = s == null ? '' : s + ' / 100';
+      K().again(res, 'on'); const o = at(res); K().burst(o.x, o.y, n * 10, 300); T.ding(n); cheer();
+    };
+    const accept = () => { if (!said) { said = true; sync(); if (after) after(); } };
+    a.querySelector('.back').addEventListener('click', () => { try { speechSynthesis.cancel(); } catch (e) {} a.classList.remove('on'); });
+    bar.querySelector('.hear').addEventListener('click', () => say(line(), txt));
+    bar.querySelector('.slow').addEventListener('click', () => { txt.classList.add('saying'); T.say(line(), { slow: true }).then(() => txt.classList.remove('saying')); });
+    mine.addEventListener('click', () => { if (url) new Audio(url).play(); });
+    manual.addEventListener('click', () => { give(2); tell('Great speaking!'); accept(); });
+    me.addEventListener('click', async () => {
+      if (listening) return; listening = true; try { speechSynthesis.cancel(); } catch (e) {}
+      me.classList.add('live'); heard.textContent = "I'm listening…"; K().snd.pop();
+      const long = line().split(' ').length > 8;
+      const r = await T.listen({ ms: long ? 18000 : 6000, long, onLevel: v => me.style.setProperty('--lv', v), onWords: w => { heard.textContent = w; } });
+      me.classList.remove('live'); me.style.setProperty('--lv', 0); listening = false; tries++;
+      if (r.clip) { url = r.clip; mine.disabled = false; }
+      if (!r.heard.length) {   // nothing heard: no microphone, or too quiet. Never leave the child stuck.
+        wrong(bar); manual.classList.add('on');
+        if (tries >= 2) tell('Say it out loud, then press "I said it!"'); else tell("I couldn't hear you. Press the microphone and say it loudly!");
+        return;
+      }
+      heard.textContent = r.heard[0];
+      const s = T.score(line(), r.heard), st = T.stars(s);
+      txt.querySelectorAll('.w').forEach(w => {
+        const W = T.words(w.textContent)[0] || '', hit = r.heard.some(h => T.words(h).some(x => x === W || (x.length > 3 && x.slice(0, 3) === W.slice(0, 3))));
+        w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit);
+      });
+      give(st, s);
+      if (st === 3) { tell(s >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!'); accept(); }
+      else if (tries >= 3) { tell("Good try! Let's say it together: " + line()); accept(); }
+      else { if (st === 2) accept(); tell(st === 2 ? 'Nice! Try once more for three stars!' : 'Good try! Listen and say it again.').then(() => st === 1 && T.say(line(), { slow: true })); }
+    });
+    if (!T.canHear) { me.style.display = 'none'; manual.classList.add('on'); }
+    ok.addEventListener('click', () => {
+      if (!ok.classList.contains('on')) return;
+      D[id] = Object.assign(D[id] || {}, fin ? fin() : {}, { ok: true, said: line(), stars: best, at: Date.now() }); save();
+      const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); a.classList.remove('on'); paint(); crew();
+      if (stage) return setTimeout(() => close(true), 900);
+      const b = bookT(), n = count();
+      k.toast(allPlayed() && b && !isDone(b.id) ? 'Your book is ready! Open it. <small>책을 열어 봐요</small>' : allPlayed() ? 'Speech Time is open! <small>무대가 열렸어요</small>' : `${n} of ${R.things.length} done! <small>잘했어요!</small>`);
+    });
+    return {
+      a, body: a.querySelector('.body'),
+      // the play part is finished (or not any more): bring in the sentence to say
+      ready(v) { const was = played; played = v !== false; if (!said) setLine(); sync(); if (played && !was) { K().snd.boing(); setTimeout(() => { heard.textContent = 'Listen, then press the microphone and say it!'; say(line(), txt); }, 350); } },
+      line(f) { line = () => String(f()).replace(/[‘’]/g, "'"); }, onSave(f) { fin = f; }, onSaid(f) { after = f; }
+    };
+  }
+
+  // ---------- the activity types (one per kind of worksheet page) ----------
+  const TYPES = {
+    // draw your face in a mirror, then build your name from letter tiles
+    mirror(t) {
+      const old = D[t.id] || {}; let name = old.name || '', ink = !!old.draw;
+      const s = screen(t, t.sub, `<div class="mir"><canvas width="420" height="520"></canvas><u></u></div><div class="side">${dots()}<p class="line">My name is <b class="nm"></b></p><div class="keys">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => `<button>${l}</button>`).join('')}<button class="del">⌫</button></div></div>`);
+      let P; const tool = wireDots(s.a, () => P); P = pad(s.a.querySelector('canvas'), tool.col, () => { ink = true; chk(); }); P.put(old.draw);
+      const nm = s.a.querySelector('.nm'), show = () => { nm.innerHTML = name ? name.split('').map(l => `<span>${l}</span>`).join('') : '…'; };
+      const chk = () => s.ready(ink && name.length > 0);
+      s.a.querySelectorAll('.keys button').forEach((b, i) => b.addEventListener('click', () => {
+        if (b.classList.contains('del')) { name = name.slice(0, -1); K().snd.boing(); }
+        else if (name.length < 10) { name += name ? b.textContent.toLowerCase() : b.textContent; K().snd.ding(i % 12); K().again(b, 'yes'); }
+        show(); chk();
+      }));
+      s.line(() => t.line({ name })); s.onSave(() => ({ draw: P.data(), name })); s.onSaid(() => K().again(s.a.querySelector('.mir'), 'yes'));
+      show(); chk();
+    },
+    // a friend calls: answer, listen to their lines, then pop the balloon with the right answer
+    call(t) {
+      const s = screen(t, t.sub, `<div class="call"><div class="ring"><b>${t.icon || '📞'}</b><span>${t.who} is calling…</span><button class="pick">Answer</button></div><img class="kid" src="${t.kid}" alt=""><div class="bub">${t.lines.map(l => `<p>${l}</p>`).join('')}<button class="again">🔊 Listen again</button></div></div>` +
+        `<div class="pop"><b>${t.ask}</b><div class="bal">${t.opts.map((n, i) => `<button data-v="${n}" style="--h:${[205, 8, 130][i % 3]}"><i${String(n).length > 2 ? ' class="wide"' : ''}>${n}</i></button>`).join('')}</div></div>`);
+      const call = s.a.querySelector('.call'), ps = [...s.a.querySelectorAll('.bub p')], pop = s.a.querySelector('.pop'); let ringing = true;
+      (async () => { while (ringing && s.a.classList.contains('on')) { K().snd.ding(7); await wait(220); K().snd.ding(9); await wait(900); } })();
+      const talk = async () => { for (const p of ps) { if (!s.a.classList.contains('on')) return; p.classList.add('in'); await say(p.textContent, p); } pop.classList.add('on'); K().snd.boing(); };
+      s.a.querySelector('.pick').addEventListener('click', () => { ringing = false; call.classList.add('live'); K().snd.win(); cheer(); setTimeout(talk, 500); });
+      s.a.querySelector('.again').addEventListener('click', talk);
+      s.a.querySelectorAll('.bal button').forEach(b => b.addEventListener('click', () => {
+        if (b.dataset.v !== String(t.ans)) return wrong(b);
+        const o = at(b); K().snd.poof(); K().burst(o.x, o.y, 34, 420); b.classList.add('popped'); cheer(); s.ready();
+      }));
+      s.line(() => t.line({}));
+    },
+    // drag each thing to the friend it belongs to (two or three friends)
+    sort(t) {
+      const fr = t.targets.map((g, k) => `<button class="fr" data-k="${k}"><img src="${g.img}" alt=""><span>${g.text}</span><div class="got"></div></button>`);
+      const pile = `<div class="pile">${t.items.map(([e, k], i) => `<b class="it" data-k="${k}" style="--d:${i * -.4}s">${e}</b>`).join('')}</div>`;
+      const s = screen(t, t.sub, (t.targets.length === 2 ? fr[0] + pile + fr[1] : `<div class="frs">${fr.join('')}</div>` + pile) + `<h3 class="big">${t.big}</h3>`);
+      if (t.targets.length > 2) s.body.classList.add('three');
+      const frs = [...s.a.querySelectorAll('.fr')]; let left = t.items.length;
+      frs.forEach(b => b.addEventListener('click', () => { K().again(b, 'yes'); say(b.querySelector('span').textContent, b.querySelector('span')); }));
+      s.a.querySelectorAll('.it').forEach(it => drag(it, () => frs, g => {
+        if (g.dataset.k !== it.dataset.k) { say('Try another friend!'); return false; }
+        it.classList.add('gone'); g.querySelector('.got').append(Object.assign(document.createElement('i'), { textContent: it.textContent })); right(g, 16);
+        if (--left === 0) { s.a.querySelector('.big').classList.add('on'); K().snd.win(); s.ready(); }
+        return true;
+      }));
+      setTimeout(async () => { for (const b of frs) { if (!s.a.classList.contains('on')) return; await say(b.querySelector('span').textContent, b.querySelector('span')); } }, 500);
+      s.line(() => t.line({}));
+    },
+    // catch the floating words that are true; they join the middle word on a mind map
+    mind(t) {
+      let mine = ((D[t.id] || {}).words || []).slice(); const n = t.words.length;
+      const s = screen(t, t.sub, `<div class="mm"><svg viewBox="0 0 900 500"></svg><span class="me${t.centre.length > 2 ? ' long' : ''}">${t.centre}</span>${chipsOf(t.words, 'wd', mine)}</div>`);
+      const svg = s.a.querySelector('svg'), me = s.a.querySelector('.me'), ws = [...s.a.querySelectorAll('.wd')];
+      const draw = () => {
+        svg.innerHTML = ws.map((b, i) => { const a = (i * (360 / n) - 90) * Math.PI / 180; return mine.includes(b.dataset.w) ? `<line x1="450" y1="250" x2="${450 + Math.cos(a) * 300}" y2="${250 + Math.sin(a) * 185}"/>` : ''; }).join('');
+        ws.forEach(b => b.classList.toggle('on', mine.includes(b.dataset.w))); me.style.setProperty('--g', 1 + mine.length * .06); s.ready(mine.length >= (t.min || 2));
+      };
+      ws.forEach(b => b.addEventListener('click', () => {
+        const w = b.dataset.w; if (mine.includes(w)) { mine = mine.filter(x => x !== w); K().snd.boing(); } else { mine.push(w); right(b, 14); K().again(me, 'yes'); say(t.say(w)); }
+        draw();
+      }));
+      s.line(() => t.line({ words: mine })); s.onSave(() => ({ words: mine })); draw();
+    },
+    // a shelf or chest of toys: each does its own trick; take the ones that are true for you
+    toys(t) {
+      let good = ((D[t.id] || {}).good || []).slice();
+      const s = screen(t, t.sub, `<div class="sh">${t.items.map(([e, w, tr]) => `<button class="toy ${tr}" data-w="${w}"><i>${e}</i><span>${w}</span></button>`).join('')}</div><p class="line2">${t.lead} <b></b>${t.tail ? ' ' + t.tail : ''}</p>`);
+      const ts = [...s.a.querySelectorAll('.toy')], out = s.a.querySelector('.line2 b');
+      const draw = () => { ts.forEach(b => b.classList.toggle('on', good.includes(b.dataset.w))); out.textContent = good.length ? good.join(' and ') + (t.tail ? '' : '.') : '…'; s.ready(good.length >= 1); };
+      ts.forEach((b, i) => b.addEventListener('click', () => {
+        const w = b.dataset.w; K().again(b, 'go');
+        ({ sing: () => K().snd.win(), run: () => K().snd.whoosh(), stack: () => K().snd.rattle(), beat: () => { K().snd.boing(); setTimeout(K().snd.boing, 260); }, flip: () => K().snd.poof(), scrib: () => K().snd.ding(i) })[t.items[i][2]]();
+        if (good.includes(w)) good = good.filter(x => x !== w); else { good.push(w); const o = at(b); K().burst(o.x, o.y, 16, 300); cheer(); say(t.say(w)); }
+        draw();
+      }));
+      s.line(() => t.line({ good })); s.onSave(() => ({ good })); draw();
+    },
+    // paint a picture (with stamps); some pages also ask to pick one thing
+    paint(t) {
+      const old = D[t.id] || {}; let like = old.like || '', ink = !!old.draw;
+      const s = screen(t, t.sub, `<div class="pol"><canvas width="420" height="460"></canvas></div><div class="side">${dots(['⭐', '❤️', '🌈', '👑'])}` +
+        (t.likes ? `<p class="line2">${t.lead} <b></b></p><div class="likes">${chipsOf(t.likes, 'lk', [like])}</div>` : `<p class="line2">${t.caption}</p>`) + `</div>`);
+      let P; const tool = wireDots(s.a, () => P); P = pad(s.a.querySelector('canvas'), tool.col, () => { ink = true; chk(); }, tool.stamp); P.put(old.draw);
+      const ls = [...s.a.querySelectorAll('.lk')], out = s.a.querySelector('.line2 b');
+      const chk = () => { ls.forEach(b => b.classList.toggle('on', b.dataset.w === like)); if (out) out.textContent = like ? like + '.' : '…'; s.ready(ink && (!t.likes || !!like)); };
+      ls.forEach(b => b.addEventListener('click', () => { like = b.dataset.w; right(b, 14); say(t.say(like)); chk(); }));
+      s.line(() => t.line({ like })); s.onSave(() => ({ draw: P.data(), like })); chk();
+    },
+    // interview a friend: ask each question, listen, then tap what they said
+    ask(t) {
+      const s = screen(t, t.sub, `<img class="kid small" src="${t.friend}" alt=""><div class="iv"><div class="bub one"><p>Ask me!</p></div><div class="qs">${t.qs.map((q, i) => `<button data-i="${i}">${q.q}</button>`).join('')}</div><div class="opts"></div></div>`);
+      const bub = s.a.querySelector('.bub p'), opts = s.a.querySelector('.opts'), qb = [...s.a.querySelectorAll('.qs button')]; let left = t.qs.length;
+      qb.forEach((b, i) => b.addEventListener('click', async () => {
+        if (b.classList.contains('tick')) return; const q = t.qs[i]; K().snd.pop(); qb.forEach(x => x.classList.toggle('cur', x === b));
+        opts.innerHTML = ''; await say(q.q); bub.textContent = q.say; K().again(bub.parentElement, 'yes'); await say(q.say, bub);
+        opts.innerHTML = `<b>What did ${t.who} say?</b>` + q.opts.map(([e, w]) => `<button class="lk" data-w="${w}"><i>${e}</i>${w}</button>`).join('');
+        opts.querySelectorAll('.lk').forEach(o => o.addEventListener('click', () => {
+          if (o.dataset.w !== q.a) return wrong(o);
+          right(o, 16); b.classList.add('tick'); b.classList.remove('cur'); opts.innerHTML = '';
+          if (--left === 0) s.ready();
+        }));
+      }));
+      s.line(() => t.line({}));
+    },
+    // a real little book made from the child's own pages; turn the pages
+    book(t) {
+      const pg = R.book(D); let n = 0;
+      const s = screen(t, t.sub, `<button class="turn prev">◀</button><div class="leaf"></div><button class="turn next">▶</button><div class="pips">${pg.map(() => '<i></i>').join('')}</div>`);
+      const leaf = s.a.querySelector('.leaf'), pips = [...s.a.querySelectorAll('.pips i')]; let seen = 1;
+      const show = dir => {
+        leaf.innerHTML = pg[n].html; leaf.className = 'leaf ' + (n ? '' : 'cover'); K().again(leaf, dir < 0 ? 'backflip' : 'flip'); K().snd.poof();
+        pips.forEach((p, i) => p.classList.toggle('on', i === n)); seen |= 1 << n; setTimeout(() => say(pg[n].say), 350);
+        if (seen === (1 << pg.length) - 1) s.ready();
+      };
+      s.a.querySelector('.next').addEventListener('click', () => { if (n < pg.length - 1) { n++; show(1); } else wrong(leaf); });
+      s.a.querySelector('.prev').addEventListener('click', () => { if (n > 0) { n--; show(-1); } else wrong(leaf); });
+      leaf.addEventListener('click', () => { if (n < pg.length - 1) { n++; show(1); } });
+      s.line(() => t.line({})); show(1);
+    },
+    // a few quick questions, one card at a time: look or listen, then tap the right answer
+    pick(t) {
+      const s = screen(t, t.sub, `<div class="pk"><div class="show"></div><div class="po"></div><div class="pips">${t.rows.map(() => '<i></i>').join('')}</div></div>`);
+      const show = s.a.querySelector('.show'), po = s.a.querySelector('.po'), pips = [...s.a.querySelectorAll('.pips i')]; let n = 0;
+      const draw = () => {
+        const r = t.rows[n]; show.innerHTML = r.show; K().again(show, 'yes'); pips.forEach((p, i) => p.classList.toggle('on', i === n));
+        po.innerHTML = r.opts.map(o => `<button class="pb" data-v="${o}">${o}</button>`).join(''); if (r.say) say(r.say);
+        po.querySelectorAll('.pb').forEach(b => b.addEventListener('click', () => {
+          if (b.dataset.v !== r.ans) return wrong(b);
+          right(b, 16); b.classList.add('on'); po.querySelectorAll('.pb').forEach(x => { x.disabled = true; });
+          setTimeout(() => { if (!s.a.classList.contains('on')) return; if (++n < t.rows.length) draw(); else { show.innerHTML = t.end || '⭐'; po.innerHTML = ''; K().snd.win(); s.ready(); } }, 750);
+        }));
+      };
+      draw(); s.line(() => t.line({}));
+    },
+    // build a tower: every tap drops one more block; it has to be tall enough
+    tower(t) {
+      let n = (D[t.id] || {}).n || 0; const COLS = ['#e8492e', '#ffd23f', '#3a86ff', '#2fb86a', '#b9a5e6'], min = t.min || 5;
+      const s = screen(t, t.sub, `<div class="tw"><div class="stack"></div><div class="base"></div></div><div class="side"><button class="addb">＋ Add a block</button><button class="rmb">Knock it down ↺</button><p class="line2">My tower has <b></b> blocks.</p></div>`);
+      const st = s.a.querySelector('.stack'), out = s.a.querySelector('.line2 b');
+      const draw = drop => { st.innerHTML = Array.from({ length: n }, (_, i) => `<i style="background:${COLS[i % 5]};--x:${i % 2 ? 9 : -9}px"${drop && i === n - 1 ? ' class="new"' : ''}></i>`).join(''); out.textContent = n; s.ready(n >= min); };
+      s.a.querySelector('.addb').addEventListener('click', () => {
+        if (n >= 10) return wrong(st); n++; draw(true); K().snd.ding(n); setTimeout(K().snd.boing, 220);
+        if (n === min) { const o = at(st); K().burst(o.x, o.y, 30, 380); cheer(); say('What a tall tower!'); }
+      });
+      s.a.querySelector('.rmb').addEventListener('click', () => { if (!n) return; n = 0; K().snd.rattle(); K().again(st, 'no'); draw(); });
+      s.line(() => t.line({ n })); s.onSave(() => ({ n })); draw();
+    },
+    // SPEECH TIME: the curtain opens and the child answers the week's key question with their own speech
+    stage(t) {
+      const L = R.speech(D), pg = R.book(D).slice(1, 5);
+      const s = screen(t, t.sub, `<div class="thea"><div class="cards">${pg.map(p => `<div class="leaf small">${p.html}</div>`).join('')}</div><div class="talk"><h5>${R.key}</h5>${L.map(l => `<p>${l}</p>`).join('')}</div><i class="cl"></i><i class="cr"></i><button class="openc">Open the curtain!</button></div>`);
+      const th = s.a.querySelector('.thea'), ps = [...s.a.querySelectorAll('.talk p')];
+      s.a.querySelector('.openc').addEventListener('click', async () => {
+        th.classList.add('open'); K().snd.whoosh(); clap(); cheer(); await wait(900); await say(R.key);
+        for (const p of ps) { if (!s.a.classList.contains('on')) return; await say(p.textContent, p); }
+        s.ready();
+      });
+      s.line(() => L.join(' ')); s.onSaid(() => { clap(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); });
+    }
+  };
+  function video() {   // the week's explainer video (not made yet)
+    const a = box.querySelector('#act'); K().snd.pop(); a.style.setProperty('--c', '#1f2a4d');
+    a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><div class="vid"><b>▶</b><p>The week's video plays here.<br><small>not made yet</small></p></div>`;
+    a.classList.add('on'); a.querySelector('.back').addEventListener('click', () => a.classList.remove('on'));
+  }
+
+  // ---------- the rooms (data) ----------
+  const pic = d => d ? `<img src="${d}" alt="">` : '<em>?</em>';
+  const g = (D, id) => D[id] || {};
+  const ROOMS = {
+    // Island 1 · place 1 · ME (ME, YOU & WE week 1): the house
+    '1-1': {
+      art: 'art/room-house.jpg', tv: [.483, .01, .166, .18], key: 'Who am I?',
+      things: [
+        { id: 'mirror', zone: [.018, .34, .135, .46], title: 'Who am I?', col: '#6fb1e6', type: 'mirror', sub: 'Draw your face in the magic mirror. Then tap the letters of your name.', line: v => `My name is ${v.name}.` },
+        { id: 'tablet', zone: [.152, .45, .105, .15], title: 'Hello! I am Emma.', col: '#ffd23f', type: 'call', sub: 'Emma is calling you! Answer the call.', who: 'Emma', kid: 'art/ws/emma.png',
+          lines: ['Hello! I am Emma.', 'I am eight.', 'I like drawing.', 'I like soccer.', 'I am friendly.'], ask: 'How old is Emma? Pop the balloon!', opts: [6, 7, 8], ans: 8, line: () => 'Emma is eight.' },
+        { id: 'frames', zone: [.272, .133, .168, .16], title: 'Sam and Lily', col: '#f6a58f', type: 'sort', sub: 'Sam likes music. Lily likes animals. Drag each thing to the right friend!', big: 'We are different!',
+          targets: [{ img: 'art/ws/sam.png', text: 'Sam likes music.' }, { img: 'art/ws/lily.png', text: 'Lily likes animals.' }], items: [['🎸', 0], ['🐶', 1], ['🥁', 0], ['🐱', 1], ['🎤', 0], ['🐰', 1]], line: () => 'We are different.' },
+        { id: 'board', zone: [.457, .207, .228, .218], title: 'Words about me', col: '#4fae62', type: 'mind', sub: 'Catch the words that are true for you. Two or more!', centre: 'ME',
+          words: [['😊', 'happy'], ['❤️', 'kind'], ['📏', 'tall'], ['📖', 'reading'], ['✏️', 'drawing'], ['🎵', 'singing']], say: w => `I am ${w}.`, line: v => `I am ${v.words.slice(0, 2).join(' and ')}.` },
+        { id: 'shelf', zone: [.26, .335, .186, .255], title: 'What am I good at?', col: '#b9a5e6', type: 'toys', sub: 'Tap a toy to see its trick. Take the ones you are good at!', lead: 'I am good at',
+          items: [['✏️', 'drawing', 'scrib'], ['🎵', 'singing', 'sing'], ['👟', 'running', 'run'], ['📖', 'reading', 'flip'], ['🧱', 'building', 'stack'], ['❤️', 'helping', 'beat']], say: w => `I am good at ${w}.`, line: v => `I am good at ${v.good[0] || '…'}.` },
+        { id: 'easel', zone: [.676, .266, .102, .35], title: 'This is me!', col: '#e8492e', type: 'paint', sub: 'Paint yourself. Add stamps! Then pick what you like.', lead: 'I like',
+          likes: [['✏️', 'drawing'], ['⚽', 'soccer'], ['🎵', 'music'], ['🐶', 'animals'], ['📖', 'books'], ['🧱', 'blocks']], say: w => `I like ${w}.`, line: v => `I like ${v.like}.` },
+        { id: 'book', zone: [.455, .446, .203, .17], title: 'My book about me', col: '#ff8f6b', type: 'book', sub: 'Your own book! Turn the pages.', line: () => 'This is my book about me.' },
+        { id: 'stage', zone: [.777, .128, .223, .51], title: 'Hello, everyone!', col: '#27a7a0', type: 'stage', sub: 'Speech Time! Open the curtain and tell everyone who you are.' }
+      ],
+      speech: D => ['Hello, everyone!', `My name is ${g(D, 'mirror').name || '…'}.`, `I am ${(g(D, 'board').words || []).slice(0, 2).join(' and ') || '…'}.`, `I am good at ${(g(D, 'shelf').good || [])[0] || '…'}.`, `I like ${g(D, 'easel').like || '…'}.`],
+      book(D) {
+        const L = this.speech(D), T = id => this.things.find(t => t.id === id), m = g(D, 'mirror'), e = g(D, 'easel');
+        return [{ say: 'All about me!', html: `<h4>ALL ABOUT ME</h4>${pic(m.draw)}<span>by ${m.name || '…'}</span>` },
+          { say: L[1], html: `${pic(m.draw)}<span>${L[1]}</span>` },
+          { say: L[2], html: `<em>${(g(D, 'board').words || []).map(w => emo(T('board'), w)).join(' ')}</em><span>${L[2]}</span>` },
+          { say: L[3], html: `<em>${(g(D, 'shelf').good || []).map(w => emo(T('shelf'), w)).join(' ')}</em><span>${L[3]}</span>` },
+          { say: L[4], html: `${pic(e.draw)}<span>${L[4]} ${emo(T('easel'), e.like)}</span>` }];
+      }
+    },
+    // Island 2 · place 1 · MEET MY FRIENDS (worksheets/start-pbl/pbl-02-my-friends-and-me, week 1, pages 1-8): the treehouse club
+    '2-1': {
+      art: 'art/room-treehouse.jpg', tv: [.435, .07, .15, .165], key: 'Who is my friend?',
+      things: [
+        { id: 'photos', zone: [.01, .10, .19, .35], title: 'Meet my friends!', col: '#ffd23f', type: 'mind', sub: 'What do friends do? Catch two or more!', centre: 'FRIENDS', min: 2,
+          words: [['😊', 'smile'], ['🍪', 'share'], ['⚽', 'play'], ['🤝', 'help']], say: w => `Friends ${w}.`, line: v => `Friends ${v.words.slice(0, 2).join(' and ') || '…'}.` },
+        { id: 'cans', zone: [.2, .16, .085, .21], title: 'Hello, friend!', col: '#6fb1e6', type: 'call', sub: 'Mia is calling on the can phone! Answer it.', who: 'Mia', icon: '🥫', kid: 'art/ws/mia.png',
+          lines: ['Hi! I am Mia.', 'What is your name?', 'Nice to meet you!', 'Let’s play!'], ask: 'What does Mia want to do? Pop it!', opts: ['sleep', 'play', 'eat'], ans: 'play', line: () => 'Nice to meet you!' },
+        { id: 'frames', zone: [.285, .16, .14, .13], title: 'Ben and Mia', col: '#f6a58f', type: 'sort', sub: 'Ben likes soccer. Mia likes books. Drag each thing to the right friend!', big: 'Different, but friends!',
+          targets: [{ img: 'art/ws/ben.png', text: 'Ben likes soccer.' }, { img: 'art/ws/mia.png', text: 'Mia likes books.' }], items: [['⚽', 0], ['📚', 1], ['🥅', 0], ['📖', 1], ['👟', 0], ['🔖', 1]], line: () => 'Ben and Mia are friends.' },
+        { id: 'desk', zone: [.285, .30, .17, .23], title: 'Ask a friend', col: '#27a7a0', type: 'ask', sub: 'Ask Penny three questions. Listen, then tap what she said.', who: 'Penny', friend: 'art/penny.png',
+          qs: [{ q: 'What is your favorite food?', say: 'I like pizza!', a: 'pizza', opts: [['🍎', 'apples'], ['🍕', 'pizza'], ['🍦', 'ice cream']] },
+            { q: 'What is your favorite game?', say: 'I like soccer!', a: 'soccer', opts: [['⚽', 'soccer'], ['🧩', 'puzzles'], ['🪁', 'kites']] },
+            { q: 'What are you good at?', say: 'I am good at singing!', a: 'singing', opts: [['🏊', 'swimming'], ['✏️', 'drawing'], ['🎵', 'singing']] }], line: () => 'My friend likes pizza.' },
+        { id: 'scope', zone: [.625, .29, .11, .27], title: 'Find a friend who ...', col: '#b9a5e6', type: 'sort', sub: 'Look through the telescope! Give each thing to the friend who likes it.', big: 'I found my friends!',
+          targets: [{ img: 'art/ws/sam.png', text: 'Sam likes music.' }, { img: 'art/ws/lily.png', text: 'Lily likes dogs.' }, { img: 'art/ws/ben.png', text: 'Ben likes soccer.' }],
+          items: [['🎵', 0], ['🐶', 1], ['⚽', 2], ['🎸', 0], ['🦴', 1], ['🥅', 2]], line: () => 'My friend likes music.' },
+        { id: 'board', zone: [.765, .13, .19, .24], title: 'Words about friends', col: '#4fae62', type: 'mind', sub: 'Catch the words about a good friend. Two or more!', centre: 'FRIEND', min: 2,
+          words: [['🍪', 'share'], ['🤝', 'help'], ['👂', 'listen'], ['😊', 'smile'], ['⚽', 'play'], ['❤️', 'care']], say: w => `Friends ${w}.`, line: v => `Friends ${v.words[0] || 'share'}.` },
+        { id: 'chest', zone: [.01, .47, .2, .29], title: 'What do we do together?', col: '#e8492e', type: 'toys', sub: 'Tap each toy. Take the things you do with your friends!', lead: 'We', tail: 'together.',
+          items: [['⚽', 'play ball', 'run'], ['📖', 'read', 'flip'], ['✏️', 'draw', 'scrib'], ['🎵', 'sing', 'sing'], ['🧱', 'build', 'stack'], ['🍎', 'eat lunch', 'beat']], say: w => `We ${w} together.`, line: v => `We ${v.good[0] || 'play'} together.` },
+        { id: 'easel', zone: [.21, .39, .105, .31], title: 'My friend and me', col: '#ff5d8f', type: 'paint', sub: 'Paint you and your friend. Add stamps!', caption: 'This is my friend.', line: () => 'This is my friend.' },
+        { id: 'book', zone: [.45, .43, .17, .14], title: 'My friend book', col: '#ff8f6b', type: 'book', sub: 'Your own friend book! Turn the pages.', line: () => 'This is my friend book.' },
+        { id: 'stage', zone: [.74, .38, .26, .36], title: 'Speech Time', col: '#27a7a0', type: 'stage', sub: 'Open the curtain and tell everyone about your friend.' }
+      ],
+      speech: D => ['Hello, everyone!', 'This is my friend.', `Friends ${(g(D, 'photos').words || []).slice(0, 2).join(' and ') || '…'}.`, `We ${(g(D, 'chest').good || [])[0] || '…'} together.`, 'Nice to meet you!'],
+      book(D) {
+        const L = this.speech(D), T = id => this.things.find(t => t.id === id), e = g(D, 'easel');
+        return [{ say: 'My friend book!', html: `<h4>MY FRIEND</h4>${pic(e.draw)}<span>my friend and me</span>` },
+          { say: L[1], html: `${pic(e.draw)}<span>${L[1]}</span>` },
+          { say: L[2], html: `<em>${(g(D, 'photos').words || []).map(w => emo(T('photos'), w)).join(' ')}</em><span>${L[2]}</span>` },
+          { say: L[3], html: `<em>${(g(D, 'chest').good || []).map(w => emo(T('chest'), w)).join(' ')}</em><span>${L[3]}</span>` },
+          { say: 'Friends share and help.', html: `<em>${(g(D, 'board').words || []).map(w => emo(T('board'), w)).join(' ')}</em><span>Friends ${(g(D, 'board').words || []).slice(0, 2).join(' and ') || '…'}.</span>` }];
+      }
+    }    ,
+    // Island 2 · place 2 · SAME & DIFFERENT (pbl-02 week 2, pages 9-16): the art hut
+    '2-2': {
+      art: 'art/room-arthut.jpg', tv: [.425, .065, .165, .175], key: 'How are we the same and different?',
+      things: [
+        { id: 'portraits', zone: [.13, .14, .27, .16], title: 'We are all different', col: '#6fb1e6', type: 'sort', sub: 'Who is it? Give each thing to the right friend.', big: 'Everyone is different!',
+          targets: [{ img: 'art/ws/kid-glasses.png', text: 'Leo has glasses.' }, { img: 'art/ws/kid-wheelchair.png', text: 'Ann has a wheelchair.' }, { img: 'art/ws/lily.png', text: 'Lily has a cat.' }, { img: 'art/ws/ben.png', text: 'Ben likes soccer.' }],
+          items: [['⚽', 3], ['👓', 0], ['🐱', 2], ['🦽', 1]], line: () => 'Everyone is different.' },
+        { id: 'hoops', zone: [.15, .34, .17, .19], title: 'Same and different', col: '#ffd23f', type: 'toys', sub: 'What do you and your friend BOTH like? Take them!', lead: 'We both like',
+          items: [['⚽', 'soccer', 'run'], ['📖', 'books', 'flip'], ['✏️', 'drawing', 'scrib'], ['🎵', 'music', 'sing'], ['🍎', 'apples', 'beat'], ['🐶', 'dogs', 'stack']], say: w => `We both like ${w}.`, line: v => `We both like ${v.good[0] || '…'}.` },
+        { id: 'baskets', zone: [.44, .30, .14, .12], title: 'Same or different?', col: '#f6a58f', type: 'pick', sub: 'Look at the two things. Same or different?', end: '👍',
+          rows: [{ show: '🍎 🍎', opts: ['same', 'different'], ans: 'same' }, { show: '🐶 🐱', opts: ['same', 'different'], ans: 'different' }, { show: '⚽ 📖', opts: ['same', 'different'], ans: 'different' }, { show: '⭐ ⭐', opts: ['same', 'different'], ans: 'same' }], line: () => 'We are different.' },
+        { id: 'heartjar', zone: [.595, .25, .085, .16], title: 'Is it kind?', col: '#4fae62', type: 'pick', sub: 'Listen. Is it kind? Yes or no?', end: '❤️',
+          rows: [{ show: '“Nice picture!”', say: 'Nice picture!', opts: ['yes', 'no'], ans: 'yes' }, { show: '“You can’t play.”', say: "You can't play.", opts: ['yes', 'no'], ans: 'no' }, { show: '“Let’s play together!”', say: "Let's play together!", opts: ['yes', 'no'], ans: 'yes' }, { show: '“You are slow!”', say: 'You are slow!', opts: ['yes', 'no'], ans: 'no' }], line: () => 'Nice picture!' },
+        { id: 'door', zone: [.065, .21, .075, .36], title: 'Everyone can play', col: '#b9a5e6', type: 'pick', sub: 'What is the good way? Tap it.', end: '🤝',
+          rows: [{ show: 'Mia is new. She is alone. 😔', say: 'Mia is new. She is alone.', opts: ['Say hi.', 'Walk away.'], ans: 'Say hi.' }, { show: 'Leo can’t reach the book. 📖', say: "Leo can't reach the book.", opts: ['Laugh.', 'Help him.'], ans: 'Help him.' }], line: () => 'Come and play!' },
+        { id: 'thumb', zone: [.685, .29, .07, .24], title: 'Thumbs up!', col: '#e0a020', type: 'mind', sub: 'Catch kind words to say to a friend. Two or more!', centre: '👍', min: 2,
+          words: [['👍', 'Great job!'], ['✏️', 'Nice drawing!'], ['⭐', 'You can do it!'], ['❤️', 'Thank you!']], say: w => w, line: v => v.words[0] || 'Great job!' },
+        { id: 'easel', zone: [.325, .31, .105, .36], title: 'Be kind!', col: '#27a7a0', type: 'paint', sub: 'Make a poster. Paint a kind friend!', caption: 'We are kind.', line: () => 'We are kind.' },
+        { id: 'pad', zone: [.08, .63, .24, .21], title: 'All friends', col: '#ff5d8f', type: 'paint', sub: 'Paint you and three friends.', caption: 'We are friends.', line: () => 'We are friends.' },
+        { id: 'book', zone: [.455, .42, .16, .14], title: 'My friend book', col: '#ff8f6b', type: 'book', sub: 'Your own book! Turn the pages.', line: () => 'We are friends.' },
+        { id: 'stage', zone: [.75, .33, .25, .38], title: 'Speech Time', col: '#27a7a0', type: 'stage', sub: 'Open the curtain and tell everyone how we are the same and different.' }
+      ],
+      speech: D => ['Hello, everyone!', 'Everyone is different.', `We both like ${(g(D, 'hoops').good || [])[0] || '…'}.`, 'We are kind.', 'We are friends.'],
+      book(D) {
+        const L = this.speech(D), T = id => this.things.find(t => t.id === id);
+        return [{ say: 'Same and different!', html: `<h4>SAME &amp; DIFFERENT</h4>${pic(g(D, 'pad').draw)}<span>all friends</span>` },
+          { say: L[1], html: `<em>👓 🦽 🐱 ⚽</em><span>${L[1]}</span>` },
+          { say: L[2], html: `<em>${(g(D, 'hoops').good || []).map(w => emo(T('hoops'), w)).join(' ')}</em><span>${L[2]}</span>` },
+          { say: L[3], html: `${pic(g(D, 'easel').draw)}<span>${L[3]}</span>` },
+          { say: L[4], html: `${pic(g(D, 'pad').draw)}<span>${L[4]}</span>` }];
+      }
+    },
+    // Island 2 · place 3 · KIND FRIENDS (pbl-02 week 3, pages 17-24): the sharing stand
+    '2-3': {
+      art: 'art/room-share.jpg', tv: [.42, .02, .17, .18], key: 'How can I be a kind friend?',
+      things: [
+        { id: 'masks', zone: [.025, .15, .175, .12], title: 'How does he feel?', col: '#ffd23f', type: 'pick', sub: 'Look at the face. How does he feel?', end: '🤗',
+          rows: [{ show: '😢', opts: ['happy', 'sad', 'angry'], ans: 'sad' }, { show: '😠', opts: ['happy', 'sad', 'angry'], ans: 'angry' }, { show: '😊', opts: ['happy', 'sad', 'angry'], ans: 'happy' }], line: () => 'Are you okay?' },
+        { id: 'medals', zone: [.03, .29, .15, .14], title: 'A good friend ...', col: '#6fb1e6', type: 'pick', sub: 'Is it what a good friend does? Yes or no?', end: '🏅',
+          rows: [{ show: '👂 listens.', say: 'A good friend listens.', opts: ['yes', 'no'], ans: 'yes' }, { show: '😠 shouts.', say: 'A good friend shouts.', opts: ['yes', 'no'], ans: 'no' }, { show: '🍪 shares.', say: 'A good friend shares.', opts: ['yes', 'no'], ans: 'yes' }, { show: '🤝 helps.', say: 'A good friend helps.', opts: ['yes', 'no'], ans: 'yes' }], line: () => 'A good friend helps.' },
+        { id: 'cookies', zone: [.215, .27, .085, .17], title: 'Let’s share!', col: '#e8492e', type: 'call', sub: 'Tom has a story for you. Answer the call!', who: 'Tom', icon: '🍪', kid: 'art/ws/tom.png',
+          lines: ['I have two cookies.', 'Mia has no cookies.', 'Here, Mia! One for you.', 'Now we are both happy!'], ask: 'What does Tom do? Pop it!', opts: ['hide', 'share', 'run'], ans: 'share', line: () => "Let's share!" },
+        { id: 'mailbox', zone: [.33, .38, .09, .2], title: 'Caring words', col: '#b9a5e6', type: 'mind', sub: 'Catch caring words for a friend. Two or more!', centre: '❤️', min: 2,
+          words: [['😔', 'Are you okay?'], ['🤝', 'Can I help you?'], ['❤️', 'I’m sorry.'], ['😊', 'Thank you!']], say: w => w, line: v => v.words[0] || "I'm sorry." },
+        { id: 'sign', zone: [.615, .37, .125, .22], title: 'What should we do?', col: '#4fae62', type: 'pick', sub: 'Which way is the kind way? Tap it.', end: '🌈',
+          rows: [{ show: 'Two friends want the red block. 🧱', say: 'Two friends want the red block.', opts: ['Take turns.', 'Grab it.'], ans: 'Take turns.' }, { show: 'Your friend falls down. 🤕', say: 'Your friend falls down.', opts: ['Laugh.', 'Help.'], ans: 'Help.' }], line: () => 'We take turns.' },
+        { id: 'board', zone: [.41, .22, .195, .2], title: 'Words about kindness', col: '#f6a58f', type: 'mind', sub: 'Catch the kind words. Two or more!', centre: 'KIND', min: 2,
+          words: [['🍪', 'share'], ['🤝', 'help'], ['😊', 'smile'], ['👂', 'listen'], ['🤗', 'hug'], ['💬', 'say sorry']], say: w => `I ${w}.`, line: () => 'I am kind.' },
+        { id: 'card', zone: [.01, .47, .19, .2], title: 'Thank you, friend!', col: '#ff5d8f', type: 'paint', sub: 'Make a thank-you card. Paint you and your friend!', caption: 'Thank you!', line: () => 'Thank you, friend!' },
+        { id: 'calendar', zone: [.815, .15, .115, .18], title: 'My kind week', col: '#27a7a0', type: 'toys', sub: 'What kind things did you do? Take them!', lead: 'I',
+          items: [['🍪', 'shared', 'beat'], ['🤝', 'helped', 'stack'], ['😊', 'said thank you', 'sing'], ['❤️', 'said sorry', 'flip']], say: w => `I ${w}.`, line: v => `I ${v.good[0] || 'helped'}.` },
+        { id: 'book', zone: [.43, .45, .18, .12], title: 'My kind book', col: '#ff8f6b', type: 'book', sub: 'Your own book! Turn the pages.', line: () => 'I am kind.' },
+        { id: 'stage', zone: [.745, .36, .255, .36], title: 'Speech Time', col: '#27a7a0', type: 'stage', sub: 'Open the curtain and tell everyone how you are a kind friend.' }
+      ],
+      speech: D => ['Hello, everyone!', 'A good friend helps.', 'I am kind.', `I ${(g(D, 'calendar').good || [])[0] || '…'}.`, 'Thank you, friend!'],
+      book(D) {
+        const L = this.speech(D), T = id => this.things.find(t => t.id === id);
+        return [{ say: 'My kind book!', html: `<h4>KIND FRIENDS</h4>${pic(g(D, 'card').draw)}<span>my friend and me</span>` },
+          { say: L[1], html: `<em>👂 🍪 🤝</em><span>${L[1]}</span>` },
+          { say: L[2], html: `<em>${(g(D, 'board').words || []).map(w => emo(T('board'), w)).join(' ')}</em><span>${L[2]}</span>` },
+          { say: L[3], html: `<em>${(g(D, 'calendar').good || []).map(w => emo(T('calendar'), w)).join(' ')}</em><span>${L[3]}</span>` },
+          { say: L[4], html: `${pic(g(D, 'card').draw)}<span>${L[4]}</span>` }];
+      }
+    },
+    // Island 2 · place 4 · TEAMWORK (pbl-02 week 4, pages 25-32): the builders' workshop
+    '2-4': {
+      art: 'art/room-build.jpg', tv: [.42, .045, .175, .19], key: 'How do we work as a team?',
+      things: [
+        { id: 'flag', zone: [.03, .10, .125, .33], title: 'Let’s work together!', col: '#4fae62', type: 'mind', sub: 'What does a team do? Catch two or more!', centre: 'TEAM', min: 2,
+          words: [['🧱', 'build'], ['📋', 'plan'], ['🤝', 'help'], ['🍪', 'share']], say: w => `We ${w}.`, line: () => 'We are a team.' },
+        { id: 'puppets', zone: [.14, .32, .16, .26], title: 'The tower challenge', col: '#ffd23f', type: 'call', sub: 'Amy has a story about the tower. Answer the call!', who: 'Amy', icon: '🎭', kid: 'art/ws/amy.png',
+          lines: ['Tom gets the blocks.', 'I make a plan.', 'Oh no! The tower falls down.', 'We try again. We did it!'], ask: 'The tower falls. What do they do? Pop it!', opts: ['cry', 'try again', 'go home'], ans: 'try again', line: () => "Let's try again!" },
+        { id: 'hats', zone: [.19, .16, .2, .14], title: 'Everyone has a job!', col: '#e8492e', type: 'toys', sub: 'Try on the jobs. Which one do you like?', lead: 'I can be the',
+          items: [['🧢', 'leader', 'beat'], ['👷', 'builder', 'stack'], ['🎨', 'designer', 'scrib'], ['🎤', 'reporter', 'sing']], say: w => `I can be the ${w}.`, line: v => `I can be the ${v.good[0] || '…'}.` },
+        { id: 'radios', zone: [.875, .16, .085, .12], title: 'Team talk', col: '#6fb1e6', type: 'mind', sub: 'Catch good team words. Two or more!', centre: '📻', min: 2,
+          words: [['🤝', 'Can I help you?'], ['💡', 'I have an idea!'], ['🧱', 'Let’s try again!'], ['😊', 'It’s your turn!']], say: w => w, line: v => v.words[0] || 'I have an idea!' },
+        { id: 'blocks', zone: [.01, .57, .26, .3], title: 'Build a tower!', col: '#27a7a0', type: 'tower', sub: 'Build a tall tower! Five blocks or more.', min: 5, line: v => `My tower has ${v.n} blocks.` },
+        { id: 'tree', zone: [.61, .23, .15, .38], title: 'Our friendship tree', col: '#b9a5e6', type: 'mind', sub: 'Hang your friends on the tree. Two or more!', centre: '🌳', min: 2,
+          words: [['🙂', 'Mia'], ['😄', 'Ben'], ['😊', 'Sam'], ['🙂', 'Lily'], ['😄', 'Tom'], ['😊', 'Amy']], say: w => `${w} is my friend.`, line: () => 'Friends forever!' },
+        { id: 'stars', zone: [.41, .26, .19, .19], title: 'We grow together!', col: '#e0a020', type: 'toys', sub: 'What can you do now? Take a star for each one!', lead: 'I can',
+          items: [['💬', 'talk about my friend', 'sing'], ['❤️', 'be kind', 'beat'], ['🍪', 'share', 'flip'], ['🧱', 'work in a team', 'stack']], say: w => `I can ${w}.`, line: () => 'We are better together!' },
+        { id: 'book', zone: [.42, .46, .18, .12], title: 'My friend book', col: '#ff8f6b', type: 'book', sub: 'Your own book! Turn the pages.', line: () => 'You are my friend.' },
+        { id: 'stage', zone: [.745, .36, .255, .36], title: 'Speech Time', col: '#27a7a0', type: 'stage', sub: 'Open the curtain and tell everyone how your team works.' }
+      ],
+      speech: D => ['Hello, everyone!', 'We are a team.', `I can be the ${(g(D, 'hats').good || [])[0] || '…'}.`, `My tower has ${g(D, 'blocks').n || '…'} blocks.`, 'We are better together!'],
+      book(D) {
+        const L = this.speech(D), T = id => this.things.find(t => t.id === id);
+        return [{ say: 'My friend book!', html: `<h4>MY FRIEND</h4><em>🧱</em><span>our team</span>` },
+          { say: L[1], html: `<em>${(g(D, 'flag').words || []).map(w => emo(T('flag'), w)).join(' ')}</em><span>${L[1]}</span>` },
+          { say: L[2], html: `<em>${(g(D, 'hats').good || []).map(w => emo(T('hats'), w)).join(' ')}</em><span>${L[2]}</span>` },
+          { say: L[3], html: `<em>${'🧱'.repeat(Math.min(6, g(D, 'blocks').n || 0))}</em><span>${L[3]}</span>` },
+          { say: L[4], html: `<em>${(g(D, 'tree').words || []).join(' ')}</em><span>${L[4]}</span>` }];
+      }
+    }
+  };
+  addEventListener('resize', lay);
+  return { open, lay, data: () => all, rooms: ROOMS };
+})();

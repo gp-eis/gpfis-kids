@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My A Book · Let's Go Readers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Fredoka:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="book.css">
+<style>
+/* My A Book: the six readings as covers. Finished ones show a star. */
+/* Backdrop (user, 21 Nov): the ruby cabin, blurred and darkened, the same as the Sheet activity, so the child is still inside the chest. */
+body{background:#5a1f16 url(../art/kingdom/cabin.jpg) center/cover}
+body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);backdrop-filter:blur(5px)}
+.floor,.planks{display:none}
+#stage h1{color:#fff;text-shadow:0 4px 0 rgba(60,14,10,.55)}
+#stage .round{background:linear-gradient(#fff,#ffe9c9)}
+#stage h1{position:absolute;left:120px;top:34px;font:700 60px/1 "Fredoka";color:var(--ink)}
+#stage h1 small{font:600 24px "Fredoka";letter-spacing:.1em;opacity:.7;margin-left:14px}
+.grid{position:absolute;left:70px;top:130px;display:grid;grid-template-columns:repeat(3,360px);gap:26px 30px}
+.bk{height:290px;border-radius:26px;position:relative;overflow:hidden;text-decoration:none;color:var(--ink);box-shadow:0 10px 0 rgba(43,45,58,.25),0 22px 22px rgba(110,62,20,.22);display:block}
+.bk:active{transform:translateY(5px)}
+.bk b{position:absolute;left:22px;top:16px;font:700 34px/1 "Fredoka"}
+.bk b span{color:#fff}
+.bk svg{position:absolute;right:14px;bottom:14px}
+.bk .n{position:absolute;left:20px;bottom:16px;width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 26px "Fredoka"}
+.bk .done{position:absolute;right:14px;top:10px;font-size:40px}
+.bk .dr{position:absolute;left:84px;bottom:26px;background:#fff;border-radius:999px;padding:4px 14px;font:600 16px "Fredoka"}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="floor"></div><div class="planks"></div>
+  <a class="round" id="home" href="../kingdom.html#/cave" aria-label="Back">←</a>
+  <h1>My A Book<small id="count"></small></h1>
+  <div class="grid" id="grid"></div>
+</div>
+<script src="data/set-a.js"></script>
+<script src="scene.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage'), SET = window.LGR_SET, S = window.LGR_SCENE;
+  function fit() { const s = Math.min(innerWidth / 1280, innerHeight / 800); stage.style.transform = 'scale(' + s + ') translate(-50%,-50%)'; document.body.style.setProperty('--s', s); }
+  addEventListener('resize', fit); fit();
+  // Back goes to where the child came from (the week's cabin), remembered while they read: ?back=URL (21 Nov).
+  { const q = new URLSearchParams(location.search).get('back'); try { if (q) sessionStorage.setItem('lgr.bookBack', q); } catch (e) {}
+    let back = q; try { back = back || sessionStorage.getItem('lgr.bookBack'); } catch (e) {} document.getElementById('home').href = back || '../kingdom.html#/cave'; }
+  let got = []; try { got = JSON.parse(localStorage.getItem('lgr.pages') || '[]'); } catch (e) {}
+  document.getElementById('grid').innerHTML = SET.books.map((b, i) => {
+    const [my, ...rest] = b.title.split(' ');
+    return '<a class="bk" style="background:' + b.color + '" href="book.html?b=' + b.id + '"><b>' + my + ' <span>' + rest.join(' ') + '</span></b>' + S.icon(b.img, b.img === 'apple' || b.img === 'arrow' ? 170 : 240) +
+      '<span class="n">' + (i + 1) + '</span>' + (b.id === 'a-ant' ? '<span class="dr">draft text</span>' : '') + (got.includes(b.id) ? '<span class="done">⭐</span>' : '') + '</a>';
+  }).join('');
+  document.getElementById('count').textContent = got.filter(g => SET.books.some(b => b.id === g)).length + ' / ' + SET.books.length;
+})();
+</script>
+<script src="../../ext/home.js" data-home="../../demo/street.html"></script></body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Let's Go Readers · Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="unit.css">
+</head>
+<body>
+<div id="stage">
+  <nav id="left" aria-label="Buttons">
+    <a class="rb" id="home" href="../index.html" aria-label="Back to Sound Town">🏠</a>
+    <div class="rb stars" aria-label="Stars">★<small id="starN">0</small></div>
+    <span class="grow"></span>
+    <button class="rb" id="snd" aria-label="Sound on or off">🔊</button>
+  </nav>
+
+  <main id="mid">
+    <ol id="stones" aria-label="Steps"></ol>
+    <div id="bubble" aria-live="polite"></div>
+    <div id="work"></div>
+  </main>
+
+  <aside id="right"><img id="mate" alt="My Mate" src="../art/mates/penny/mate-idle.webp"></aside>
+
+  <div id="start">
+    <div class="panel">
+      <p class="tag">Sample unit · stand-in voice</p>
+      <h1 id="startTitle"></h1>
+      <button class="big go" id="startBtn">▶ Start</button>
+    </div>
+  </div>
+</div>
+<script src="data/c-m9-ou-house.js"></script>
+<script src="unit.js"></script>
+<script src="../../ext/home.js" data-home="../../demo/street.html"></script></body>
+</html>

@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GPFIS · My Hall of Fame</title>
+
+<style>
+@font-face{font-family:Fredoka;src:url(../ext/fonts/Fredoka.ttf)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fredoka,"Malgun Gothic",sans-serif;color:#2b2d3a;-webkit-user-select:none;user-select:none}
+#rot{position:fixed;left:0;top:0;overflow:hidden;transform-origin:0 0}
+.fill{position:absolute;inset:-40px;background:url(../options/art/gpfis-hall-inside.webp) center/cover;filter:blur(14px) brightness(1.05)}
+#world{position:absolute;left:0;top:0;width:1536px;height:1024px;transform-origin:0 0}
+#room{position:absolute;inset:0;background:url(../options/art/gpfis-hall-inside.webp) center/cover;box-shadow:0 0 80px 40px rgba(242,226,196,.9)}
+.at{position:absolute}
+.logo{display:grid;place-items:center}.logo img{max-width:100%;max-height:100%}
+/* art wing: the child's own pictures, set inside the painted frames */
+.art{overflow:hidden;background:#fffaf0;cursor:pointer}.art::after,.empty::after{content:"";position:absolute;inset:0;box-shadow:inset 0 4px 4px rgba(90,50,0,.3),inset 3px 0 3px rgba(90,50,0,.14);pointer-events:none}.art svg{width:100%;height:100%;display:block}
+.empty{display:grid;place-items:center;color:rgba(160,110,40,.45);font-size:28px;font-weight:700}
+/* gems in the glass pedestals */
+.gem{display:grid;place-items:center;cursor:pointer}.gem img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 10px var(--glow))}
+.gem.ghost img{filter:grayscale(1) brightness(1.3);opacity:.3}
+.gem:not(.ghost):not(.part) img{animation:shine 2.6s ease-in-out infinite}
+@keyframes shine{50%{filter:drop-shadow(0 0 22px var(--glow)) brightness(1.15)}}
+/* space stamps in the round frames */
+.stamp{border-radius:50%;display:grid;place-items:center;cursor:pointer;transform:rotate(var(--r))}
+.stamp svg{width:100%;height:100%}
+.alien{cursor:pointer}.alien img{width:100%;height:100%;object-fit:contain;display:block}
+.alien{animation:bob 2.2s ease-in-out infinite}.alien.b{animation-delay:-1.1s}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.trophy{cursor:pointer;filter:drop-shadow(0 2px 2px rgba(120,70,0,.45))}.trophy::before{content:"";position:absolute;left:24%;right:24%;bottom:-4px;height:9px;border-radius:50%;background:radial-gradient(rgba(110,60,0,.6),rgba(110,60,0,0) 70%)}
+.trophy svg{width:100%;height:100%}
+.book{border-radius:2px 4px 4px 2px;box-shadow:0 3px 5px rgba(0,0,0,.35);cursor:pointer;object-fit:cover}
+.passport{cursor:pointer}.passport svg{width:100%;height:100%}
+/* label when an item is tapped */
+/* zoom into one wing: tap areas, labels under items and a total, shown only when zoomed */
+.wing{position:absolute;cursor:zoom-in;border-radius:20px}
+#world.zoomed .wing{cursor:default}
+#world{transition:transform .75s cubic-bezier(.45,0,.2,1)}
+#world.nozoomanim{transition:none}
+.cap{position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:#fff;background:rgba(43,45,58,.78);padding:2px 8px;border-radius:999px;opacity:0;transition:opacity .3s .4s;pointer-events:none}
+.total{display:none;position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:16px;font-weight:700;color:#2b2d3a;background:#fff8e6;border:3px solid #d9a92e;padding:3px 14px;border-radius:999px;opacity:0;transition:opacity .3s .4s;pointer-events:none;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+#world.zoomed .cap.w-on,#world.zoomed .total.w-on{opacity:1}
+.trophy{transition:opacity .3s}#world.zoomed:not(.z-months) .trophy{opacity:0;pointer-events:none}   /* the centre podium stands in front of the wings: hide it while one wing is zoomed */
+/* 24-month panel beside a zoomed wing */
+#panel{position:fixed;right:14px;top:132px;bottom:14px;z-index:55;background:rgba(255,251,242,.97);border:3px solid #e2c27a;border-radius:28px;box-shadow:0 20px 50px rgba(80,50,0,.3);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .55s cubic-bezier(.45,0,.2,1);overflow:hidden}
+#panel.on{transform:none}
+#panel header{display:flex;flex-direction:column;gap:2px;padding:16px 22px 8px}
+#panel header b{font-size:28px}#panel header span{font-size:17px;color:#8a6a2a;font-weight:600}
+#panel .pb{flex:1;overflow:auto;padding:4px 18px 10px}
+#panel h4{margin:10px 4px 6px;font-size:15px;color:#8a6a2a}
+#panel footer{padding:12px 20px;border-top:2px solid #efe1bf;font-size:17px;font-weight:600;min-height:48px}
+.grid{display:grid;gap:8px}.g6{grid-template-columns:repeat(6,1fr)}
+.cell{border:0;background:#fff;border-radius:12px;padding:6px 4px 4px;display:grid;justify-items:center;gap:2px;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.06);font:600 14px Fredoka;color:#5a4a2a}
+.cell.off{background:#f6f1e6;color:#b8ad98}
+.cell i{font-style:normal}
+.fr{display:block;width:100%;aspect-ratio:5/4;border:3px solid #d9a92e;border-radius:3px;overflow:hidden;background:#fffaf0}.fr svg{width:100%;height:100%;display:block}
+.fr.off{border-color:#e6dccb;background:#fbf7ee}
+.isle,.fr.sea{background:linear-gradient(#bfe6ff,#4aa8e8 62%,#2f8fd8)}
+.isle img,.fr.sea img{width:100%;height:100%;object-fit:contain;display:block;padding:4%}
+.fr.sea.off{background:#eef3f7}.fr.sea.off img{filter:grayscale(1) brightness(1.5);opacity:.28}
+.lvl{display:grid;grid-template-columns:44px 90px 1fr;align-items:center;gap:8px;margin:6px 0}
+.lvl b{font-size:18px}.lg{width:40px;height:48px;display:block}.lg img{width:100%;height:100%;object-fit:contain}
+.lg.ghost{opacity:.3;filter:grayscale(1)}.lg.part{opacity:var(--fill)}
+.lg:not(.ghost):not(.part) img{filter:drop-shadow(0 0 8px var(--glow))}
+.sm .cell{padding:4px}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#fff;font-size:13px}
+.cell.off .dot{background:#e6dfd2;color:#b8ad98}
+.st{display:block;width:100%;aspect-ratio:1}.st svg{width:100%;height:100%}
+.st.off{border:3px dashed #ddd2bd;border-radius:50%;display:grid;place-items:center;color:#c2b69f}
+.bk2{display:flex;gap:3px;height:34px;align-items:flex-end}.bk2 s{display:block;width:12px;height:100%;border-radius:2px;background:var(--c)}
+.tr{display:block;width:78%}.tr svg{width:100%;display:block}
+.tro.dim{filter:grayscale(1) brightness(1.15);opacity:.45}
+.note{font-size:13px;color:#8a7a5a;margin:10px 4px}
+.gem.part img{opacity:var(--fill);filter:saturate(.7) drop-shadow(0 0 4px var(--glow))}
+.spine{cursor:pointer;border-radius:1.5px 1.5px 1px 1px;transform:skewY(-5deg);transform-origin:0 100%;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.3) 35%,rgba(0,0,0,0) 60%,rgba(0,0,0,.32)),var(--c);box-shadow:1px 1px 1px rgba(80,40,0,.35)}.spine i{position:absolute;left:0;right:0;height:1.5px;background:rgba(255,226,140,.9)}.spine i:first-child{top:16%}.spine i:last-child{bottom:14%}
+#tip{position:absolute;z-index:50;background:#fff;border:5px solid #2b2d3a;border-radius:26px;padding:10px 22px;font-size:30px;font-weight:600;white-space:nowrap;transform:translate(-50%,-100%) scale(.7);opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s;pointer-events:none}
+#tip.on{transform:translate(-50%,-100%) scale(1);opacity:1}
+#tip small{display:block;font-size:20px;color:#7a7f95;font-weight:500}
+.btn{position:fixed;z-index:60;width:104px;height:104px;border-radius:50%;border:0;background:linear-gradient(#fff,#f1ece4);box-shadow:0 10px 0 rgba(0,0,0,.14),0 16px 24px rgba(0,0,0,.16);display:grid;place-items:center;cursor:pointer}
+.btn svg{width:56px;height:56px}
+#back{left:24px;top:20px;transform-origin:0 0}
+#snd{right:24px;top:20px;transform-origin:100% 0}
+#sampleTag{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;background:rgba(43,45,58,.82);color:#fff;font:600 16px Fredoka,"Malgun Gothic",sans-serif;padding:7px 18px;border-radius:999px;pointer-events:none}
+</style>
+<div id="rot">
+<div class="fill"></div>
+<div id="world"><div id="room">
+  <!-- wing signs: each programme's logo, centred in its painted sign -->
+  <div class="at logo" style="left:270px;top:315px;width:140px;height:46px;transform:rotate(-1deg)"><img src="../ext/logos/start-pbl.png" alt="Start PBL"></div>
+  <div class="at logo" style="left:692px;top:352px;width:140px;height:44px"><img src="../ext/logos/lets-go-readers.png" alt="Let's Go Readers"></div>
+  <div class="at logo" style="left:1131px;top:315px;width:140px;height:48px;transform:rotate(1deg)"><img src="../ext/logos/fresh-math.png" alt="Fresh Math"></div>
+  <div id="wings"></div><div id="items"></div><div id="tip"></div>
+</div></div>
+<div id="panel"></div>
+<div id="sampleTag">Sample · 예시 화면</div>
+<button class="btn" id="back" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M62 18 L28 50 L62 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
+</div>
+<script src="../voice/clips.js"></script>
+<script src="../kit/voice.js"></script>
+<script src="../kit/turn.js"></script>
+<script>
+/* ---------- 24 months per programme (final 목차, worksheets/contents/*-24-months.md) ---------- */
+const N = 24;
+const T = {
+  pbl: ['ALL ABOUT ME', 'MY FRIENDS & ME', 'MY FAMILY', 'MY NEIGHBORHOOD', 'FROM A SEED TO A PLANT', 'PLANTS AROUND THE WORLD', 'THE AMAZING WORLD OF ANIMALS', 'HOW ANIMALS LIVE', 'EXPLORING THE SEVEN CONTINENTS', 'DISCOVERING THE FIVE OCEANS', 'MATERIAL CULTURE', 'INTANGIBLE CULTURE', 'OUR BEAUTIFUL EARTH', "LET'S SAVE OUR EARTH!", 'EXPLORING OUR WORLD', 'AMAZING DISCOVERIES', 'MY AMAZING BODY', 'HOW MY BODY WORKS', 'MATTER, ENERGY & MOTION', 'EARTH & NATURAL PHENOMENA', 'GREAT MINDS THAT CHANGED THE WORLD', 'WAR AND PEACE', 'OUR FUTURE WORLD', 'BEYOND EARTH'],
+  lgr: ['Letters A–D', 'Letters E–H', 'Letters I–L', 'Letters M–P', 'Letters Q–T', 'Letters U–Z', 'Short a · 1', 'Short a · 2', 'Short e and i · 1', 'Short e and i · 2', 'Short o and u · 1', 'Short o and u · 2', 'pl, sl, dr', 'fr, sk, sm', 'st, sw, sh', 'th, nk, ck', 'ee, ea, oo', 'ow, ue, er, ir', 'Magic e · 1', 'Magic e · 2', 'Soft Sounds', 'Hard Sounds and y', 'Word Sorting and Sound Rules', 'Reading New Words'],
+  fm: ['SHAPES AROUND US', 'SHAPE BUILDERS', 'LINES EVERYWHERE', 'LINES & ANGLES', 'BLOCKS & BALLS', 'BUILD IT UP!', "LET'S MEASURE!", 'LONG & SHORT', 'BIG & SMALL', 'COVER IT UP!', 'WEIGH IT!', 'HEAVY & LIGHT', 'FIND THE PATTERN', 'MAKE A PATTERN', 'SORT IT OUT', 'SORT & COUNT', 'MY DAY', 'TELLING TIME', 'ADD & SUBTRACT', 'CARRY & BORROW', 'TIMES TABLES', 'SHARE IT EQUALLY', 'FRACTIONS & DECIMALS', 'MIXED CALCULATION'],
+};
+const LEVELS = [['ruby', 'Ruby'], ['sapphire', 'Sapphire'], ['emerald', 'Emerald'], ['diamond', 'Diamond']];   // Let's Go Readers: 6 months each
+const BOOKPAIR = n => n <= 12 ? [`Literacy and Math ${n}`, `Play and Speak ${n}`] : [`Daily Essay ${n - 12}`, `ECS ${n - 12}`];   // two books per number, as on the platform
+/* ---------- what the child finished (sample: months 1–7 done in all three; in the real site each programme hands this over) ---------- */
+const range = n => Array.from({ length: n }, (_, i) => i + 1);
+const EARNED = { pbl: range(7), lgr: range(7), fm: range(7), books: range(7) };
+const allThree = () => range(N).filter(m => EARNED.pbl.includes(m) && EARNED.lgr.includes(m) && EARNED.fm.includes(m));
+/* ---------- simple crayon-style drawings stand in for the child's real pictures (one per Start PBL month) ---------- */
+const crayon = '<filter id="cr"><feTurbulence baseFrequency=".9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"/></filter>';
+const G = body => `<svg viewBox="0 0 100 80"><defs>${crayon}</defs><rect width="100" height="80" fill="#fffaf0"/><g filter="url(#cr)" fill="none" stroke-linecap="round" stroke-width="3">${body}</g></svg>`;
+const person = (x, c, s) => `<g transform="translate(${x} ${70 - 50 * s}) scale(${s})"><circle cx="0" cy="8" r="7" stroke="#e39b5a" fill="#ffe0c2"/><path d="M0 15 V40 M-10 24 H10 M0 40 L-8 54 M0 40 L8 54" stroke="${c}"/></g>`;
+const ART = [
+  G('<circle cx="50" cy="40" r="22" stroke="#e39b5a" fill="#ffe0c2"/><path d="M28 36 Q30 14 50 16 Q70 14 72 36" stroke="#6b3f1d" stroke-width="7"/><circle cx="42" cy="40" r="2.5" fill="#2b2d3a" stroke="none"/><circle cx="58" cy="40" r="2.5" fill="#2b2d3a" stroke="none"/><path d="M41 50 Q50 58 59 50" stroke="#e8492e"/>'),
+  G(person(32, '#e8492e', 1) + person(66, '#3d7fb8', 1) + '<path d="M42 44 H56" stroke="#e39b5a"/><path d="M8 74 H96" stroke="#7ac16a"/>'),
+  G([[22, '#3d7fb8', 1], [44, '#e8492e', 1], [66, '#4da863', .75], [84, '#f2a33a', .7]].map(([x, c, s]) => person(x, c, s)).join('') + '<path d="M8 74 H96" stroke="#7ac16a"/>'),
+  G('<circle cx="82" cy="16" r="9" stroke="#f2b632" fill="#ffe27a"/><path d="M22 40 L48 18 L74 40 Z" stroke="#c0392b" fill="#ef7f6f"/><rect x="28" y="40" width="40" height="30" stroke="#3d7fb8" fill="#cfe6fb"/><rect x="43" y="52" width="10" height="18" stroke="#8a5a33" fill="#e7b27a"/><path d="M4 72 H96" stroke="#7ac16a"/>'),
+  G('<path d="M50 72 V40" stroke="#4da863"/><path d="M50 56 Q36 50 34 40 Q46 42 50 52 M50 50 Q64 44 66 34 Q54 36 50 46" stroke="#4da863" fill="#a8e0a0"/><circle cx="50" cy="30" r="8" stroke="#e8492e" fill="#ffb3a7"/><path d="M8 74 H96" stroke="#8a5a33"/>'),
+  G('<rect x="44" y="44" width="12" height="28" stroke="#8a5a33" fill="#c98f55"/><circle cx="50" cy="30" r="20" stroke="#2f8a3e" fill="#7ac16a"/><circle cx="42" cy="26" r="3" fill="#e8492e" stroke="none"/><circle cx="58" cy="34" r="3" fill="#e8492e" stroke="none"/><path d="M8 74 H96" stroke="#7ac16a"/>'),
+  G('<ellipse cx="50" cy="52" rx="22" ry="14" stroke="#e39b5a" fill="#ffd7a8"/><circle cx="30" cy="38" r="11" stroke="#e39b5a" fill="#ffd7a8"/><path d="M22 30 L24 22 L29 28 M33 28 L38 22 L39 31" stroke="#e39b5a"/><circle cx="27" cy="37" r="1.8" fill="#2b2d3a" stroke="none"/><circle cx="33" cy="37" r="1.8" fill="#2b2d3a" stroke="none"/><path d="M72 50 Q86 40 82 30" stroke="#e39b5a"/>'),
+];
+const artFor = m => ART[(m - 1) % ART.length];
+/* painted cut-outs from the GPFIS ChatGPT chat (art/hall): gems, six planets, six alien friends; months 7–24 reuse them with a colour shift */
+const ART_DIR = '../art/hall/';
+const gemImg = k => `<img src="${ART_DIR}gem-${k}.webp" alt="">`;
+const shift = m => Math.floor((m - 1) / 6) * 55;   // 0 for months 1–6, then a new colour family every 6 months
+const GEM = { ruby: ['#ff5a6e', '#b3122e', 'rgba(255,60,90,.9)'], sapphire: ['#6fa8ff', '#1c3fa8', 'rgba(70,120,255,.9)'], emerald: ['#5ee39a', '#0d7a45', 'rgba(40,220,120,.9)'], diamond: ['#ffffff', '#9fc4e0', 'rgba(200,235,255,.9)'] };
+let gid = 0;
+const gemSvg = ([a, b]) => { const id = 'gg' + gid++; return `<svg viewBox="0 0 60 60"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><path d="M18 8 H42 L54 22 L30 54 L6 22 Z" fill="url(#${id})" stroke="#fff" stroke-opacity=".7" stroke-width="1.5"/><path d="M6 22 H54 M18 8 L24 22 L30 54 L36 22 L42 8 M24 22 L30 8 L36 22" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.2"/><path d="M20 12 L26 12 L22 20Z" fill="#fff" opacity=".8"/></svg>`; };
+/* 24 planets, one per Fresh Math mission: colour, rings and craters vary with the month */
+const planet = m => { const h = (m * 47) % 360, ring = m % 3 === 0, crat = m % 3 === 1;
+  return `<circle cx="50" cy="50" r="${ring ? 15 : 18}" fill="hsl(${h} 65% 60%)"/><path d="M34 46 Q50 40 66 48" stroke="hsl(${h} 55% 42%)" stroke-width="3" fill="none"/>${crat ? `<circle cx="44" cy="44" r="3.5" fill="hsl(${h} 45% 45%)"/><circle cx="57" cy="57" r="2.5" fill="hsl(${h} 45% 45%)"/>` : ''}${ring ? `<ellipse cx="50" cy="52" rx="28" ry="7" fill="none" stroke="hsl(${(h + 40) % 360} 70% 45%)" stroke-width="3.5" transform="rotate(-15 50 52)"/>` : ''}`; };
+const INK = ['#2f6fd6', '#d6452f', '#2c9a5b', '#8b4fd6'];
+const stampSvg = m => `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="${INK[m % 4]}" stroke-width="4" stroke-dasharray="5 4"/><circle cx="50" cy="50" r="36" fill="none" stroke="${INK[m % 4]}" stroke-width="2"/><image href="${ART_DIR}planet-${(m - 1) % 6 + 1}.webp" x="21" y="21" width="58" height="58" preserveAspectRatio="xMidYMid meet" style="filter:hue-rotate(${shift(m)}deg)"/><text x="50" y="90" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="13" fill="${INK[m % 4]}">${m}</text></svg>`;
+const ALIEN = m => `<img src="${ART_DIR}alien-${(m - 1) % 6 + 1}.webp" alt="" style="filter:hue-rotate(${shift(m)}deg) drop-shadow(0 6px 4px rgba(0,0,0,.35))">`;
+/* the trophy: a painted 3D cut-out (art/hall/trophy.webp, GPFIS ChatGPT chat) with the month number on its medallion; not-yet months are the same trophy, greyed */
+const TROPHY = (n, dim) => `<svg class="tro${dim ? ' dim' : ''}" viewBox="0 0 837 869"><image href="../art/hall/trophy.webp" width="837" height="869"/><text x="420" y="292" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="150" fill="#a8740a">${n}</text></svg>`;
+/* Start PBL = the Explorer's Airship world (21 Nov): every month is an island the child builds. The wing shows the newest
+   islands in the frames (the Start PBL chat's own paintings, art/hall/isle-N.webp from start-pbl/airship/art/mN.png) and the
+   explorer's logbook in the glass case counts the islands. */
+const ISLE = m => `<img src="${ART_DIR}isle-${m}.webp" alt="">`;
+const PASSPORT = n => `<svg viewBox="0 0 120 80"><g transform="skewX(-8)"><rect x="12" y="8" width="100" height="64" rx="6" fill="#1f3f7a"/><rect x="12" y="8" width="12" height="64" rx="4" fill="#16305f"/><rect x="28" y="13" width="79" height="54" rx="3" fill="none" stroke="#e8c26a" stroke-width="2"/><path d="M40 40 l5 -12 l5 12 l12 5 l-12 5 l-5 12 l-5 -12 l-12 -5z" fill="#e8c26a" transform="translate(-4,0) scale(.62) translate(22,24)"/><text x="72" y="31" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="9.5" fill="#e8c26a">EXPLORER’S LOG</text><text x="72" y="56" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="20" fill="#fff4cf">${n}/24</text></g></svg>`;
+
+/* ---------- placing it all in the painted room (positions in picture pixels, 1536 x 1024) ---------- */
+const items = document.getElementById('items'), tip = document.getElementById('tip');
+const lvlDone = i => EARNED.lgr.filter(m => m > i * 6 && m <= i * 6 + 6).length;
+/* the wings (+ bookshelf and the trophy podium), in picture pixels: tap one to zoom in and see all 24 months */
+const WINGS = {
+  pbl:    { r: [150, 280, 360, 500], name: 'Start PBL', total: () => `${EARNED.pbl.length} of 24 islands built` },
+  lgr:    { r: [575, 320, 385, 330], name: "Let's Go Readers", total: () => `${EARNED.lgr.length} of 24 months · ${LEVELS.filter((_, i) => lvlDone(i) === 6).length} of 4 gems` },
+  fm:     { r: [1030, 290, 355, 430], name: 'Fresh Math', total: () => `${EARNED.fm.length} of 24 missions` },
+  books:  { r: [0, 520, 330, 300], name: 'My books', total: () => `${EARNED.books.length * 2} of 48 books` },
+  months: { r: [560, 520, 415, 370], name: 'Month trophies', total: () => `${allThree().length} of 24 months complete` },
+};
+let ZOOM = null;
+const wingOf = (x, y) => ['pbl', 'lgr', 'fm', 'books', 'months'].find(k => { const [a, b, w, h] = WINGS[k].r; return x >= a && x <= a + w && y >= b && y <= b + h; });
+const add = (x, y, w, h, cls, html, label, sub, cap, wing) => {
+  const e = document.createElement('div'); e.className = 'at ' + cls; Object.assign(e.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+  const wk = wing || wingOf(x + w / 2, y + h / 2);
+  e.innerHTML = html; if (label) e.onclick = ev => { ev.stopPropagation(); if (wk && ZOOM !== wk) return zoomTo(wk); show(x + w / 2, y - 4, label, sub); };
+  items.appendChild(e);
+  if (cap && wk) { const c = document.createElement('div'); c.className = 'cap w-' + wk; c.textContent = cap; c.style.left = x + w / 2 + 'px'; c.style.top = y + h + 3 + 'px'; items.appendChild(c); }
+  return e;
+};
+// Start PBL wing: the four newest pictures in the frames, the passport (stamps out of 24) in the glass case
+const FRAMES = [[232, 428, 88, 69], [362, 434, 81, 71], [232, 528, 88, 75], [362, 536, 81, 67]];
+const newest = (list, k) => list.slice(-k);
+const pblShow = newest(EARNED.pbl, 4);
+/* inner corners of each painted frame (top-left, top-right, bottom-left, bottom-right), measured on gpfis-hall-inside.webp;
+   the frames hang slightly turned, so each picture is warped to fill its frame edge to edge with the same perspective */
+const QUADS = [[[235.5, 428.3], [318.6, 432.8], [236.2, 498.8], [318, 497.8]], [[364.4, 437.8], [438.6, 442.8], [365, 503.6], [438, 503.6]],
+  [[235.5, 532], [318, 534], [236.2, 599.2], [317.6, 598.6]], [[364.4, 536.4], [438.6, 537.6], [365, 598.6], [438, 598.6]]];
+function warp(el, [p0, p1, p2, p3], W = 100, H = 80) {   // matrix3d mapping a W x H box onto four corners (a homography)
+  const [x0, y0] = p0, [x1, y1] = p1, [x2, y2] = p2, [x3, y3] = p3;
+  const dx1 = x1 - x3, dx2 = x2 - x3, dy1 = y1 - y3, dy2 = y2 - y3, sx = x0 - x1 - x2 + x3, sy = y0 - y1 - y2 + y3, den = dx1 * dy2 - dx2 * dy1;
+  const g = (sx * dy2 - dx2 * sy) / den, h = (dx1 * sy - sx * dy1) / den;
+  const a = x1 - x0 + g * x1, b = x2 - x0 + h * x2, d = y1 - y0 + g * y1, e = y2 - y0 + h * y2;
+  Object.assign(el.style, { left: 0, top: 0, width: W + 'px', height: H + 'px', transformOrigin: '0 0',
+    transform: `matrix3d(${a / W},${d / W},0,${g / W},${b / H},${e / H},0,${h / H},0,0,1,0,${x0},${y0},0,1)` });
+}
+FRAMES.forEach(([x, y, w, h], i) => {
+  const m = pblShow[i];
+  const e = m ? add(x, y, w, h, 'art isle', ISLE(m), `Island ${m}: ${T.pbl[m - 1]}`, 'Start PBL · my island', `island ${m}`, 'pbl')
+              : add(x, y, w, h, 'empty', '+', 'Your next island goes here', 'Start PBL', null, 'pbl');
+  warp(e, QUADS[i]); const sv = e.querySelector('svg'); if (sv) sv.setAttribute('preserveAspectRatio', 'none');
+});
+add(290, 640, 104, 58, 'passport', PASSPORT(EARNED.pbl.length), 'Explorer’s log', `Start PBL · ${EARNED.pbl.length} of 24 islands`, 'explorer’s log', 'pbl');
+// Let's Go Readers wing: one gem per level (6 months each): won = glowing, on its way = half-lit with x/6, not yet = faint
+LEVELS.forEach(([k, name], i) => {
+  const d = lvlDone(i), x = [645, 730, 814, 897][i] - 18;   // centres of the painted glass cases
+  const e = add(x, 553, 36, 44, 'gem' + (d === 6 ? '' : d ? ' part' : ' ghost'), gemImg(k), d === 6 ? name + '!' : d ? `${name}: ${d} of 6` : 'Still to come', "Let's Go Readers · " + (i * 6 + 1) + '–' + (i * 6 + 6), d === 6 ? name : d ? `${name} ${d}/6` : 'still to come', 'lgr');
+  const cp = [...document.querySelectorAll('.cap.w-lgr')].pop(); if (cp) cp.style.top = '630px';   // label under the case's base, not over it
+  e.style.setProperty('--glow', GEM[k][2]); e.style.setProperty('--fill', .3 + d / 6 * .7);
+});
+// Fresh Math wing: the six newest mission stamps in the round frames, the four newest alien friends on the shelf
+const CIRCLES = [[1118, 467], [1209, 463], [1305, 460], [1118, 565], [1209, 565], [1305, 563]];
+const fmShow = newest(EARNED.fm, 6);
+CIRCLES.forEach(([cx, cy], i) => { const m = fmShow[i];
+  if (m) { const e = add(cx - 36, cy - 36, 72, 72, 'stamp', stampSvg(m), `Mission ${m}: ${T.fm[m - 1]}`, 'Fresh Math · stamp', `· ${m}`, 'fm'); e.style.setProperty('--r', (i % 2 ? 8 : -6) + 'deg'); } });
+newest(EARNED.fm, 4).forEach((m, i) => add([1074, 1164, 1257, 1336][i] - 19, 606, 38, 44, 'alien' + (i % 2 ? ' b' : ''), ALIEN(m), `Friend from planet ${m}`, 'Fresh Math · alien friend', null, 'fm'));
+// month trophy on the podium: how many months are complete in all three
+if (allThree().length) add(733, 610, 70, 73, 'trophy',   /* base centred on the gold disc (top centre x 768, y 683); its top stays below the glass cases (y 606) so all four gems show */ TROPHY(allThree().length), `${allThree().length} months complete!`, 'All three programmes', null, 'months');
+// finished books on the left bookshelf: two spines per number, in the two compartments
+/* the shelf's four compartments, measured on the painting: x from–to, where the books stand at each end (the shelves
+   slope a little), tallest book that fits. Books fill them in order, newest 16 shown. */
+const SHELVES = [[46, 77, 712, 709.5, 44], [92, 128, 708, 704.5, 44], [46, 77, 777.5, 776, 40], [92, 128, 764.5, 762, 31]];
+EARNED.books.flatMap(n => BOOKPAIR(n).map((t, b) => [n, b, t])).slice(-16).forEach(([n, b, t], idx) => {
+  const [x0, x1, y0, y1, mh] = SHELVES[Math.floor(idx / 4)], i = idx % 4, w = 7, x = x0 + 1 + i * 7.6;
+  const yb = y0 + (y1 - y0) * ((x + w / 2 - x0) / (x1 - x0)), h = mh - [2, 6, 0, 4][i];
+  add(x, yb - h, w, h, 'spine', '<i></i><i></i>', t, 'Book finished', null, 'books').style.setProperty('--c', ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][(n + b) % 4]);
+});
+
+/* ---------- the 24-month panel that opens beside a zoomed wing ---------- */
+const panel = document.getElementById('panel');
+const cell = (html, cls, title) => `<button class="cell ${cls}" data-t="${title.replace(/"/g, '&quot;')}">${html}</button>`;
+function panelFor(k) {
+  const W = WINGS[k]; let body = '';
+  if (k === 'pbl') {
+    [[1, 'Islands 1–12'], [13, 'Islands 13–24']].forEach(([from, h]) => {
+      body += `<h4>${h}</h4><div class="grid g6">` + range(12).map(i => { const m = from + i - 1, on = EARNED.pbl.includes(m);
+        return cell(`<span class="fr sea${on ? '' : ' off'}">${ISLE(m)}</span><i>${m}</i>`, on ? '' : 'off', on ? `Island ${m}: ${T.pbl[m - 1]}` : `Island ${m}: still to explore`); }).join('') + '</div>';
+    });
+  } else if (k === 'lgr') {
+    body = LEVELS.map(([g, name], i) => { const d = lvlDone(i);
+      return `<div class="lvl"><span class="lg ${d === 6 ? '' : d ? 'part' : 'ghost'}" style="--glow:${GEM[g][2]};--fill:${.3 + d / 6 * .7}">${gemImg(g)}</span><b>${name}</b><div class="grid g6 sm">` +
+        range(6).map(j => { const m = i * 6 + j, on = EARNED.lgr.includes(m); return cell(`<span class="dot" style="--c:${GEM[g][1]}">${m}</span>`, on ? '' : 'off', `· ${m} ${T.lgr[m - 1]}`); }).join('') + '</div></div>'; }).join('');
+  } else if (k === 'fm') {
+    body = '<div class="grid g6">' + range(N).map(m => { const on = EARNED.fm.includes(m);
+      return cell(on ? `<span class="st">${stampSvg(m)}</span>` : `<span class="st off"><b>${m}</b></span>`, on ? '' : 'off', `Mission ${m}: ${T.fm[m - 1]}`); }).join('') + '</div>';
+  } else if (k === 'books') {
+    body = '<div class="grid g6">' + range(N).map(n => { const on = EARNED.books.includes(n), [a, b] = BOOKPAIR(n);
+      return cell(`<span class="bk2"><s style="--c:${on ? ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][n % 4] : '#e6dfd2'}"></s><s style="--c:${on ? ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][(n + 1) % 4] : '#e6dfd2'}"></s></span><i>${n}</i>`, on ? '' : 'off', `· ${n}: ${a} + ${b}`); }).join('') + '</div><p class="note">1–12: Literacy and Math + Play and Speak · 13–24: Daily Essay + ECS</p>';
+  } else if (k === 'months') {
+    body = '<div class="grid g6">' + range(N).map(m => { const on = allThree().includes(m);
+      return cell(`<span class="tr">${TROPHY(m, !on)}</span>`, on ? '' : 'off', on ? `Month ${m} complete in all three!` : `Month ${m}`); }).join('') + '</div>';
+  }
+  panel.innerHTML = `<header><b>${W.name}</b><span>${W.total()}</span></header><div class="pb">${body}</div><footer id="pf">Tap one to see its name</footer>`;
+  panel.querySelectorAll('.cell').forEach(c => c.onclick = ev => { ev.stopPropagation(); document.getElementById('pf').textContent = c.dataset.t; say(c.dataset.t.replace(/·/g, '')); });
+}
+function say(t) { Voice.say(t, { who: 'penny' }); }
+
+const wings = document.getElementById('wings');
+Object.entries(WINGS).forEach(([k, W]) => {
+  const [x, y, w, h] = W.r, d = document.createElement('div'); d.className = 'wing'; Object.assign(d.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+  d.onclick = ev => { ev.stopPropagation(); if (ZOOM !== k) zoomTo(k); }; wings.appendChild(d);
+  const t = document.createElement('div'); t.className = 'total w-' + k; t.textContent = W.total(); t.style.left = x + w / 2 + 'px'; t.style.top = y + h - 4 + 'px'; items.appendChild(t);
+});
+function zoomTo(k) {
+  ZOOM = k; tip.classList.remove('on'); world.classList.add('zoomed'); world.classList.forEach(c => c.startsWith('z-') && world.classList.remove(c)); world.classList.add('z-' + k); panelFor(k); panel.classList.add('on');
+  document.querySelectorAll('.cap,.total').forEach(e => e.classList.toggle('w-on', e.classList.contains('w-' + k)));
+  fit();
+  const W = WINGS[k]; if (W.say !== false) Voice.say(W.total().replace(/·/g, ','), { who: 'penny' });
+}
+function zoomOut() { ZOOM = null; world.classList.remove('zoomed'); panel.classList.remove('on'); tip.classList.remove('on'); fit(); }
+function show(x, y, label, sub) { tip.innerHTML = label + (sub ? `<small>${sub}</small>` : ''); tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.classList.add('on');
+  clearTimeout(show.t); show.t = setTimeout(() => tip.classList.remove('on'), 2600);
+  Voice.say(label.replace(/[“”]/g, ''), { who: 'penny' }); }
+document.getElementById('room').appendChild(tip);
+document.getElementById('room').onclick = () => tip.classList.remove('on');
+document.getElementById('back').onclick = () => { if (ZOOM) zoomOut(); else location.href = 'street.html#scene=hall'; };
+
+/* fit: fill the window like the street (trim at most a little top and bottom), soft blurred room behind any gap */
+const world = document.getElementById('world');
+function fit() {
+  Turn.update(); const w = Turn.W, h = Turn.H;
+  /* fill the window edge to edge; trim only dome glass and floor: the room's content (signs y 150 to bookshelves y 840) always stays.
+     Only on extra-wide screens (wider than about 2.1 : 1) does a soft blurred strip show at the sides. */
+  const contain = Math.min(w / 1536, h / 1024), cover = Math.max(w / 1536, h / 1024), s = Math.max(contain, Math.min(cover, h / 720));
+  const left = (w - 1536 * s) / 2, top = Math.min(0, Math.max(h - 1024 * s, h / 2 - 485 * s));
+  if (ZOOM) {   // the wing fills the window, with a little room around it
+    const pw = Math.min(w * .48, Math.max(360, w * .42)), aw = w - pw;   // panel width on the right, room for the wing on the left
+    const [x, y, ww, hh] = WINGS[ZOOM].r, z = Math.max(s, Math.min(aw / (ww * 1.1), h / (hh * 1.2), s * 3));
+    let tx = aw / 2 - (x + ww / 2) * z, ty = h / 2 - (y + hh / 2) * z;
+    panel.style.width = pw - 28 + 'px';
+    tx = Math.min(0, Math.max(aw - 1536 * z, tx)); ty = Math.min(0, Math.max(h - 1024 * z, ty));   // never past the painting's edges
+    world.style.transform = `translate(${tx}px,${ty}px) scale(${z})`;
+  } else world.style.transform = `translate(${left}px,${top}px) scale(${s})`;
+  const k = Math.max(.55, Math.min(1, s)); ['back', 'snd'].forEach(id => document.getElementById(id).style.transform = `scale(${k})`);
+}
+addEventListener('resize', () => { world.classList.add('nozoomanim'); fit(); setTimeout(() => world.classList.remove('nozoomanim'), 50); });
+world.classList.add('nozoomanim'); fit();
+const zm = location.hash.match(/zoom=([a-z]+)/); if (zm) zoomTo(zm[1]);   // for checking pictures: open already zoomed
+setTimeout(() => world.classList.remove('nozoomanim'), 300);
+</script>
+<script src="hall-fun.js"></script>
+</html>

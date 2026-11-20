@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<title>Review sheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Fredoka:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="book.css">
+<style>
+/* All pages of one book on one sheet, for checking and for showing the boss. ?b=a-apple */
+html,body{height:auto;overflow:visible}
+body{background:#f3efe6;padding:26px 30px;width:1500px}
+h1{font:700 40px "Fredoka";color:#2b2d3a;margin-bottom:18px}
+h1 small{font:500 22px "Fredoka";opacity:.7;margin-left:12px}
+.sheet{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.pg{border-radius:16px;overflow:hidden;background:#fffaf0;box-shadow:0 5px 14px rgba(43,45,58,.16)}
+.pg .pic{height:176px;flex:none}
+.pg .cap{padding:10px 12px 12px;font:600 21px/1.2 "Fredoka";color:#2b2d3a;text-align:center;white-space:nowrap}
+.pg .cap .v{color:#e8492e}
+.pg .cv{height:233px;position:relative}
+.pg .cover h1{font-size:44px;left:20px;top:36px;margin:0}.pg .cover .kick{left:22px;top:14px;font-size:12px}.pg .cover .aa{font-size:34px;left:20px;bottom:14px;border-radius:12px;padding:2px 12px 6px}
+.pg .cover .tag{font-size:12px;right:10px;top:10px;padding:4px 10px}
+</style>
+</head>
+<body>
+<h1 id="t"></h1><div class="sheet" id="sheet"></div>
+<script src="data/set-a.js"></script>
+<script src="scene.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('b') || 'a-airplane', S = window.LGR_SCENE, meta = LGR_SET.books.find(b => b.id === id);
+const sc = document.createElement('script'); sc.src = 'data/' + id + '.js';
+sc.onload = () => {
+  const B = window.LGR_BOOK, c = B.cover, [my, ...rest] = B.title.split(' ');
+  document.getElementById('t').innerHTML = B.title + '<small>' + (B.draft ? 'draft text by Claude · ' : '') + 'cover + 10 pages</small>';
+  const sent = en => en.replace(/\{([^}]+)\}/g, '<span class="v">$1</span>');
+  document.getElementById('sheet').innerHTML = '<div class="pg"><div class="cv"><div class="cover" style="--c:' + meta.color + '"><svg class="art" viewBox="0 0 948 632" preserveAspectRatio="xMidYMid slice">' + S.item(c[0], c[1], c[2], c[3], c[4], 'float') + '</svg><p class="kick">MY A BOOK</p><h1>' + my + '<br><span>' + rest.join(' ') + '</span></h1><div class="aa">A a</div></div></div></div>' +
+    B.pages.map((p, i) => '<div class="pg"><div class="pic">' + S.render(p.scene, i) + '</div><div class="cap">' + (i + 1) + '. ' + sent(p.en) + '</div></div>').join('');
+};
+document.head.appendChild(sc);
+</script>
+<script src="../../ext/home.js" data-home="../../demo/street.html"></script></body>
+</html>
