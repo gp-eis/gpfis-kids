@@ -106,7 +106,13 @@
 
   // ---------- little helpers ----------
   const again = (el, c) => { el.classList.remove(c); void el.offsetWidth; el.classList.add(c); };
-  function toast(html) { const t = $('#toast'); t.innerHTML = html; again(t, 'on'); }
+  // every message is SAID by Gerry or Penny in a speech bubble (crew.js); the plain pill only shows if they are busy with a more important line
+  function toast(html) {
+    const m = html.match(/^([\s\S]*?)(?:<small>([\s\S]*?)<\/small>)?$/), en = m[1].replace(/<[^>]+>/g, '').trim();
+    Crew.say(en.replace(/★/g, 'stars').replace(/·/g, ','), { show: en, ko: m[2] }).then(ok => { if (ok === false) { const t = $('#toast'); t.innerHTML = html; again(t, 'on'); } });
+  }
+  const low = s => s.charAt(0).toLowerCase() + s.slice(1), chat = (a, level = 1) => Crew.say(Array.isArray(a) ? Crew.pick(a) : a, { level });
+  let chatT = 0; const maybe = a => { if (performance.now() - chatT > 14000) { chatT = performance.now(); chat(a, 0); } };
   function addStars(n) { S.stars += n; $('#stars span').textContent = S.stars; again($('#stars'), 'bump'); save(); }
   const mk = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; (parent || world).appendChild(e); return e; };
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -155,7 +161,7 @@
     g.im = [...g.el.querySelectorAll('img')]; gulls.push(g);
     g.el.addEventListener('pointerdown', ev => { ev.stopPropagation(); gullTrick(g); const p = tapPt(ev); burst(p.x, p.y, 10, 200, false, '#fff'); });
   }
-  function gullTrick(g) { g.cool = 4; snd.gull(); again(g.el.firstChild, 'loop'); g.fast = 1.2; }
+  function gullTrick(g) { g.cool = 4; snd.gull(); maybe(['Hello, bird!', 'Look, it did a loop!', 'Wow, what a trick!']); again(g.el.firstChild, 'loop'); g.fast = 1.2; }
   for (let i = 0; i < 44; i++) {
     const c = { el: mk('img', '', cloudsEl), x: rnd(0, WW * 1.3), y: rnd(-100, WH * 1.3), v: rnd(6, 16), w: rnd(280, 520) }; c.el.src = `art/cloud${1 + i % 3}.png`; c.el.style.width = c.w + 'px'; clouds.push(c);
     c.el.addEventListener('pointerdown', ev => { ev.stopPropagation(); const p = tapPt(ev); snd.boing(); setTimeout(snd.rain, 150); again(c.el, 'squish'); rain(p.x, p.y + 30, c.w * .5); for (let j = 0; j < 5; j++) puff(p.x + rnd(-60, 60), p.y + rnd(-30, 30), 14, false); });
@@ -206,12 +212,12 @@
     const sx = ship.x, sy = ship.y - 30;
     for (const s of puffs) if (s.on && Math.hypot(s.x - sx, s.y - sy) < 140) {
       s.on = false; s.el.classList.add('got'); snd.poof(); snd.ding(collected++); for (let j = 0; j < 6; j++) puff(s.x + rnd(-40, 40), s.y + rnd(-25, 25), 12);
-      flyStar((s.x - cam.x) * z, (s.y - cam.y) * z, 1); crewJump();
+      flyStar((s.x - cam.x) * z, (s.y - cam.y) * z, 1); crewJump(); maybe(['Got it!', 'Yay, a cloud!', 'Nice catch!', 'One more star!', 'So fluffy!']);
       setTimeout(() => newPuff(s), 15000);
     }
     for (const c of crates) {
       c.y += 46 * dt; c.x += Math.sin(T + c.end) * 14 * dt;
-      if (c.on && Math.hypot(c.x - sx, c.y - sy) < 150) { c.on = false; c.el.style.opacity = 0; snd.win(); burst(c.x, c.y, 30, 380, true); flyStar((c.x - cam.x) * z, (c.y - cam.y) * z, 3); crewJump(); toast('Treasure! +3 ★ <small>보물!</small>'); setTimeout(() => newCrate(c), 6000); }
+      if (c.on && Math.hypot(c.x - sx, c.y - sy) < 150) { c.on = false; c.el.style.opacity = 0; snd.win(); burst(c.x, c.y, 30, 380, true); flyStar((c.x - cam.x) * z, (c.y - cam.y) * z, 3); crewJump(); toast('Treasure! Three stars! <small>보물!</small>'); setTimeout(() => newCrate(c), 6000); }
       if (c.y > c.end) newCrate(c);
       c.el.style.transform = `translate(${c.x}px,${c.y}px)`;
     }
@@ -231,7 +237,7 @@
     if (best !== near) {
       if (near) near.el.classList.remove('near');
       near = best;
-      if (near) { near.el.classList.add('near'); landBtn.classList.toggle('locked', !open(near.n)); landBtn.innerHTML = open(near.n) ? '⚓ Land here! <small>착륙!</small>' : '☁ Still hidden <small>아직 안 보여요</small>'; snd.pop(); }
+      if (near) { near.el.classList.add('near'); landBtn.classList.toggle('locked', !open(near.n)); landBtn.innerHTML = open(near.n) ? '⚓ Land here! <small>착륙!</small>' : '☁ Still hidden <small>아직 안 보여요</small>'; snd.pop(); chat(open(near.n) ? [`Island ${near.n}! Let's land!`, `Look! ${near.t}. Press Land!`] : ['That island is still hidden.']); }
       landBtn.classList.toggle('on', !!near);
     }
     // compass to the next island
@@ -240,7 +246,8 @@
     else cp.querySelector('span').textContent = 'All islands done!';
   }
   let jumpT = 0;
-  function crewJump() { if (T - jumpT < .4) return; jumpT = T; for (const c of shipEl.querySelectorAll('.crew')) again(c, 'jump'); }
+  const shipCrew = [Crew.add($('#ship .crew.g'), 'gerry'), Crew.add($('#ship .crew.p'), 'penny')];   // whole-body pose pictures (crew.js)
+  function crewJump() { if (T - jumpT < .4) return; jumpT = T; for (const c of shipEl.querySelectorAll('.crew')) again(c, 'jump'); shipCrew.forEach(c => c.pose('cheer', 650)); }
 
   // ---------- the sea ----------
   const hash = (a, b) => { const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return h - Math.floor(h); };
@@ -292,6 +299,21 @@
   }
   setInterval(() => { S.x = Math.round(ship.x); S.y = Math.round(ship.y); save(); }, 3000);
 
+  // always someone talking: what Gerry or Penny says next when it has been quiet (flying, or standing on an island)
+  Crew.idle(() => {
+    if (document.body.classList.contains('inroom') || $('#party').classList.contains('on')) return null;
+    if (mapEl.classList.contains('on')) return 'Tap an island and we fly there!';
+    if (busy) return false;
+    if (mode === 'isle' && pic) {
+      const nb = built(cur.n).length;
+      if (nb >= 4) return Crew.pick(['We built the whole island!', 'Shall we fly to the next island?', 'Press a place to play again!']);
+      return Crew.pick([`Press number ${nb + 1}!`, `Let's go to ${low(NAMES[nb])}!`, 'What a pretty island!', `${4 - nb} more to build!`]);
+    }
+    const nx = ISL.find(I => open(I.n) && !done(I.n));
+    if (near) return open(near.n) ? 'Press Land here!' : 'This island is still hidden.';
+    return Crew.pick(['Hold and drag to fly!', "Let's catch a cloud!", 'Look at the birds!', 'I love flying!', 'The sea is so blue!', nx ? `Let's find island ${nx.n}!` : 'We visited every island!', 'Open the map if you get lost!', 'Can you see a treasure box?']);
+  });
+
   // ---------- landing ----------
   landBtn.addEventListener('click', land);
   function land() {
@@ -336,7 +358,7 @@
   mapEl.addEventListener('pointerdown', e => { if (e.target === mapEl) toggleMap(false); });
 
   // ---------- on an island ----------
-  let cur = null, pic = null, mates = [], at = 'L', walking = 0, cp = [.176, .422], face = 1;
+  let cur = null, pic = null, mates = [], mc = [], at = 'L', walking = 0, cp = [.176, .422], face = 1;
   // where the crew can stand, as shares of the island painting: only the dock and the dirt path, never a fence
   let NODE = ISLE.node, UP = ISLE.up, NAMES = ISLE.names;
   function route(a, b) {
@@ -363,7 +385,7 @@
     if (dx > .0005) face = 1; else if (dx < -.0005) face = -1;
     mates.forEach((m, n) => {
       m.style.left = p[0] * w + (n ? 1 : -1) * 46 * s + 'px'; m.style.top = p[1] * h + (n ? 8 : 0) * s + 'px';
-      m.style.setProperty('--s', s.toFixed(3)); m.firstChild.style.transform = `scaleX(${face})`;
+      m.style.setProperty('--s', s.toFixed(3));   // never mirrored (the G and P would flip): they have real left and right walking pictures
     });
   }
   function crewTo(dest, then) {
@@ -379,9 +401,9 @@
         const t = pts[n], ex = t[0] - cp[0], ey = (t[1] - cp[1]) * .56, l = Math.hypot(ex, ey); dx = ex;
         if (l <= d) { cp = t.slice(); d -= l; n++; } else { cp[0] += ex / l * d; cp[1] += ey / l * d / .56; d = 0; }
       }
-      putCrew(cp, dx);
+      putCrew(cp, dx); mc.forEach(c => c.walk(face));
       if (n < pts.length) return setTimeout(step, 16);
-      mates.forEach(m => m.classList.remove('walk')); then && then();
+      mates.forEach(m => m.classList.remove('walk')); mc.forEach(c => c.stop()); then && then();
     })();
   }
   function openIsle(I) {
@@ -396,8 +418,8 @@
       ((window.ISLE_SPR || {})[ISLE.dir] || []).map((b, i) => `<img class="under" data-i="${i}" src="${dir}/s${i}.jpg" alt="" style="clip-path:ellipse(${b[2] * 50 + 1}% ${b[3] * 50 + 1}% at ${(b[0] + b[2] / 2) * 100}% ${(b[1] + b[3] / 2) * 100}%)"><img class="spr" data-i="${i}" src="${dir}/b${i + 1}.png" alt="" style="left:${b[0] * 100}%;top:${b[1] * 100}%;width:${b[2] * 100}%;height:${b[3] * 100}%">`).join('') +
       PLOTS.map((p, i) => `<div class="plot${i < nb ? ' on' : i > nb ? ' later' : ''}" data-i="${i}"><div class="num">${i + 1}</div><b class="nm">${NAMES[i]}</b></div>`).join('') +
       `<div class="shipzone" title="Back to the airship" style="left:${zn[0]}%;top:${zn[1]}%;width:${zn[2]}%;height:${zn[3]}%"><span>Fly! <small>출발!</small></span></div>` +
-      `<div class="mate"><b><img src="art/gerry.png" alt=""></b></div><div class="mate"><b><img src="art/penny.png" alt=""></b></div></div>`;
-    pic = isleEl.querySelector('.pic'); mates = [...pic.querySelectorAll('.mate')]; at = 'L'; cp = NODE.L.slice(); face = 1; layIsle();
+      `<div class="mate"><b><img src="art/crew/gerry/stand.webp" alt=""></b></div><div class="mate"><b><img src="art/crew/penny/stand.webp" alt=""></b></div></div>`;
+    pic = isleEl.querySelector('.pic'); mates = [...pic.querySelectorAll('.mate')]; mc = mates.map((m, n) => Crew.add(m.querySelector('img'), n ? 'penny' : 'gerry', 1)); at = 'L'; cp = NODE.L.slice(); face = 1; layIsle();
     pic.querySelectorAll('.plot').forEach(p => {
       p.addEventListener('pointerdown', ev => { ev.stopPropagation(); plot(+p.dataset.i, p); });
       p.addEventListener('pointerenter', () => { if (p.classList.contains('on') && !busy) alive(+p.dataset.i, 'hov'); });
@@ -405,7 +427,7 @@
     });
     pic.querySelector('.shipzone').addEventListener('pointerdown', ev => { ev.stopPropagation(); goShip(false); });
     again(isleEl, 'on'); snd.boing();
-    setTimeout(() => { if (pic && !busy) crewTo('D'); }, 600);   // they climb down and step onto the dock
+    setTimeout(() => { if (pic && !busy) crewTo('D', () => { mc[0].pose('point', 1500); mc[1].pose('wave', 1500); }); }, 600);   // they climb down and step onto the dock
     setTimeout(() => toast(built(I.n).length ? 'Welcome back! <small>다시 왔어요!</small>' : 'Pick a place to go in! <small>가고 싶은 곳을 골라요</small>'), 500);
   }
   const VOICE = [() => { tone(880, .3, 'triangle', .2); setTimeout(() => tone(660, .45, 'triangle', .2), 280); },            // ding-dong
@@ -427,9 +449,9 @@
   }
   function plot(i, el) {
     if (busy) return;
-    if (el.classList.contains('on')) { busy = true; hopB(i); setTimeout(() => crewTo(i, () => goInside(i, el, true)), 650); return; }   // a built place can be visited again
+    if (el.classList.contains('on')) { busy = true; hopB(i); chat(`Let's visit ${low(NAMES[i])} again!`); setTimeout(() => crewTo(i, () => goInside(i, el, true)), 650); return; }   // a built place can be visited again
     if (el.classList.contains('later')) { snd.nope(); again(el.querySelector('.num'), 'no'); toast(`Finish place ${built(cur.n).length + 1} first! <small>${built(cur.n).length + 1}번을 먼저 해요</small>`); return; }
-    busy = true; snd.pop();
+    busy = true; snd.pop(); chat([`Let's go to ${low(NAMES[i])}!`, `Come on! ${NAMES[i]}!`]);
     crewTo(i, () => goInside(i, el));
   }
   // they walk in: the view pushes into the plot, then the place opens for the activity
@@ -439,7 +461,7 @@
     // the room: each thing in it is one worksheet page (room.js). ok = the show and tell is done
     setTimeout(() => Room.open({ month: cur.n, week: i + 1, done: ok => {
       pic.classList.remove('zoomin'); mates.forEach(m => m.classList.remove('in')); snd.whoosh();
-      setTimeout(() => { if (ok && !visit) build(i, el); else { busy = false; if (ok) { toast('You did it again! <small>또 해냈어요!</small>'); mates.forEach(m => again(m, 'jump')); } } }, 750);
+      setTimeout(() => { if (ok && !visit) build(i, el); else { busy = false; if (ok) { toast('You did it again! <small>또 해냈어요!</small>'); mates.forEach(m => again(m, 'jump')); mc.forEach(c => c.pose('cheer', 1100)); } } }, 750);
     } }), 650);
   }
   function build(i, el) {
@@ -449,10 +471,10 @@
     const im = pic.querySelectorAll('img.st')[nb], pw = parseFloat(pic.style.width), ph = parseFloat(pic.style.height), at0 = `${PLOTS[i][0] * pw}px ${PLOTS[i][1] * ph}px`;
     if (im) { im.style.transition = 'none'; im.style.clipPath = `circle(0px at ${at0})`; im.classList.add('on'); void im.offsetWidth; im.style.transition = ''; im.style.clipPath = `circle(${pw * .26}px at ${at0})`; setTimeout(() => { im.style.clipPath = ''; }, 1300); }
     if (nx) nx.classList.remove('later');
-    setTimeout(() => { if (pic) hopB(i); }, 1350);   // the new building says hello
+    setTimeout(() => { if (pic) { hopB(i); chat([`Wow! Look at ${low(NAMES[i])} now!`, `We built ${low(NAMES[i])}! Five stars!`]); } }, 1350);   // the new building says hello
     const r = el.getBoundingClientRect(), o = pt({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
     setTimeout(() => { burst(o.x, o.y, 40, 420); for (let n = 0; n < 8; n++) puff(o.x + rnd(-120, 120), o.y + 50 + rnd(-10, 20), 16, false); }, 400);
-    mates.forEach((m, n) => { const im = m.querySelector('img'), src = im.src; im.src = `art/${n ? 'penny' : 'gerry'}-cheer.png`; again(m, 'jump'); setTimeout(() => { im.src = src; }, 1400); });
+    mates.forEach(m => again(m, 'jump')); mc.forEach(c => c.pose('cheer', 1500));
     (S.built[cur.n] = built(cur.n)).push(i); addStars(5); refresh(); busy = false;
     if (done(cur.n)) setTimeout(party, 1700);
   }
@@ -470,7 +492,7 @@
   // the crew walk back to the ladder and climb up, then the airship takes off
   function goShip(finished) {
     if (mode !== 'isle' || busy || !pic) return;
-    busy = true; snd.pop();
+    busy = true; snd.pop(); chat(['Back to the airship!', 'All aboard!', "Let's fly!"]);
     crewTo('L', () => { mates.forEach(m => m.classList.add('climb')); snd.boing(); setTimeout(() => { busy = false; leave(finished); }, 600); });
   }
   function leave(finished) {

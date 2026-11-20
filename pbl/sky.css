@@ -47,7 +47,7 @@ canvas { position: absolute; left: 0; top: 0; }
 #ship .tilt { position: absolute; inset: 0; transform-origin: 50% 55%; }
 #ship img.hull, #ship img.front { position: absolute; inset: 0; width: 100%; height: 100%; }
 #ship img.front { clip-path: polygon(0 68%, 17% 69.5%, 42% 72%, 66% 69.5%, 81% 64%, 100% 60%, 100% 100%, 0 100%); }
-#ship .crew { position: absolute; bottom: 21%; height: 31%; transform-origin: 50% 100%; animation: breathe 1.6s ease-in-out infinite; }
+#ship .crew { position: absolute; bottom: 21%; height: 34%; translate: -24% 0; transform-origin: 50% 100%; animation: breathe 1.6s ease-in-out infinite; }
 #ship .crew.g { left: 37%; }
 #ship .crew.p { left: 51%; animation-delay: -.6s; }
 #ship .crew.jump { animation: jump .55s; }
@@ -114,8 +114,9 @@ img.spr.hopb { animation: bflash .8s ease-out; }
 .mate { position: absolute; width: 0; height: 0; z-index: 5; pointer-events: none; transition: opacity .5s, transform .5s; --s: 1; }
 .mate::before { content: ''; position: absolute; left: calc(-46px * var(--s)); top: calc(-13px * var(--s)); width: calc(92px * var(--s)); height: calc(26px * var(--s)); border-radius: 50%; background: radial-gradient(closest-side, rgba(20, 40, 10, .45), transparent); }
 .mate b { position: absolute; left: 0; bottom: 0; display: block; }
-.mate img { position: absolute; bottom: 0; left: 0; height: calc(150px * var(--s)); translate: -50% 0; transform-origin: 50% 100%; animation: breathe 1.6s ease-in-out infinite; }
-.mate.walk img { animation: walk .28s ease-in-out infinite; }
+.mate img { position: absolute; bottom: 0; left: 0; height: calc(165px * var(--s)); translate: -50% 0; transform-origin: 50% 100%; animation: breathe 1.6s ease-in-out infinite; }
+.mate.walk img { animation: stepbob .3s ease-in-out infinite; }
+@keyframes stepbob { 50% { transform: translateY(-5px); } }
 .mate.jump img { animation: jump .55s 2; }
 .mate.in { opacity: 0; transform: translateY(-40px) scale(.6); }
 .mate.climb { opacity: 0; transform: translate(-30px, -110px) scale(.7); }
@@ -190,3 +191,13 @@ body.onisle #toast { top: auto; bottom: 34px; }
 @keyframes toastIn { 0% { opacity: 0; transform: translateY(-20px) scale(.8); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 body.still *, body.still *::before, body.still *::after { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .isl .land, .star, .crate, .gull img { animation: none; } }
+
+/* Gerry's and Penny's speech bubble (crew.js): sits above whoever is talking */
+#crewbub { position: absolute; left: 0; top: 0; z-index: 70; max-width: 430px; background: #fff; border-radius: 26px; padding: 12px 22px 13px; font-size: 25px; font-weight: 700; line-height: 1.25; color: var(--ink, #2b3350); text-align: center;
+  box-shadow: 0 7px 0 rgba(0, 40, 90, .22); border: 4px solid #2f7fd6; opacity: 0; transform: scale(.6); transform-origin: var(--tail, 50%) 100%; transition: opacity .18s, transform .28s var(--boing, cubic-bezier(.3, 1.6, .5, 1)); pointer-events: none; }
+#crewbub[data-who=penny] { border-color: #f08a1c; }
+#crewbub.on { opacity: 1; transform: none; }
+#crewbub b { display: block; font-weight: 700; }
+#crewbub small { display: block; font-size: 16px; font-weight: 600; color: #7a8199; margin-top: 2px; }
+#crewbub::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -16px; margin-left: -12px; width: 20px; height: 20px; background: #fff; border-right: 4px solid #2f7fd6; border-bottom: 4px solid #2f7fd6; rotate: 45deg; border-radius: 0 0 5px 0; }
+#crewbub[data-who=penny]::after { border-color: #f08a1c; }

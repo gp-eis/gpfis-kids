@@ -18,16 +18,14 @@ window.Room = (() => {
   const lockedNow = t => (t.type === 'book' && !allPlayed()) || (t.type === 'stage' && !(allPlayed() && (!bookT() || isDone(bookT().id))));
 
   // ---------- talking and listening ----------
-  function say(text, el) {
-    return new Promise(res => {
-      if (el) el.classList.add('saying');
-      let fin = false; const end = () => { if (fin) return; fin = true; if (el) el.classList.remove('saying'); res(); };
-      try {
-        const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .85; u.pitch = 1.15; u.onend = end; u.onerror = end;
-        speechSynthesis.cancel(); speechSynthesis.speak(u); setTimeout(end, 900 + text.length * 95);
-      } catch (e) { setTimeout(end, 600); }
-    });
+  let rc = [];   // the two helpers in the room (crew.js pose pictures)
+  // every line is said by Penny or Gerry (crew.js): voice, talking pose, and a speech bubble unless the words are already lit up on screen
+  function say(text, el, quiet) {
+    if (el) el.classList.add('saying');
+    return Crew.say(text, { level: 2, quiet: !!el || quiet }).then(() => { if (el) el.classList.remove('saying'); });
   }
+  const chat = (a, level = 1) => Crew.say(Array.isArray(a) ? Crew.pick(a) : a, { level });
+  let praiseT = 0, wrongT = 0;
 
   // ---------- small tools ----------
   function pad(cv, getCol, onInk, getStamp) {
@@ -66,8 +64,11 @@ window.Room = (() => {
   }
   const at = el => { const r = el.getBoundingClientRect(); return K().pt({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }); };
   function right(el, n = 22) { const o = at(el); K().snd.ding(3); K().burst(o.x, o.y, n, 320); K().again(el, 'yes'); cheer(); }
-  function wrong(el) { K().snd.nope(); K().again(el, 'no'); }
-  function cheer() { if (!box) return; box.querySelectorAll('#act .hl').forEach(m => K().again(m, 'jump')); }
+  function wrong(el) { K().snd.nope(); K().again(el, 'no'); if (performance.now() - wrongT > 6000) { wrongT = performance.now(); chat(['Try another one!', 'Oops! Try again.', 'Not that one. Try again!', 'Hmm, have another go!']); } }
+  function cheer() {
+    if (!box) return; box.querySelectorAll('#act .hl').forEach(m => K().again(m, 'jump')); Crew.all().filter(c => c.rank === 3).forEach(c => c.pose('cheer', 700));
+    if (performance.now() - praiseT > 9000) { praiseT = performance.now(); chat(['Good one!', 'Yes!', 'Great!', 'Well done!', 'You got it!', 'Nice!', 'That is right!'], 0); }
+  }
   const clap = () => { for (let i = 0; i < 14; i++) setTimeout(() => K().snd.rattle(), i * 90 + rnd(0, 40)); };
   const chipsOf = (list, cls, on) => list.map(([e, w], i) => `<button class="${cls}${on.includes(w) ? ' on' : ''}" data-w="${w}" style="--a:${i * (360 / list.length) - 90}deg;--d:${i * -.45}s"><i>${e}</i>${w}</button>`).join('');
   const emo = (t, w) => ((t.words || t.items || t.likes || []).find(x => x[1] === w) || [''])[0];
@@ -85,14 +86,15 @@ window.Room = (() => {
     box.innerHTML = `<div class="rpic"><img class="bg" src="${R.art}" alt="">` +
       `<div class="hz tv" data-id="tv" style="${pc(R.tv)}"><b class="watch">▶ Watch <small>영상 보기</small></b></div>` +
       R.things.map(t => `<div class="hz" data-id="${t.id}" style="${pc(t.zone)}"><em></em></div>`).join('') +
-      `<img class="rm g" src="art/gerry.png" alt=""><img class="rm p" src="art/penny.png" alt=""></div>` +
+      `<img class="rm g" src="art/crew/gerry/stand.webp" alt=""><img class="rm p" src="art/crew/penny/stand.webp" alt=""></div>` +
       `<button class="out pill">← Outside <small>밖으로</small></button><div class="keyq pill"><i>?</i>${R.key}</div><div class="prog pill"><span><u></u></span><b></b></div><div id="act"></div>`;
-    rp = box.querySelector('.rpic'); lay(); box.classList.add('on'); document.body.classList.add('inroom'); K().snd.boing();
+    rp = box.querySelector('.rpic'); rc = [Crew.add(box.querySelector('.rm.p'), 'penny', 2), Crew.add(box.querySelector('.rm.g'), 'gerry', 2)]; rc.forEach(c => c.pose('wave', 1400)); lay(); box.classList.add('on'); document.body.classList.add('inroom'); K().snd.boing();
     box.querySelectorAll('.hz').forEach(z => z.addEventListener('click', () => press(z.dataset.id, z)));
     box.querySelector('.out').addEventListener('click', () => close(false));
     box.querySelector('.keyq').addEventListener('click', () => say(R.key));
     paint();
-    setTimeout(() => { K().toast(count() ? 'Welcome back! Keep going. <small>계속해요!</small>' : 'Press anything in the room! <small>방 안의 물건을 눌러 봐요</small>'); if (!count()) say(R.key); }, 400);
+    // first the week's question, then what to do (one after the other, so neither is cut off)
+    setTimeout(() => { if (count()) K().toast('Welcome back! Keep going. <small>계속해요!</small>'); else say(R.key).then(() => { if (box.classList.contains('on') && !box.querySelector('#act.on')) K().toast('Press anything in the room! <small>방 안의 물건을 눌러 봐요</small>'); }); }, 400);
   }
   function paint() {
     const n = count(), N = R.things.length;
@@ -102,8 +104,8 @@ window.Room = (() => {
       z.classList.toggle('done', isDone(t.id)); z.classList.toggle('locked', lockedNow(t));
     });
   }
-  function close(ok) { try { speechSynthesis.cancel(); } catch (e) {} box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); }
-  function crew() { box.querySelectorAll('.rm').forEach(m => K().again(m, 'jump')); }
+  function close(ok) { Crew.hush(); box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); }
+  function crew() { box.querySelectorAll('.rm').forEach(m => K().again(m, 'jump')); rc.forEach(c => c.pose('cheer', 700)); }
   function press(id, z) {
     const k = K(); k.again(z, 'tap');
     if (id === 'tv') return video();
@@ -112,7 +114,8 @@ window.Room = (() => {
       k.snd.nope(); k.again(z, 'no');
       return k.toast(t.type === 'book' ? 'Your book fills up when you play the other things. <small>다른 활동을 먼저 해요</small>' : 'Speech Time opens when everything else is done. <small>다 하면 무대가 열려요</small>');
     }
-    k.snd.pop(); crew(); TYPES[t.type](t);
+    k.snd.pop(); crew(); Crew.hush(); TYPES[t.type](t);
+    if (INTRO[t.type]) chat(INTRO[t.type]);   // the other kinds start talking by themselves
   }
 
   // ---------- one activity: PLAY, then SAY IT, then Done ----------
@@ -122,33 +125,33 @@ window.Room = (() => {
     const a = box.querySelector('#act'), T = window.Talk, id = t.id, stage = t.type === 'stage';
     a.style.setProperty('--c', t.col);
     a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2><p class="sub">${sub}</p><div class="body">${body}</div>` +
-      `<img class="hl g" src="art/gerry.png" alt=""><img class="hl p" src="art/penny.png" alt="">` +
+      `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt="">` +
       `<div class="sayit${stage ? ' speech' : ''}"><div class="row"><i>${stage ? 'Speech Time!' : 'Say it!'}</i><p class="words"></p><div class="res"><b class="st"></b><span class="num"></span></div></div>` +
       `<div class="row"><button class="hear" title="Listen">🔊</button><button class="slow" title="Listen slowly">🐢</button><button class="me" title="Press and speak">🎤</button>` +
       `<button class="mine" title="Hear me" disabled>🙋</button><span class="heard"></span><button class="saidit">I said it! ✋</button></div></div><button class="ok">Done ✓</button>`;
-    a.classList.add('on');
+    a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
     const ok = a.querySelector('.ok'), bar = a.querySelector('.sayit'), txt = bar.querySelector('.words'), me = bar.querySelector('.me'), mine = bar.querySelector('.mine');
     const heard = bar.querySelector('.heard'), res = bar.querySelector('.res'), manual = bar.querySelector('.saidit');
     let fin = null, line = () => '', played = false, said = false, url = null, after = null, tries = 0, best = 0, listening = false;
     const sync = () => { bar.classList.toggle('on', played); ok.classList.toggle('on', played && said); };
     const setLine = () => { txt.innerHTML = line().split(' ').map(w => `<span class="w">${w}</span>`).join(' '); res.classList.remove('on'); heard.textContent = ''; };
-    const tell = (msg, speak) => { heard.textContent = msg; if (speak !== false) return say(msg); };
+    const tell = (msg, speak) => { heard.textContent = msg; if (speak !== false) return say(msg, null, true); };
     const give = (n, s) => {
       best = Math.max(best, n); res.querySelector('.st').innerHTML = '★'.repeat(n) + '<i>' + '★'.repeat(3 - n) + '</i>'; res.querySelector('.num').textContent = s == null ? '' : s + ' / 100';
       K().again(res, 'on'); const o = at(res); K().burst(o.x, o.y, n * 10, 300); T.ding(n); cheer();
     };
     const accept = () => { if (!said) { said = true; sync(); if (after) after(); } };
-    a.querySelector('.back').addEventListener('click', () => { try { speechSynthesis.cancel(); } catch (e) {} a.classList.remove('on'); });
-    bar.querySelector('.hear').addEventListener('click', () => say(line(), txt));
-    bar.querySelector('.slow').addEventListener('click', () => { txt.classList.add('saying'); T.say(line(), { slow: true }).then(() => txt.classList.remove('saying')); });
-    mine.addEventListener('click', () => { if (url) new Audio(url).play(); });
+    a.querySelector('.back').addEventListener('click', () => { Crew.hush(); a.classList.remove('on'); });
+    bar.querySelector('.hear').addEventListener('click', () => { if (!listening) say(line(), txt); });
+    bar.querySelector('.slow').addEventListener('click', () => { if (listening) return; txt.classList.add('saying'); T.say(line(), { slow: true }).then(() => txt.classList.remove('saying')); });
+    let clip = null; mine.addEventListener('click', () => { if (url && !listening) { Crew.hush(); clip = new Audio(url); clip.play(); } });
     manual.addEventListener('click', () => { give(2); tell('Great speaking!'); accept(); });
     me.addEventListener('click', async () => {
-      if (listening) return; listening = true; try { speechSynthesis.cancel(); } catch (e) {}
+      if (listening) return; listening = true; Crew.mute(true); if (clip) { try { clip.pause(); } catch (e) {} }   // nothing may talk over the child's recording
       me.classList.add('live'); heard.textContent = "I'm listening…"; K().snd.pop();
       const long = line().split(' ').length > 8;
       const r = await T.listen({ ms: long ? 18000 : 6000, long, onLevel: v => me.style.setProperty('--lv', v), onWords: w => { heard.textContent = w; } });
-      me.classList.remove('live'); me.style.setProperty('--lv', 0); listening = false; tries++;
+      me.classList.remove('live'); me.style.setProperty('--lv', 0); listening = false; Crew.mute(false); tries++;
       if (r.clip) { url = r.clip; mine.disabled = false; }
       if (!r.heard.length) {   // nothing heard: no microphone, or too quiet. Never leave the child stuck.
         wrong(bar); manual.classList.add('on');
@@ -164,7 +167,7 @@ window.Room = (() => {
       give(st, s);
       if (st === 3) { tell(s >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!'); accept(); }
       else if (tries >= 3) { tell("Good try! Let's say it together: " + line()); accept(); }
-      else { if (st === 2) accept(); tell(st === 2 ? 'Nice! Try once more for three stars!' : 'Good try! Listen and say it again.').then(() => st === 1 && T.say(line(), { slow: true })); }
+      else { if (st === 2) accept(); tell(st === 2 ? 'Nice! Try once more for three stars!' : 'Good try! Listen and say it again.').then(() => st === 1 && !listening && T.say(line(), { slow: true })); }
     });
     if (!T.canHear) { me.style.display = 'none'; manual.classList.add('on'); }
     ok.addEventListener('click', () => {
@@ -344,6 +347,25 @@ window.Room = (() => {
       s.line(() => L.join(' ')); s.onSaid(() => { clap(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); });
     }
   };
+  // what a helper says when a thing is opened
+  const INTRO = { mirror: 'Look in the mirror! Draw your face.', mind: 'What do you like? Pick some!', toys: 'So many toys! Pick your favourite.', paint: "Ooh, paint! Let's make a picture.", tower: "Let's build a tall tower!" };
+  // always someone talking: what to say next when the room has been quiet
+  Crew.idle(() => {
+    if (!box || !box.classList.contains('on') || !R) return null;
+    const a = box.querySelector('#act');
+    if (a && a.classList.contains('on')) {
+      if (a.querySelector('.vid')) return false;
+      if (a.querySelector('.ok.on')) return Crew.pick(['You did it! Press Done.', 'All finished! Press Done.']);
+      if (a.querySelector('.sayit.on')) { if (a.dataset.hinted) return false; a.dataset.hinted = 1; return Crew.pick(['Press the microphone and say it!', 'Your turn! Say it out loud.']); }   // one reminder only
+      return Crew.pick(['Keep going!', 'You can do it!', 'Take your time.']);
+    }
+    const left = R.things.filter(t => !isDone(t.id) && !lockedNow(t));
+    if (!left.length) return Crew.pick(['We did everything here!', "Let's go outside!"]);
+    const t = left[0];
+    if (t.type === 'book') return 'Your book is ready! Open it.';
+    if (t.type === 'stage') return "It's Speech Time! Press the stage.";
+    return Crew.pick(['Press something with a star!', 'What shall we try next?', `Let's try this one: ${t.title}!`, `${left.length} more to go!`, R.key]);
+  });
   function video() {   // the week's explainer video (not made yet)
     const a = box.querySelector('#act'); K().snd.pop(); a.style.setProperty('--c', '#1f2a4d');
     a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><div class="vid"><b>▶</b><p>The week's video plays here.<br><small>not made yet</small></p></div>`;
