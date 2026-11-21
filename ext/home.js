@@ -8,7 +8,8 @@
   const framed = window.top !== window.self;
   /* phones and tablets: the programmes are landscape screens, so they run inside the GPFIS phone frame (play.html), which
      turns them sideways on an upright phone. A page opened directly is moved into the frame once. */
-  if (!framed && matchMedia('(pointer: coarse)').matches && !/[?&]noframe/.test(location.search)) {
+  const touchy = matchMedia('(pointer: coarse)').matches || ((navigator.maxTouchPoints || 0) > 0 && Math.min(screen.width, screen.height) < 900);
+  if (!framed && touchy && !/[?&]noframe/.test(location.search)) {
     const root = me.src.replace(/ext\/home\.js.*$/, ''), here = location.href.split('#')[0];
     if (here.startsWith(root)) { location.replace(root + 'play.html?u=' + encodeURIComponent(here.slice(root.length)) ); return; }
   }

@@ -53,7 +53,7 @@
   const _zoomOut = zoomOut; zoomOut = () => { snd.pop(); _zoomOut(); chip.style.display = ''; };
   /* stars chip */
   let stars = 0; try { stars = +localStorage.getItem('gpfis.stars') || 0; } catch (e) {}
-  const chip = document.createElement('div'); chip.id = 'chip'; chip.innerHTML = `<i></i><b>${stars}</b>`; document.body.appendChild(chip);
+  const chip = document.createElement('div'); chip.id = 'chip'; chip.innerHTML = `<i></i><b>${stars}</b>`; rot.appendChild(chip);
   const sizeUI = () => { const s = Math.max(.55, Math.min(1, Math.min(Turn.W / 1536, Turn.H / 1024) * 1.15)); chip.style.transform = `scale(${s})`; chip.style.right = 24 + 128 * s + 'px'; chip.style.top = 20 + 10 * s + 'px'; size(); };
   addEventListener('resize', () => setTimeout(sizeUI, 0)); sizeUI();
   /* welcome: the room bursts when you walk in */

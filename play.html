@@ -26,7 +26,7 @@ function fit() {
   else Object.assign(f.style, { width: w + 'px', height: h + 'px', transform: '' });
 }
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
-f.src = u;
+const v = q.get('v'); f.src = v ? u + (u.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(v) : u;   // v = this upload's stamp: the phone fetches the newest programme page
 /* Android: the first touch inside the programme goes full screen and locks sideways */
 let asked = false;
 function goFull() {

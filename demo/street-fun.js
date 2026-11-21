@@ -33,7 +33,7 @@
 #door .ear{width:76px;height:76px;font-size:38px;background:#fff;box-shadow:0 6px 0 #e3d6ff}
 #door .mic{width:120px;height:120px;font-size:58px;color:#fff;background:radial-gradient(circle at 40% 35%,#ff8aa8,#ff3d6e);box-shadow:0 8px 0 #c21d4b,0 0 0 calc(var(--lv,0)*30px) rgba(255,61,110,.25);animation:breathe 1.5s ease-in-out infinite}
 #door .mic.live{animation:none;background:radial-gradient(circle at 40% 35%,#ffd36b,#ff9f1a);box-shadow:0 8px 0 #c76f00,0 0 0 calc(var(--lv,0)*36px + 6px) rgba(255,170,30,.3)}
-#door .said{display:none;font:700 28px Fredoka;color:#fff;background:#ff3d6e;border-radius:999px!important;padding:18px 28px;box-shadow:0 7px 0 #c21d4b}
+#door .said{display:none;white-space:nowrap;font:700 28px Fredoka;color:#fff;background:#ff3d6e;border-radius:999px!important;padding:18px 28px;box-shadow:0 7px 0 #c21d4b}
 #door .st{position:absolute;right:26px;top:-58px;font-size:52px;color:#ffc31a;text-shadow:0 4px 0 #e09300;letter-spacing:4px;opacity:0;scale:.3;transition:scale .45s cubic-bezier(.3,1.7,.45,1),opacity .2s}
 #door .st.on{opacity:1;scale:1}#door .st i{font-style:normal;color:#eee3c8;text-shadow:none}
 @keyframes breathe{50%{scale:1.07}}
@@ -137,10 +137,10 @@
   });
   /* ---------- stars earned by speaking ---------- */
   let stars = 0; try { stars = +localStorage.getItem('gpfis.stars') || 0; } catch (e) {}
-  const chip = document.createElement('div'); chip.id = 'chip'; chip.innerHTML = `<i></i><b>${stars}</b>`; document.body.appendChild(chip);
+  const chip = document.createElement('div'); chip.id = 'chip'; chip.innerHTML = `<i></i><b>${stars}</b>`; rot.appendChild(chip);   // inside the turned screen, so it sits by the sound button on phones too
   const addStars = n => { stars += n; try { localStorage.setItem('gpfis.stars', stars); } catch (e) {} chip.querySelector('b').textContent = stars; chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump'); };
   function sizeUI() { const k = Math.max(.55, Math.min(1, FIT.s)); chip.style.transform = `scale(${k})`; chip.style.right = 24 + 128 * k + 'px'; chip.style.top = 20 + 10 * k + 'px';
-    door.style.setProperty('--k', Math.max(.5, Math.min(1, FIT.s * 1.05))); size(); }
+    door.style.setProperty('--k', Math.max(.36, Math.min(1, FIT.s * 1.05))); door.style.bottom = FIT.s < .5 ? '3px' : '22px';   /* phones: tucked right at the bottom so it hides less of Penny and Gerry */ size(); }
   addEventListener('resize', () => setTimeout(sizeUI, 0));
 
   /* ---------- magic words: say them and the door opens ---------- */
