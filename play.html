@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>GPFIS</title>
+<!-- GPFIS phone frame for the three programmes (Start PBL, Let's Go Readers, Fresh Math), like GB Magic Library's play.html.
+     The programmes are landscape screens. On a phone or tablet they open inside this frame:
+     - held upright, the programme is drawn turned 90 degrees and fills the screen, so the child just turns the phone;
+     - on Android the first tap asks for full screen and locks the screen sideways (iPhones cannot do that from a web page);
+     - the frame stays while the programme moves between its own pages, so full screen survives.
+     Address: play.html?u=pbl/index.html (only pages inside pbl/, lgr/ and fm/ are accepted).
+     kit/home.js sends touch devices here automatically; computers open the programme directly. -->
+<style>
+html,body{margin:0;height:100%;background:#101536;overflow:hidden;overscroll-behavior:none;touch-action:none}
+#f{position:fixed;left:0;top:0;border:0;transform-origin:0 0;background:#101536}
+</style>
+<iframe id="f" allow="microphone; autoplay; fullscreen" allowfullscreen></iframe>
+<script>
+const q = new URLSearchParams(location.search), f = document.getElementById('f');
+let u = q.get('u') || 'pbl/index.html';
+if (!/^(pbl|lgr|fm)\/[A-Za-z0-9_./?=&%-]*$/.test(u) || u.includes('..')) u = 'pbl/index.html';   // only our own programme pages
+function fit() {
+  const w = innerWidth, h = innerHeight, up = h > w;
+  if (up) Object.assign(f.style, { width: h + 'px', height: w + 'px', transform: `translate(${w}px,0) rotate(90deg)` });
+  else Object.assign(f.style, { width: w + 'px', height: h + 'px', transform: '' });
+}
+addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
+f.src = u;
+/* Android: the first touch inside the programme goes full screen and locks sideways */
+let asked = false;
+function goFull() {
+  if (asked) return; asked = true;
+  const d = document.documentElement;
+  try { if (d.requestFullscreen && !document.fullscreenElement) d.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation && screen.orientation.lock ? screen.orientation.lock('landscape') : null).catch(() => {}); } catch (e) {}
+}
+f.addEventListener('load', () => {
+  try { f.contentWindow.addEventListener('pointerdown', goFull, true); document.title = f.contentDocument.title || 'GPFIS'; } catch (e) {}
+});
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) asked = false; fit(); });
+</script>
+</html>

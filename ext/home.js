@@ -4,8 +4,15 @@
    obvious. It bobs gently, squashes when pressed, and asks before leaving so a slip does not lose the child's place.
    Position: bottom-left for now. data-pos="tl" puts it in the top-left corner once a programme has made room in its top bar. */
 (function () {
-  if (window.top !== window.self) return;                       // not inside a frame
-  const me = document.currentScript, home = me.dataset.home || '../demo/street.html', img = me.src.replace(/home\.js.*$/, 'home.webp');
+  const me = document.currentScript, home = new URL(me.dataset.home || '../demo/street.html', location.href).href, img = me.src.replace(/home\.js.*$/, 'home.webp');
+  const framed = window.top !== window.self;
+  /* phones and tablets: the programmes are landscape screens, so they run inside the GPFIS phone frame (play.html), which
+     turns them sideways on an upright phone. A page opened directly is moved into the frame once. */
+  if (!framed && matchMedia('(pointer: coarse)').matches && !/[?&]noframe/.test(location.search)) {
+    const root = me.src.replace(/ext\/home\.js.*$/, ''), here = location.href.split('#')[0];
+    if (here.startsWith(root)) { location.replace(root + 'play.html?u=' + encodeURIComponent(here.slice(root.length)) ); return; }
+  }
+  const leave = () => { try { window.top.location.href = home; } catch (e) { location.href = home; } };
   const top = me.dataset.pos === 'tl';
   const css = document.createElement('style');
   css.textContent = `#gpHome{position:fixed;${top ? 'top:10px' : 'bottom:10px'};left:10px;z-index:99990;width:84px;display:grid;justify-items:center;gap:2px;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:gpHomeBob 2.6s ease-in-out infinite;border:0;background:none;padding:0}
@@ -27,7 +34,7 @@
     e.stopPropagation(); if (document.getElementById('gpHomeAsk')) return;
     const ask = document.createElement('div'); ask.id = 'gpHomeAsk';
     ask.innerHTML = `<div><img src="${img}" alt="">Go back to Story Street?<small>스토리 스트리트로 돌아갈까요?</small><p><button class="yes">Yes!</button><button class="no">Stay here</button></p></div>`;
-    ask.addEventListener('click', ev => { ev.stopPropagation(); if (ev.target.classList.contains('yes')) location.href = home; else if (ev.target === ask || ev.target.classList.contains('no')) ask.remove(); });
+    ask.addEventListener('click', ev => { ev.stopPropagation(); if (ev.target.classList.contains('yes')) leave(); else if (ev.target === ask || ev.target.classList.contains('no')) ask.remove(); });
     document.body.appendChild(ask);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(t => b.addEventListener(t, e => e.stopPropagation()));   // a press on it is not a press on the game behind
