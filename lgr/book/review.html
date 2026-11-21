@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Review sheet</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@700&family=Fredoka:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="book.css?v=mwq5gpbu">
+<link rel="stylesheet" href="book.css?v=mwq66eyp">
 <style>
 /* All pages of one book on one sheet, for checking and for showing the boss. ?b=a-apple */
 html,body{height:auto;overflow:visible}
@@ -23,8 +23,8 @@ h1 small{font:500 22px "Fredoka";opacity:.7;margin-left:12px}
 </head>
 <body>
 <h1 id="t"></h1><div class="sheet" id="sheet"></div>
-<script src="data/set-a.js?v=mwq5gpbu"></script>
-<script src="scene.js?v=mwq5gpbu"></script>
+<script src="data/set-a.js?v=mwq66eyp"></script>
+<script src="scene.js?v=mwq66eyp"></script>
 <script>
 const id = new URLSearchParams(location.search).get('b') || 'a-airplane', S = window.LGR_SCENE, meta = LGR_SET.books.find(b => b.id === id);
 const sc = document.createElement('script'); sc.src = 'data/' + id + '.js';
@@ -37,5 +37,5 @@ sc.onload = () => {
 };
 document.head.appendChild(sc);
 </script>
-<script src="../../ext/home.js?v=mwq5gpbu" data-home="../../demo/street.html"></script></body>
+<script src="../../ext/home.js?v=mwq66eyp" data-home="../../demo/street.html"></script></body>
 </html>

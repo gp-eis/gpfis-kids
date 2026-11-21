@@ -20,10 +20,16 @@ html,body{margin:0;height:100%;background:#101536;overflow:hidden;overscroll-beh
 const q = new URLSearchParams(location.search), f = document.getElementById('f');
 let u = q.get('u') || 'pbl/index.html';
 if (!/^(pbl|lgr|fm)\/[A-Za-z0-9_./?=&%-]*$/.test(u) || u.includes('..')) u = 'pbl/index.html';   // only our own programme pages
+/* The programmes' screens were designed for a laptop-size window (about 720 px tall or more). A phone held sideways is only
+   about 360 px tall, where their cards and panels get cut off. So on short screens the programme is laid out as if the
+   window were MIN_H tall (and proportionally wider) and the whole thing is shrunk to fit: nothing is cut, the same picture
+   as on a laptop, just smaller. ?h=600 in the address tries another height. */
+const MIN_H = +q.get('h') || 720;
 function fit() {
-  const w = innerWidth, h = innerHeight, up = h > w;
-  if (up) Object.assign(f.style, { width: h + 'px', height: w + 'px', transform: `translate(${w}px,0) rotate(90deg)` });
-  else Object.assign(f.style, { width: w + 'px', height: h + 'px', transform: '' });
+  const w = innerWidth, h = innerHeight, up = h > w, LW = up ? h : w, LH = up ? w : h;   // the landscape size we draw in
+  const k = Math.min(1, LH / MIN_H);
+  Object.assign(f.style, { width: LW / k + 'px', height: LH / k + 'px',
+    transform: (up ? `translate(${w}px,0) rotate(90deg) ` : '') + (k < 1 ? `scale(${k})` : '') });
 }
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
 const v = q.get('v'); f.src = v ? u + (u.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(v) : u;   // v = this upload's stamp: the phone fetches the newest programme page
