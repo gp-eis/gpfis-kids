@@ -1,4 +1,4 @@
-/* Inside a place: the week's steps, ONE AFTER ANOTHER (user, 23 Nov): video -> the activities in order -> My book.
+/* Inside a place: the week's steps, ONE AFTER ANOTHER (user, 23 Nov): video -> the activities in order -> My Speech Book (the boss's name for it, 23 Nov).
    The room painting is only a soft backdrop with THREE buttons: Video, one big START, My book (user, 23 Nov: one button, not a
    Play press for every activity). START opens the first unfinished worksheet page; its Next button goes straight to the next page.
    The video opens as a pop-up player (full screen and jumping along the timeline are the player's own controls).
@@ -105,7 +105,7 @@ window.Room = (() => {
       `<button class="nowc"><i class="tagl"></i><h1></h1><p></p></button>` +
       `<div class="hub"><button class="stn sp" data-id="tv"><img src="art/things/tv.png" alt=""><b>Video</b><s></s></button>` +
       `<button class="startb"><b></b><em></em><span class="pr">${plays().map(() => '<i></i>').join('')}</span></button>` +
-      (bt ? `<button class="stn sp" data-id="${bt.id}"><img src="art/things/book.png" alt=""><b>My book</b><s></s></button>` : '') + `</div>` +
+      (bt ? `<button class="stn sp" data-id="${bt.id}"><img src="art/things/book.png" alt=""><b>My Speech Book</b><s></s></button>` : '') + `</div>` +
       `<img class="rm g" src="art/crew/gerry/stand.webp" alt=""><img class="rm p" src="art/crew/penny/stand.webp" alt="">` +
       `<button class="out pill">← Outside <small>밖으로</small></button><div class="keyq pill"><i>?</i>${R.key}</div><div id="act"></div>`;
     rp = box.querySelector('.rpic'); rc = [Crew.add(box.querySelector('.rm.p'), 'penny', 2), Crew.add(box.querySelector('.rm.g'), 'gerry', 2)]; rc.forEach(c => c.pose('wave', 1400)); lay(); box.classList.add('on'); document.body.classList.add('inroom'); K().snd.boing();
@@ -130,8 +130,8 @@ window.Room = (() => {
     const P = plays(), n = count(), sb = box.querySelector('.startb'), bt = bookT(), card = box.querySelector('.nowc'), nx = P.find(x => !isDone(x.id));
     const set = (tag, h, p) => { const k2 = tag + h; card.querySelector('.tagl').textContent = tag; card.querySelector('h1').textContent = h; card.querySelector('p').textContent = p; if (card.dataset.at && card.dataset.at !== k2) K().again(card, 'next'); card.dataset.at = k2; };
     if (nx) set(`Activity ${P.indexOf(nx) + 1} of ${P.length}`, nx.title, nx.sub);
-    else if (bt && !isDone(bt.id)) set('Last step', bt.title, 'Open your book and hear yourself!');
-    else set('All done!', 'You finished this place!', 'Press PLAY AGAIN, or open your book.');
+    else if (bt && !isDone(bt.id)) set('Last step', 'My Speech Book', 'Open your Speech Book and hear yourself!');
+    else set('All done!', 'You finished this place!', 'Press PLAY AGAIN, or open your Speech Book.');
     sb.querySelector('b').textContent = !n ? 'START' : n < P.length ? 'KEEP GOING' : 'PLAY AGAIN';
     sb.querySelector('em').textContent = n < P.length ? `Activity ${n + 1} of ${P.length}` : 'All done!';
     sb.classList.toggle('all', n >= P.length); sb.classList.toggle('long', n > 0);
@@ -153,7 +153,7 @@ window.Room = (() => {
     const k = K(); if (z) k.again(z, 'tap');
     if (id === 'tv') return video();
     const t = R.things.find(x => x.id === id);
-    if (t.type === 'book' && !allPlayed()) { k.snd.nope(); if (z) k.again(z, 'no'); return k.toast('Your book opens when the activities are done. <small>활동을 먼저 해요</small>'); }
+    if (t.type === 'book' && !allPlayed()) { k.snd.nope(); if (z) k.again(z, 'no'); return k.toast('Your Speech Book opens when the activities are done. <small>활동을 먼저 해요</small>'); }
     k.snd.pop(); crew(); Crew.hush(); goPage(t, false);
   }
 
@@ -222,7 +222,7 @@ window.Room = (() => {
       const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); paint();
       if (nextT) { Crew.hush(); k.again(a, 'on'); return goPage(nextT, true); }   // straight on to the next worksheet page
       a.classList.remove('on'); flow = false; crew();
-      k.toast(allPlayed() && bookT() && !isDone(bookT().id) ? 'All done! Your book is ready. Open it! <small>책을 열어 봐요</small>' : 'Well done! <small>잘했어요!</small>');
+      k.toast(allPlayed() && bookT() && !isDone(bookT().id) ? 'All done! Your Speech Book is ready. Open it! <small>스피치 북을 열어 봐요</small>' : 'Well done! <small>잘했어요!</small>');
     });
     return {
       a, body: a.querySelector('.body'),
@@ -342,7 +342,7 @@ window.Room = (() => {
     book(t) {
       const a = box.querySelector('#act'), P = plays(); let n = 0, busy = false, audio = null, urls = {};
       a.style.setProperty('--c', t.col);
-      a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2>` +
+      a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>My Speech Book</h2>` +
         `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small></div><div class="pg r"><div class="sent"></div>` +
         `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
         `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
@@ -362,6 +362,7 @@ window.Room = (() => {
         const ims = p.kid ? [p.kid] : (p.targets || []).map(x => x.img).filter(Boolean);
         return ims.length ? `<div class="kids2">${ims.map(u => `<img src="${u}" alt="">`).join('')}</div>` : `<div class="star2">⭐</div>`;
       };
+      const seenPg = new Set();   // Done lights up once every page has been opened (or the whole book has been heard)
       let audioDone = null, halt = false;   // halt = the child pressed Stop
       const stop = () => { if (audio) { try { audio.pause(); } catch (e) {} audio = null; } if (audioDone) { const f = audioDone; audioDone = null; f(); } hm.classList.remove('playing'); Crew.mute(false); Crew.hush(); };
       const show = dir => {
@@ -374,6 +375,7 @@ window.Room = (() => {
         $('.sent').textContent = v.said || '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
         hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
         a.querySelectorAll('.pdots i').forEach((x, i) => x.classList.toggle('on', i === n));
+        seenPg.add(n); if (seenPg.size >= P.length && !ok.classList.contains('on')) { ok.classList.add('on'); if (!a.classList.contains('reading')) { K().snd.win(); cheer(); } }
         $('.prev').classList.toggle('off', n === 0); $('.next').classList.toggle('off', n === P.length - 1);
       };
       // TURN THE PAGE like a real book: the page lifts at its outer edge and swings over the spine.
@@ -422,7 +424,7 @@ window.Room = (() => {
           await playPage(); if (halt) { all = false; break; } await wait(350);
         }
         a.classList.remove('reading'); ha.textContent = '▶ Hear my whole book'; busy = false;
-        if (all && a.classList.contains('on')) { ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); chat('What a wonderful book! Press Done.', 2); }
+        if (all && a.classList.contains('on')) { ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); chat('What a wonderful Speech Book! Press Done.', 2); }
       });
       $('.again').addEventListener('click', () => { if (busy) return; stop(); const p = P[n]; goPage(p, false); });
       $('.back').addEventListener('click', () => { stop(); a.classList.remove('on'); });
@@ -433,7 +435,7 @@ window.Room = (() => {
         if (first) setTimeout(() => close(true), 900);   // the whole book has been heard: this place is finished
       });
       const fz0 = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1]; if (fz0) setTimeout(() => { if (+fz0 < 0) { n = 2; show(0); turn(1); } else turn(1); }, 300);
-      show(0); chat(isDone(t.id) ? 'Here is your book again!' : 'This is your book! Press "Hear my whole book".', 2);
+      show(0); chat(isDone(t.id) ? 'Here is your Speech Book again!' : 'This is your Speech Book! Turn the pages and hear yourself.', 2);
     },
     // a few quick questions, one card at a time: look or listen, then tap the right answer
     pick(t) {
@@ -491,7 +493,7 @@ window.Room = (() => {
     }
     const n = count(), N = plays().length, bt = bookT();
     if (bt && isDone(bt.id)) return Crew.pick(['We did everything here!', "Let's go outside!"]);
-    if (n >= N) return 'Your book is ready! Open it.';
+    if (n >= N) return 'Your Speech Book is ready! Open it.';
     return Crew.pick([n ? 'Press KEEP GOING!' : 'Press START!', `${N - n} more to go!`, R.key]);
   });
   // The week's video opens as a POP-UP over the room. The browser's own player gives play / pause, full screen and

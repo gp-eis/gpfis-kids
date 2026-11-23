@@ -370,3 +370,6 @@ body.inroom #title { margin-left: 232px; }
 .bk .again { background: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, .15); }
 
 .hearme.playing b { font-size: 0; } .hearme.playing b::after { content: '■'; font-size: 34px; }
+
+/* 'My Speech Book' is a longer name: fit it under the picture */
+.hub .stn.sp { width: 156px; } .hub .stn.sp b { font-size: 17px; white-space: nowrap; }

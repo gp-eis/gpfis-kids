@@ -116,3 +116,16 @@ svg [class^="m-"],svg [class^="p-"],svg .open{transform-box:fill-box;transform-o
 .slot.got{border:0;color:var(--ink);box-shadow:0 8px 0 rgba(43,45,58,.25);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;font:600 22px "Fredoka"}
 .slot.new{animation:hop .7s .3s}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* BACKDROP (user, 23 Nov: the story page "still has the old background and does not match the theme").
+   Every book page now sits in the blurred ruby cabin, the same as the book list, the Sheet and the Dictation, so the
+   child is still inside the chest. The cream wall, the skirting board and the floor planks are gone. */
+body{background:#5a1f16 url(../art/kingdom/cabin.jpg) center/cover}
+body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.floor,.planks{display:none}
+.round{border-color:#4a2508;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4)}
+#dots i{background:rgba(255,255,255,.4);box-shadow:inset 0 0 0 3px rgba(255,255,255,.75)}
+#dots i.on{background:#ffd23f;box-shadow:inset 0 0 0 3px #fff}
+/* the book itself is a ruby book with a gold edge now (it was purple), to match the ruby cabin and the ABC toy */
+#book{background:linear-gradient(160deg,#f2606f,#b3202c);box-shadow:inset 0 0 0 5px #ffd23f,0 12px 0 #7d1320,0 30px 34px rgba(30,6,4,.5)}
+#book::before{background:rgba(255,236,170,.55)}

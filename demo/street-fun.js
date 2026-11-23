@@ -191,13 +191,16 @@
   door.querySelector('.x').onclick = e => { e.stopPropagation(); closeDoor(); bub.classList.remove('on'); };
   door.addEventListener('pointerdown', e => e.stopPropagation());
 
+  /* 23 Nov 2026 (user): no speaking to open anything on Story Street. Doors open at once and Penny does not ask for a hello.
+     The panel code stays, switched off, in case the magic words come back. */
+  const MAGIC_ON = false;
   const _goIn = goIn;
-  goIn = k => { if (!MAGIC[k]) return _goIn(k); if (!(D && D.k === k)) openDoor(k, () => _goIn(k)); };
+  if (MAGIC_ON) goIn = k => { if (!MAGIC[k]) return _goIn(k); if (!(D && D.k === k)) openDoor(k, () => _goIn(k)); };
   window.FUN = { openDoor, burstAt, addStars, MAGIC };
 
   /* hello: once per visit, after Penny walks in, she asks the child to greet her */
   let greeted = false; try { greeted = sessionStorage.getItem('gpfis.hello') === '1'; } catch (e) {}
-  if (!greeted && !/scene=hall|pose=|open=/.test(location.hash)) setTimeout(() => { try { sessionStorage.setItem('gpfis.hello', '1'); } catch (e) {}
+  if (MAGIC_ON && !greeted && !/scene=hall|pose=|open=/.test(location.hash)) setTimeout(() => { try { sessionStorage.setItem('gpfis.hello', '1'); } catch (e) {}
     const t = setInterval(() => { if (target || D) return; clearInterval(t); openDoor('hello', () => { bub.textContent = 'Where shall we go?'; talk(bub.textContent); }); }, 300); }, 1800);
   sizeUI();
 })();
