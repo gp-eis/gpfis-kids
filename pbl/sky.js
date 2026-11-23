@@ -455,14 +455,33 @@
     crewTo(i, () => goInside(i, el));
   }
   // they walk in: the view pushes into the plot, then the place opens for the activity
+  // CLOUD WIPE (user's choice, 23 Nov, instead of the zoom-in): fluffy clouds sweep in from both sides, cover the screen for a moment,
+  // then part. mid() runs while everything is covered (that is when the room appears or goes). About 1.5 s; a tap skips it.
+  function wipe(mid, then) {
+    let w = $('#wipe');
+    if (!w) {
+      w = document.createElement('div'); w.id = 'wipe';
+      w.innerHTML = ['l', 'r'].map(sd => `<div class="half ${sd}">` + [0, 1, 2, 3, 4, 5].map(n => `<img src="art/cloud${(n + (sd === 'r' ? 1 : 0)) % 3 + 1}.png" alt="" style="top:${-16 + n * 19}%;--x:${n % 2 ? -9 : 7}%;--d:${n * 30}ms">`).join('') + '</div>').join('');
+      $('#stage').appendChild(w);
+    }
+    let did = false, t1 = 0;
+    const go = () => {
+      if (did) return; did = true; clearTimeout(t1); mid && mid();
+      w.classList.remove('in'); w.classList.add('out'); snd.poof();
+      setTimeout(() => { if (w.classList.contains('out')) w.className = ''; then && then(); }, 700);
+    };
+    w.className = 'on'; void w.offsetWidth; w.classList.add('in'); snd.whoosh();
+    t1 = setTimeout(go, 820);
+    w.onpointerdown = ev => { ev.stopPropagation(); go(); };
+  }
+  // they walk in: the clouds close over the island, and open on the room for the activity
   function goInside(i, el, visit) {
-    const w = parseFloat(pic.style.width), h = parseFloat(pic.style.height);
-    pic.style.transformOrigin = `${PLOTS[i][0] * w}px ${PLOTS[i][1] * h}px`; pic.classList.add('zoomin'); mates.forEach(m => m.classList.add('in')); snd.whoosh();
+    mates.forEach(m => m.classList.add('in'));
     // the room: each thing in it is one worksheet page (room.js). ok = the show and tell is done
-    setTimeout(() => Room.open({ month: cur.n, week: i + 1, done: ok => {
-      pic.classList.remove('zoomin'); mates.forEach(m => m.classList.remove('in')); snd.whoosh();
-      setTimeout(() => { if (ok && !visit) build(i, el); else { busy = false; if (ok) { toast('You did it again! <small>또 해냈어요!</small>'); mates.forEach(m => again(m, 'jump')); mc.forEach(c => c.pose('cheer', 1100)); } } }, 750);
-    } }), 650);
+    wipe(() => Room.open({ month: cur.n, week: i + 1, done: ok => {
+      mates.forEach(m => m.classList.remove('in'));
+      setTimeout(() => { if (ok && !visit) build(i, el); else { busy = false; if (ok) { toast('You did it again! <small>또 해냈어요!</small>'); mates.forEach(m => again(m, 'jump')); mc.forEach(c => c.pose('cheer', 1100)); } } }, 900);
+    } }));
   }
   function build(i, el) {
     el.classList.add('on'); snd.win(); setTimeout(snd.boing, 420);
@@ -514,11 +533,11 @@
   const m = h.match(/isle=(\d+)/); if (m) { const I = ISL[m[1] - 1]; ship.x = I.x; ship.y = I.y - 120; openIsle(I); }
   if (/map/.test(h)) setTimeout(() => toggleMap(true), 300);
   const hv = h.match(/hov=(\d)/); if (hv && pic) setTimeout(() => { alive(hv[1] - 1, 'hov'); pic.querySelector(`.spr[data-i="${hv[1] - 1}"]`).style.transform = 'translateY(-26px) scale(1.06)'; }, 900);
-  const rr = h.match(/room=(\w*)/); if (rr && pic) setTimeout(() => { Room.open({ month: +((h.match(/isle=(\d+)/) || [])[1] || 1), week: +((h.match(/wk=(\d)/) || [])[1] || 1), done: () => {} }); if (rr[1]) setTimeout(() => { const z = document.querySelector(`.hz[data-id=${rr[1]}]`); z.classList.remove('locked'); z.click(); }, 500); }, 800);
+  const rr = h.match(/room=(\w*)/); if (rr && pic) setTimeout(() => { Room.open({ month: +((h.match(/isle=(\d+)/) || [])[1] || 1), week: +((h.match(/wk=(\d)/) || [])[1] || 1), done: () => {} }); if (rr[1]) setTimeout(() => { Room.play(rr[1]); }, 500); }, 800);
   const gi = h.match(/in=(\d)/); if (gi && pic) setTimeout(() => plot(gi[1] - 1, pic.querySelectorAll('.plot')[gi[1] - 1]), 1200);
   const gs = h.match(/stand=(\d)/); if (gs && pic) setTimeout(() => crewTo(gs[1] - 1), 900);
   const zm = h.match(/zoom=([\d.]+)/); if (zm) z = zt = Math.max(.42, Math.min(1, +zm[1]));
-  window.__kit = { snd, burst, puff, pt, toast, again, W: () => W };
+  window.__kit = { wipe, snd, burst, puff, pt, toast, again, W: () => W };
   window.__sky = { S, ship, ISL, land, toggleMap, goShip, where: () => at, plot: i => plot(i, pic.querySelectorAll('.plot')[i]), state: () => ({ mode, busy, near: near && near.n, stars: S.stars, built: S.built, map: mapEl.classList.contains('on') }) };
   requestAnimationFrame(frame);
 })();

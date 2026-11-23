@@ -1,8 +1,12 @@
-/* Inside a place: one painted room where each thing is one worksheet page.
-   Every page is PLAY first, then SAY IT (shared GPFIS speaking kit), then Done. Free order; a tick on each finished thing;
-   nothing is given until SPEECH TIME at the end (boss, 21 Nov: Start PBL = Speech Time: answer the week's key question out loud).
-   A room is DATA (see ROOMS at the bottom): its painting, its key question, and for each thing an activity TYPE plus that page's words.
-   So when a worksheet page changes, only its entry in ROOMS changes.
+/* Inside a place: the week's steps, ONE AFTER ANOTHER (user, 23 Nov): video -> the activities in order -> My book.
+   The room painting is only a soft backdrop with THREE buttons: Video, one big START, My book (user, 23 Nov: one button, not a
+   Play press for every activity). START opens the first unfinished worksheet page; its Next button goes straight to the next page.
+   The video opens as a pop-up player (full screen and jumping along the timeline are the player's own controls).
+   Every activity is one worksheet page: PLAY first, then SAY IT (shared GPFIS speaking kit), then Done.
+   The child's best recording of each sentence is kept on this device (IndexedDB spbl-voice) and goes into MY BOOK:
+   one page per activity with their work, their sentence and "Hear me!". "Hear my whole book" is the finale (it replaces
+   the separate Speech Time step) and finishes the place.
+   A room is DATA (see ROOMS at the bottom): its painting, its key question, and for each activity a TYPE plus that page's words.
    Every finished page is saved per month and week (localStorage spbl.pages) so a library can later bind the month's book. */
 window.Room = (() => {
   const K = () => window.__kit, PKEY = 'spbl.pages';
@@ -14,8 +18,21 @@ window.Room = (() => {
   const plays = () => R.things.filter(t => t.type !== 'book' && t.type !== 'stage');
   const allPlayed = () => plays().every(t => isDone(t.id));
   const bookT = () => R.things.find(t => t.type === 'book');
-  const count = () => R.things.filter(t => isDone(t.id)).length;
-  const lockedNow = t => (t.type === 'book' && !allPlayed()) || (t.type === 'stage' && !(allPlayed() && (!bookT() || isDone(bookT().id))));
+  const count = () => plays().filter(t => isDone(t.id)).length;
+  // the fixed order: the video, each activity, then the book. cur() = the first step that is not finished yet
+  const steps = () => ['tv', ...plays(), bookT()].filter(Boolean);
+  const stepDone = st => st === 'tv' ? !!D._tv : isDone(st.id);
+  const cur = () => steps().find(st => !stepDone(st)) || null;
+  const lockedNow = t => t.type === 'stage' || (t.type === 'book' ? !allPlayed() : plays().indexOf(t) > plays().findIndex(x => !isDone(x.id)) && !isDone(t.id) && plays().some(x => !isDone(x.id)));
+  // the child's own recordings, kept on this device only (never uploaded)
+  const VDB = (() => {
+    let p; const db = () => p || (p = new Promise((res, rej) => { const r = indexedDB.open('spbl-voice', 1); r.onupgradeneeded = () => r.result.createObjectStore('clips'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+    const tx = (mode, f) => db().then(d => new Promise((res, rej) => { const q = f(d.transaction('clips', mode).objectStore('clips')); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); })).catch(() => null);
+    return { put: (k, b) => tx('readwrite', st => st.put(b, k)), get: k => tx('readonly', st => st.get(k)) };
+  })();
+  if (/[?&]reset/.test(location.search)) { try { indexedDB.deleteDatabase('spbl-voice'); } catch (e) {} }
+  const vkey = id => `${ctx.month}-${ctx.week}-${id}`;
+  const keepClip = (id, url) => { if (url) fetch(url).then(r => r.blob()).then(b => VDB.put(vkey(id), b)).catch(() => {}); };
 
   // ---------- talking and listening ----------
   let rc = [];   // the two helpers in the room (crew.js pose pictures)
@@ -78,44 +95,66 @@ window.Room = (() => {
     if (!rp) return; const k = K(), w = k.W(), h = w * 941 / 1672;   // always the room's full width; pinned to the top so the TV shows
     rp.style.cssText = `left:0;top:0;width:${w}px;height:${h}px`;
   }
+  let flow = false;   // true while the child is going through the pages with Next (started from START)
   function open(c) {
-    ctx = c; R = ROOMS[c.month + '-' + c.week] || ROOMS['1-1'];
+    ctx = c; R = ROOMS[c.month + '-' + c.week] || ROOMS['1-1']; flow = false;
     all = load(); all[c.month] = all[c.month] || {}; D = all[c.month][c.week] = all[c.month][c.week] || {};
     box = document.querySelector('#inside');
-    const pc = z => `left:${z[0] * 100}%;top:${z[1] * 100}%;width:${z[2] * 100}%;height:${z[3] * 100}%`;
-    box.innerHTML = `<div class="rpic"><img class="bg" src="${R.art}" alt="">` +
-      `<div class="hz tv" data-id="tv" style="${pc(R.tv)}"><b class="watch">▶ Watch <small>영상 보기</small></b></div>` +
-      R.things.map(t => `<div class="hz" data-id="${t.id}" style="${pc(t.zone)}"><em></em></div>`).join('') +
-      `<img class="rm g" src="art/crew/gerry/stand.webp" alt=""><img class="rm p" src="art/crew/penny/stand.webp" alt=""></div>` +
-      `<button class="out pill">← Outside <small>밖으로</small></button><div class="keyq pill"><i>?</i>${R.key}</div><div class="prog pill"><span><u></u></span><b></b></div><div id="act"></div>`;
+    const bt = bookT();
+    box.innerHTML = `<div class="rpic soft"><img class="bg" src="${R.art}" alt=""></div><div class="rwash"></div>` +
+      `<button class="nowc"><i class="tagl"></i><h1></h1><p></p></button>` +
+      `<div class="hub"><button class="stn sp" data-id="tv"><img src="art/things/tv.png" alt=""><b>Video</b><s></s></button>` +
+      `<button class="startb"><b></b><em></em><span class="pr">${plays().map(() => '<i></i>').join('')}</span></button>` +
+      (bt ? `<button class="stn sp" data-id="${bt.id}"><img src="art/things/book.png" alt=""><b>My book</b><s></s></button>` : '') + `</div>` +
+      `<img class="rm g" src="art/crew/gerry/stand.webp" alt=""><img class="rm p" src="art/crew/penny/stand.webp" alt="">` +
+      `<button class="out pill">← Outside <small>밖으로</small></button><div class="keyq pill"><i>?</i>${R.key}</div><div id="act"></div>`;
     rp = box.querySelector('.rpic'); rc = [Crew.add(box.querySelector('.rm.p'), 'penny', 2), Crew.add(box.querySelector('.rm.g'), 'gerry', 2)]; rc.forEach(c => c.pose('wave', 1400)); lay(); box.classList.add('on'); document.body.classList.add('inroom'); K().snd.boing();
-    box.querySelectorAll('.hz').forEach(z => z.addEventListener('click', () => press(z.dataset.id, z)));
+    box.querySelectorAll('.stn').forEach(z => z.addEventListener('click', () => press(z.dataset.id, z)));
+    box.querySelector('.startb').addEventListener('click', start);
+    // the card says what is next; pressing it does the same as the button it points to
+    box.querySelector('.nowc').addEventListener('click', () => { const b = bookT(); if (allPlayed() && b) press(b.id, box.querySelector(`.stn[data-id="${b.id}"]`)); else start(); });
     box.querySelector('.out').addEventListener('click', () => close(false));
     box.querySelector('.keyq').addEventListener('click', () => say(R.key));
     paint();
     // first the week's question, then what to do (one after the other, so neither is cut off)
-    setTimeout(() => { if (count()) K().toast('Welcome back! Keep going. <small>계속해요!</small>'); else say(R.key).then(() => { if (box.classList.contains('on') && !box.querySelector('#act.on')) K().toast('Press anything in the room! <small>방 안의 물건을 눌러 봐요</small>'); }); }, 400);
+    setTimeout(() => { if (count() || D._tv) K().toast('Welcome back! Keep going. <small>계속해요!</small>'); else say(R.key).then(() => { if (!closing && box.classList.contains('on') && !box.querySelector('#act.on')) K().toast('Press START! <small>시작 버튼을 눌러요</small>'); }); }, 400);
   }
+  // START: the first page that is not finished yet (all finished = from page 1 again), then Next, Next, Next
+  function start() {
+    const k = K(), P = plays(), t = P.find(x => !isDone(x.id)) || P[0];
+    k.again(box.querySelector('.startb'), 'tap'); k.snd.pop(); crew(); Crew.hush(); goPage(t, true);
+  }
+  function goPage(t, inFlow) { flow = !!inFlow; TYPES[t.type](t); if (INTRO[t.type]) chat(INTRO[t.type]); }
+  // the three buttons always show where the child is
   function paint() {
-    const n = count(), N = R.things.length;
-    box.querySelector('.prog u').style.width = n / N * 100 + '%'; box.querySelector('.prog b').textContent = n + ' of ' + N;
-    box.querySelectorAll('.hz').forEach(z => {
-      const t = R.things.find(x => x.id === z.dataset.id); if (!t) return;
-      z.classList.toggle('done', isDone(t.id)); z.classList.toggle('locked', lockedNow(t));
-    });
+    const P = plays(), n = count(), sb = box.querySelector('.startb'), bt = bookT(), card = box.querySelector('.nowc'), nx = P.find(x => !isDone(x.id));
+    const set = (tag, h, p) => { const k2 = tag + h; card.querySelector('.tagl').textContent = tag; card.querySelector('h1').textContent = h; card.querySelector('p').textContent = p; if (card.dataset.at && card.dataset.at !== k2) K().again(card, 'next'); card.dataset.at = k2; };
+    if (nx) set(`Activity ${P.indexOf(nx) + 1} of ${P.length}`, nx.title, nx.sub);
+    else if (bt && !isDone(bt.id)) set('Last step', bt.title, 'Open your book and hear yourself!');
+    else set('All done!', 'You finished this place!', 'Press PLAY AGAIN, or open your book.');
+    sb.querySelector('b').textContent = !n ? 'START' : n < P.length ? 'KEEP GOING' : 'PLAY AGAIN';
+    sb.querySelector('em').textContent = n < P.length ? `Activity ${n + 1} of ${P.length}` : 'All done!';
+    sb.classList.toggle('all', n >= P.length); sb.classList.toggle('long', n > 0);
+    [...sb.querySelectorAll('.pr i')].forEach((d, i) => { const was = d.classList.contains('on'); d.classList.toggle('on', isDone(P[i].id)); if (!was && d.classList.contains('on') && sb.dataset.seen) K().again(d, 'won'); });
+    sb.dataset.seen = 1;
+    const tv = box.querySelector('.stn[data-id="tv"]'); tv.classList.toggle('done', !!D._tv);
+    if (bt) { const z = box.querySelector(`.stn[data-id="${bt.id}"]`), ready = allPlayed(), was = z.classList.contains('now');
+      z.classList.toggle('done', isDone(bt.id)); z.classList.toggle('later', !ready); z.classList.toggle('now', ready && !isDone(bt.id));
+      if (!was && z.classList.contains('now')) { K().again(z, 'won'); const o = at(z); K().burst(o.x, o.y, 30, 360); } }
   }
-  function close(ok) { Crew.hush(); box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); }
+  let closing = false;
+  function close(ok) {   // the clouds close over the room and open on the island again
+    if (closing) return; closing = true; Crew.hush();
+    const fin = () => { closing = false; box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); };
+    K().wipe ? K().wipe(fin) : fin();
+  }
   function crew() { box.querySelectorAll('.rm').forEach(m => K().again(m, 'jump')); rc.forEach(c => c.pose('cheer', 700)); }
   function press(id, z) {
-    const k = K(); k.again(z, 'tap');
+    const k = K(); if (z) k.again(z, 'tap');
     if (id === 'tv') return video();
     const t = R.things.find(x => x.id === id);
-    if (lockedNow(t)) {
-      k.snd.nope(); k.again(z, 'no');
-      return k.toast(t.type === 'book' ? 'Your book fills up when you play the other things. <small>다른 활동을 먼저 해요</small>' : 'Speech Time opens when everything else is done. <small>다 하면 무대가 열려요</small>');
-    }
-    k.snd.pop(); crew(); Crew.hush(); TYPES[t.type](t);
-    if (INTRO[t.type]) chat(INTRO[t.type]);   // the other kinds start talking by themselves
+    if (t.type === 'book' && !allPlayed()) { k.snd.nope(); if (z) k.again(z, 'no'); return k.toast('Your book opens when the activities are done. <small>활동을 먼저 해요</small>'); }
+    k.snd.pop(); crew(); Crew.hush(); goPage(t, false);
   }
 
   // ---------- one activity: PLAY, then SAY IT, then Done ----------
@@ -124,15 +163,18 @@ window.Room = (() => {
   function screen(t, sub, body) {
     const a = box.querySelector('#act'), T = window.Talk, id = t.id, stage = t.type === 'stage';
     a.style.setProperty('--c', t.col);
+    const P = plays(), pi = P.indexOf(t), nextT = flow && pi >= 0 ? P[pi + 1] : null;
+    a.dataset.id = id;
     a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2><p class="sub">${sub}</p><div class="body">${body}</div>` +
+      (pi >= 0 ? `<div class="pgd">${P.map((p, i) => `<i class="${i === pi ? 'now' : isDone(p.id) ? 'on' : ''}" data-i="${i}">${i + 1}</i>`).join('')}</div>` : '') +
       `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt="">` +
       `<div class="sayit${stage ? ' speech' : ''}"><div class="row"><i>${stage ? 'Speech Time!' : 'Say it!'}</i><p class="words"></p><div class="res"><b class="st"></b><span class="num"></span></div></div>` +
       `<div class="row"><button class="hear" title="Listen">🔊</button><button class="slow" title="Listen slowly">🐢</button><button class="me" title="Press and speak">🎤</button>` +
-      `<button class="mine" title="Hear me" disabled>🙋</button><span class="heard"></span><button class="saidit">I said it! ✋</button></div></div><button class="ok">Done ✓</button>`;
+      `<button class="mine" title="Hear me" disabled>🙋</button><span class="heard"></span><button class="saidit">I said it! ✋</button></div></div><button class="ok">${nextT ? 'Next ➜' : flow ? 'Finish ✓' : 'Done ✓'}</button>`;
     a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
     const ok = a.querySelector('.ok'), bar = a.querySelector('.sayit'), txt = bar.querySelector('.words'), me = bar.querySelector('.me'), mine = bar.querySelector('.mine');
     const heard = bar.querySelector('.heard'), res = bar.querySelector('.res'), manual = bar.querySelector('.saidit');
-    let fin = null, line = () => '', played = false, said = false, url = null, after = null, tries = 0, best = 0, listening = false;
+    let fin = null, line = () => '', played = false, said = false, url = null, after = null, tries = 0, best = 0, listening = false, bestUrl = null, bestS = -1;
     const sync = () => { bar.classList.toggle('on', played); ok.classList.toggle('on', played && said); };
     const setLine = () => { txt.innerHTML = line().split(' ').map(w => `<span class="w">${w}</span>`).join(' '); res.classList.remove('on'); heard.textContent = ''; };
     const tell = (msg, speak) => { heard.textContent = msg; if (speak !== false) return say(msg, null, true); };
@@ -141,7 +183,9 @@ window.Room = (() => {
       K().again(res, 'on'); const o = at(res); K().burst(o.x, o.y, n * 10, 300); T.ding(n); cheer();
     };
     const accept = () => { if (!said) { said = true; sync(); if (after) after(); } };
-    a.querySelector('.back').addEventListener('click', () => { Crew.hush(); a.classList.remove('on'); });
+    // a finished page's dot goes back to that page
+    a.querySelectorAll('.pgd i.on').forEach(x => x.addEventListener('click', () => { if (listening) return; Crew.hush(); K().snd.pop(); goPage(P[+x.dataset.i], flow); }));
+    a.querySelector('.back').addEventListener('click', () => { Crew.hush(); a.classList.remove('on'); flow = false; paint(); });
     bar.querySelector('.hear').addEventListener('click', () => { if (!listening) say(line(), txt); });
     bar.querySelector('.slow').addEventListener('click', () => { if (listening) return; txt.classList.add('saying'); T.say(line(), { slow: true }).then(() => txt.classList.remove('saying')); });
     let clip = null; mine.addEventListener('click', () => { if (url && !listening) { Crew.hush(); clip = new Audio(url); clip.play(); } });
@@ -164,6 +208,7 @@ window.Room = (() => {
         const W = T.words(w.textContent)[0] || '', hit = r.heard.some(h => T.words(h).some(x => x === W || (x.length > 3 && x.slice(0, 3) === W.slice(0, 3))));
         w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit);
       });
+      if (r.clip && s >= bestS) { bestS = s; bestUrl = r.clip; }   // the best try is the one that goes into the book
       give(st, s);
       if (st === 3) { tell(s >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!'); accept(); }
       else if (tries >= 3) { tell("Good try! Let's say it together: " + line()); accept(); }
@@ -172,11 +217,12 @@ window.Room = (() => {
     if (!T.canHear) { me.style.display = 'none'; manual.classList.add('on'); }
     ok.addEventListener('click', () => {
       if (!ok.classList.contains('on')) return;
-      D[id] = Object.assign(D[id] || {}, fin ? fin() : {}, { ok: true, said: line(), stars: best, at: Date.now() }); save();
-      const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); a.classList.remove('on'); paint(); crew();
-      if (stage) return setTimeout(() => close(true), 900);
-      const b = bookT(), n = count();
-      k.toast(allPlayed() && b && !isDone(b.id) ? 'Your book is ready! Open it. <small>책을 열어 봐요</small>' : allPlayed() ? 'Speech Time is open! <small>무대가 열렸어요</small>' : `${n} of ${R.things.length} done! <small>잘했어요!</small>`);
+      D[id] = Object.assign(D[id] || {}, fin ? fin() : {}, { ok: true, said: line(), stars: Math.max(best, (D[id] || {}).stars || 0), at: Date.now() }); save();
+      if (bestUrl || url) { keepClip(id, bestUrl || url); D[id].voice = 1; save(); }
+      const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); paint();
+      if (nextT) { Crew.hush(); k.again(a, 'on'); return goPage(nextT, true); }   // straight on to the next worksheet page
+      a.classList.remove('on'); flow = false; crew();
+      k.toast(allPlayed() && bookT() && !isDone(bookT().id) ? 'All done! Your book is ready. Open it! <small>책을 열어 봐요</small>' : 'Well done! <small>잘했어요!</small>');
     });
     return {
       a, body: a.querySelector('.body'),
@@ -291,20 +337,103 @@ window.Room = (() => {
       }));
       s.line(() => t.line({}));
     },
-    // a real little book made from the child's own pages; turn the pages
+    // MY BOOK: the online version of the whole worksheet. One page per activity: the child's work, their sentence,
+    // and their own recording ("Hear me!"). "Hear my whole book" plays every page in turn and finishes the place.
     book(t) {
-      const pg = R.book(D); let n = 0;
-      const s = screen(t, t.sub, `<button class="turn prev">◀</button><div class="leaf"></div><button class="turn next">▶</button><div class="pips">${pg.map(() => '<i></i>').join('')}</div>`);
-      const leaf = s.a.querySelector('.leaf'), pips = [...s.a.querySelectorAll('.pips i')]; let seen = 1;
-      const show = dir => {
-        leaf.innerHTML = pg[n].html; leaf.className = 'leaf ' + (n ? '' : 'cover'); K().again(leaf, dir < 0 ? 'backflip' : 'flip'); K().snd.poof();
-        pips.forEach((p, i) => p.classList.toggle('on', i === n)); seen |= 1 << n; setTimeout(() => say(pg[n].say), 350);
-        if (seen === (1 << pg.length) - 1) s.ready();
+      const a = box.querySelector('#act'), P = plays(); let n = 0, busy = false, audio = null, urls = {};
+      a.style.setProperty('--c', t.col);
+      a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2>` +
+        `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small></div><div class="pg r"><div class="sent"></div>` +
+        `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
+        `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
+        `<button class="bturn prev">‹</button><button class="bturn next">›</button>` +
+        `<div class="pdots">${P.map((_, i) => `<i data-n="${i}">${i + 1}</i>`).join('')}<button class="hearall">▶ Hear my whole book</button></div>` +
+        `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt=""><button class="ok">Done ✓</button>`;
+      a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
+      const $ = q => a.querySelector(q), ok = $('.ok'), hm = $('.hearme'), bk = $('.bk');
+      if (isDone(t.id)) ok.classList.add('on');
+      const d = i => D[P[i].id] || {};
+      // what the child made on that page: their drawing, the things they chose, or the page's own picture
+      const work = (p, v) => {
+        if (v.draw) return `<img class="dr" src="${v.draw}" alt="">${v.name ? `<div class="nm2">${v.name}</div>` : ''}`;
+        const ws = v.words || v.good || (v.like ? [v.like] : null);
+        if (ws && ws.length) return `<div class="chips2">${ws.map(w => `<span><i>${emo(p, w)}</i>${w}</span>`).join('')}</div>`;
+        if (v.n) return `<div class="blk2">${Array.from({ length: Math.min(10, v.n) }, (_, i) => `<i style="background:${['#e8492e', '#ffd23f', '#3a86ff', '#2fb86a', '#b9a5e6'][i % 5]}"></i>`).join('')}</div>`;
+        const ims = p.kid ? [p.kid] : (p.targets || []).map(x => x.img).filter(Boolean);
+        return ims.length ? `<div class="kids2">${ims.map(u => `<img src="${u}" alt="">`).join('')}</div>` : `<div class="star2">⭐</div>`;
       };
-      s.a.querySelector('.next').addEventListener('click', () => { if (n < pg.length - 1) { n++; show(1); } else wrong(leaf); });
-      s.a.querySelector('.prev').addEventListener('click', () => { if (n > 0) { n--; show(-1); } else wrong(leaf); });
-      leaf.addEventListener('click', () => { if (n < pg.length - 1) { n++; show(1); } });
-      s.line(() => t.line({})); show(1);
+      let audioDone = null, halt = false;   // halt = the child pressed Stop
+      const stop = () => { if (audio) { try { audio.pause(); } catch (e) {} audio = null; } if (audioDone) { const f = audioDone; audioDone = null; f(); } hm.classList.remove('playing'); Crew.mute(false); Crew.hush(); };
+      const show = dir => {
+        const p = P[n], v = d(n);
+        // each spread wears the colour of its worksheet page, like the printed book (white title on dark colours, dark on light ones)
+        const col = p.col || '#fffaf0', h = col.replace('#', ''), lum = (parseInt(h.slice(0, 2), 16) * .299 + parseInt(h.slice(2, 4), 16) * .587 + parseInt(h.slice(4, 6), 16) * .114) / 255;
+        [$('.pg.l'), $('.pg.r')].forEach(x => { x.style.setProperty('--pc', col); x.classList.toggle('lt', lum > .7); });
+        $('.pg.l h3').innerHTML = `<span>Page ${n + 1}</span>${p.title}`; $('.work').innerHTML = work(p, v);
+        $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${ctx.week} · ${String(n + 1).padStart(2, '0')}`;
+        $('.sent').textContent = v.said || '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
+        hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
+        a.querySelectorAll('.pdots i').forEach((x, i) => x.classList.toggle('on', i === n));
+        $('.prev').classList.toggle('off', n === 0); $('.next').classList.toggle('off', n === P.length - 1);
+      };
+      // TURN THE PAGE like a real book: the page lifts at its outer edge and swings over the spine.
+      // Its front is the page you were on; its back is the page you land on.
+      let flipping = false;
+      const turn = m => {
+        if (m === n || flipping) return; flipping = true;
+        const dir = m > n ? 1 : -1, pl = $('.pg.l'), pr = $('.pg.r'), oldL = pl.cloneNode(true), oldR = pr.cloneNode(true);
+        n = m; show(0);
+        const newL = pl.cloneNode(true), newR = pr.cloneNode(true);
+        const cover = dir > 0 ? oldL : oldR, front = dir > 0 ? oldR : oldL, back = dir > 0 ? newL : newR;
+        cover.classList.add('cover'); bk.appendChild(cover);                    // the side that is still hidden under the turning page
+        const f = document.createElement('div'); f.className = 'flp ' + (dir > 0 ? 'r' : 'l');
+        front.classList.add('fside'); back.classList.add('bside'); f.append(front, back); bk.appendChild(f);
+        const fz = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1];   // checking stills: #flip=0.5 stops the page half-way round (minus = turning back)
+        if (fz) { bk.classList.add('turning'); f.style.transition = 'none'; f.style.transform = `rotateY(${(dir > 0 ? -180 : 180) * Math.abs(+fz)}deg)`; bk.querySelectorAll('.pg').forEach(x => x.style.setProperty('--fz', Math.sin(Math.PI * Math.abs(+fz)))); bk.classList.add('frozen'); return; }
+        K().snd.whoosh(); bk.classList.add('turning'); void f.offsetWidth; f.classList.add('go');
+        setTimeout(() => K().snd.poof(), 400);
+        setTimeout(() => { cover.remove(); f.remove(); bk.classList.remove('turning'); flipping = false; }, 640);
+      };
+      // play this page: the child's own recording if there is one, else a helper reads the sentence
+      const playPage = async () => {
+        const v = d(n), id = P[n].id; hm.classList.add('playing');
+        let blob = v.voice ? await VDB.get(vkey(id)) : null;
+        if (blob && a.classList.contains('on')) {
+          Crew.mute(true); urls[id] = urls[id] || URL.createObjectURL(blob);
+          await new Promise(res => { audioDone = res; audio = new Audio(urls[id]); audio.onended = audio.onerror = res; audio.play().catch(res); setTimeout(res, 20000); });
+          audioDone = null; audio = null; Crew.mute(false);
+        } else if (v.said) await say(v.said, $('.sent'));
+        hm.classList.remove('playing');
+      };
+      // Hear me: press again to stop
+      hm.addEventListener('click', async () => { if (a.classList.contains('reading')) return; if (busy) { stop(); return; } busy = true; stop(); K().snd.pop(); await playPage(); busy = false; });
+      const go = k2 => { if (busy || flipping) return; const m = n + k2; if (m < 0 || m >= P.length) return wrong(bk); stop(); turn(m); };
+      $('.next').addEventListener('click', () => go(1)); $('.prev').addEventListener('click', () => go(-1));
+      a.querySelectorAll('.pdots i').forEach(x => x.addEventListener('click', () => { if (busy || flipping) return; const m = +x.dataset.n; if (m === n) return; stop(); turn(m); }));
+      // Hear my whole book: every page in turn. While it plays the button is a STOP button.
+      const ha = $('.hearall');
+      ha.addEventListener('click', async () => {
+        if (a.classList.contains('reading')) { halt = true; stop(); K().snd.pop(); return; }
+        if (busy || flipping) return; busy = true; halt = false; stop(); K().snd.pop(); a.classList.add('reading'); ha.textContent = '■ Stop';
+        let all = true;
+        for (let i = 0; i < P.length; i++) {
+          if (halt || !a.classList.contains('on')) { all = false; break; }
+          if (i !== n) { turn(i); await wait(680); } await wait(450); if (halt) { all = false; break; }
+          await playPage(); if (halt) { all = false; break; } await wait(350);
+        }
+        a.classList.remove('reading'); ha.textContent = '▶ Hear my whole book'; busy = false;
+        if (all && a.classList.contains('on')) { ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); chat('What a wonderful book! Press Done.', 2); }
+      });
+      $('.again').addEventListener('click', () => { if (busy) return; stop(); const p = P[n]; goPage(p, false); });
+      $('.back').addEventListener('click', () => { stop(); a.classList.remove('on'); });
+      ok.addEventListener('click', () => {
+        if (!ok.classList.contains('on')) return; stop();
+        const first = !isDone(t.id); D[t.id] = Object.assign(D[t.id] || {}, { ok: true, at: Date.now() }); save();
+        const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); a.classList.remove('on'); paint(); crew();
+        if (first) setTimeout(() => close(true), 900);   // the whole book has been heard: this place is finished
+      });
+      const fz0 = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1]; if (fz0) setTimeout(() => { if (+fz0 < 0) { n = 2; show(0); turn(1); } else turn(1); }, 300);
+      show(0); chat(isDone(t.id) ? 'Here is your book again!' : 'This is your book! Press "Hear my whole book".', 2);
     },
     // a few quick questions, one card at a time: look or listen, then tap the right answer
     pick(t) {
@@ -352,24 +481,32 @@ window.Room = (() => {
   // always someone talking: what to say next when the room has been quiet
   Crew.idle(() => {
     if (!box || !box.classList.contains('on') || !R) return null;
+    if (box.querySelector('.vpop')) return false;
     const a = box.querySelector('#act');
     if (a && a.classList.contains('on')) {
-      if (a.querySelector('.vid')) return false;
+      if (a.querySelector('.bk')) return a.classList.contains('reading') || Crew.muted() ? false : a.querySelector('.ok.on') ? 'Press Done!' : Crew.pick(['Press "Hear my whole book"!', 'Turn the page!']);
       if (a.querySelector('.ok.on')) return Crew.pick(['You did it! Press Done.', 'All finished! Press Done.']);
       if (a.querySelector('.sayit.on')) { if (a.dataset.hinted) return false; a.dataset.hinted = 1; return Crew.pick(['Press the microphone and say it!', 'Your turn! Say it out loud.']); }   // one reminder only
       return Crew.pick(['Keep going!', 'You can do it!', 'Take your time.']);
     }
-    const left = R.things.filter(t => !isDone(t.id) && !lockedNow(t));
-    if (!left.length) return Crew.pick(['We did everything here!', "Let's go outside!"]);
-    const t = left[0];
-    if (t.type === 'book') return 'Your book is ready! Open it.';
-    if (t.type === 'stage') return "It's Speech Time! Press the stage.";
-    return Crew.pick(['Press something with a star!', 'What shall we try next?', `Let's try this one: ${t.title}!`, `${left.length} more to go!`, R.key]);
+    const n = count(), N = plays().length, bt = bookT();
+    if (bt && isDone(bt.id)) return Crew.pick(['We did everything here!', "Let's go outside!"]);
+    if (n >= N) return 'Your book is ready! Open it.';
+    return Crew.pick([n ? 'Press KEEP GOING!' : 'Press START!', `${N - n} more to go!`, R.key]);
   });
-  function video() {   // the week's explainer video (not made yet)
-    const a = box.querySelector('#act'); K().snd.pop(); a.style.setProperty('--c', '#1f2a4d');
-    a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><div class="vid"><b>▶</b><p>The week's video plays here.<br><small>not made yet</small></p></div>`;
-    a.classList.add('on'); a.querySelector('.back').addEventListener('click', () => a.classList.remove('on'));
+  // The week's video opens as a POP-UP over the room. The browser's own player gives play / pause, full screen and
+  // dragging along the timeline to any moment. A room names its file as  video: 'video/1-1.mp4'  (none made yet).
+  function video() {
+    K().snd.pop(); Crew.hush();
+    let v = box.querySelector('.vpop'); if (v) v.remove();
+    v = document.createElement('div'); v.className = 'vpop';
+    v.innerHTML = `<div class="vbox"><button class="vx" title="Close">✕</button>` +
+      (R.video ? `<video src="${R.video}" controls playsinline preload="metadata"></video>` : `<div class="vnone"><b>▶</b><p>The week's video plays here.<br><small>not made yet · 영상 준비 중</small></p></div>`) + `</div>`;
+    box.appendChild(v); void v.offsetWidth; v.classList.add('on');
+    const vid = v.querySelector('video'); if (vid) { Crew.mute(true); vid.play().catch(() => {}); }
+    const shut = () => { if (!v.isConnected) return; if (vid) { try { vid.pause(); } catch (e) {} Crew.mute(false); } v.remove(); if (!D._tv) { D._tv = 1; save(); K().snd.win(); } paint(); };
+    v.querySelector('.vx').addEventListener('click', shut);
+    v.addEventListener('click', e => { if (e.target === v) shut(); });
   }
 
   // ---------- the rooms (data) ----------
@@ -534,6 +671,6 @@ window.Room = (() => {
       }
     }
   };
-  addEventListener('resize', lay);
-  return { open, lay, data: () => all, rooms: ROOMS };
+  addEventListener('resize', () => setTimeout(lay, 0));   // after sky.js has measured the new window (this file loads first, so its listener runs first)
+  return { open, lay, data: () => all, rooms: ROOMS, play: id => { const t = R.things.find(x => x.id === id); if (t) TYPES[t.type](t); }, voice: VDB };
 })();

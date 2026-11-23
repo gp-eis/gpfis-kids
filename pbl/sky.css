@@ -201,3 +201,19 @@ body.still *, body.still *::before, body.still *::after { animation: none !impor
 #crewbub small { display: block; font-size: 16px; font-weight: 600; color: #7a8199; margin-top: 2px; }
 #crewbub::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -16px; margin-left: -12px; width: 20px; height: 20px; background: #fff; border-right: 4px solid #2f7fd6; border-bottom: 4px solid #2f7fd6; rotate: 45deg; border-radius: 0 0 5px 0; }
 #crewbub[data-who=penny]::after { border-color: #f08a1c; }
+
+/* cloud wipe between the island and a room (sky.js wipe): two banks of clouds meet in the middle, then part */
+#wipe { position: absolute; inset: 0; z-index: 56; display: none; overflow: hidden; cursor: pointer; }
+#wipe.on { display: block; }
+#wipe .half { position: absolute; top: 0; bottom: 0; width: 64%; transition: transform .62s cubic-bezier(.25, .9, .35, 1); }
+#wipe .half.l { left: 0; transform: translateX(-135%); }
+#wipe .half.r { right: 0; transform: translateX(135%); }
+#wipe.in .half { transform: none; }
+#wipe.out .half { transition-timing-function: cubic-bezier(.6, 0, .8, .4); }
+#wipe .half::before { content: ''; position: absolute; top: 0; bottom: 0; background: #fff; }
+#wipe .half.l::before { left: -20%; right: 34%; }
+#wipe .half.r::before { right: -20%; left: 34%; }
+#wipe img { position: absolute; width: 82%; left: calc(26% + var(--x)); filter: drop-shadow(0 8px 0 rgba(120, 170, 220, .28)); transition: transform .62s var(--d) cubic-bezier(.3, 1.4, .5, 1); transform: translateX(-12%); pointer-events: none; }
+#wipe .half.r img { left: auto; right: calc(26% + var(--x)); transform: translateX(12%) scaleX(-1); }
+#wipe.in .half.l img { transform: none; }
+#wipe.in .half.r img { transform: scaleX(-1); }
