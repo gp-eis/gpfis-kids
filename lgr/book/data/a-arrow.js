@@ -7,8 +7,8 @@
     pages: [
       { en: 'I {hold} an arrow.', ko: '나는 화살을 잡아요.', scene: [YOLK, ['ground', 0, 410, 72, GRASS], ['girl', 370, 190, 200], ['arrow', 320, 130, 300, 0]] },
       { en: 'I {see} an arrow.', ko: '나는 화살을 봐요.', scene: [MINT, ['ground', 0, 410, 72, TEAL], ['pointer', 110, 190, 160], ['arrow', 400, 110, 420, -20, 'float']] },
-      { en: 'I {draw} an arrow.', ko: '나는 화살을 그려요.', scene: [SALMON, ['paper', 220, 50, 500], ['pencil', 560, 40, 180, 0, 'float']] },
-      { en: 'I {point} an arrow at the target.', ko: '나는 화살을 과녁 쪽으로 겨눠요.', scene: [LAV, ['ground', 0, 410, 72, GRASS], ['target', 660, 100, 240], ['arrow', 90, 180, 290, 0], ['dots', 400, 222, 250]] },
+      { en: 'I {draw} an arrow on paper.', ko: '나는 종이에 화살을 그려요.', scene: [SALMON, ['paper', 220, 50, 500], ['pencil', 560, 40, 180, 0, 'float']] },
+      { en: 'I {aim} an arrow at the target.', ko: '나는 화살을 과녁 쪽으로 겨눠요.', scene: [LAV, ['ground', 0, 410, 72, GRASS], ['target', 660, 100, 240], ['arrow', 90, 180, 290, 0], ['dots', 400, 222, 250]] },
       { en: 'I {shoot} an arrow.', ko: '나는 화살을 쏴요.', scene: [BLUE, ['ground', 0, 410, 72, GRASS], ['bow', 150, 50, 118], ['arrow', 250, 160, 320, 0, 'zoomr'], ['spark', 600, 150, 1.2]] },
       { en: 'An arrow {flies} through the air.', ko: '화살이 공중을 날아가요.', scene: [YOLK, ['cloud', 70, 330, 200, 'drift'], ['cloud', 660, 50, 180, 'drift'], ['arrow', 270, 170, 400, -18, 'float']] },
       { en: 'An arrow {hits} the target.', ko: '화살이 과녁에 맞아요.', scene: [MINT, ['ground', 0, 410, 72, TEAL], ['target', 500, 40, 340], ['arrow', 370, 170, 310, 0], ['spark', 610, 120, 1.3]] },

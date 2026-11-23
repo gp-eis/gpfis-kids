@@ -14,7 +14,7 @@ window.LGR_SHEETS = [
    "An airplane flies over the clouds.",
    "An airplane crosses the sea.",
    "An airplane lands at the airport.",
-   "I ride an airplane with my family.",
+   "I take an airplane with my family.",
    "I love flying in an airplane."
   ],
   "q10": [
@@ -26,7 +26,7 @@ window.LGR_SHEETS = [
    "What does the airplane fly over?",
    "What does the airplane cross?",
    "Where does the airplane land?",
-   "Who do I ride an airplane with?",
+   "Who do I take an airplane with?",
    "What do I love?"
   ],
   "start": [
@@ -61,7 +61,7 @@ window.LGR_SHEETS = [
     "n"
    ],
    [
-    "ride",
+    "take",
     "v"
    ]
   ]
@@ -272,8 +272,8 @@ window.LGR_SHEETS = [
   "lines": [
    "I hold an arrow.",
    "I see an arrow.",
-   "I draw an arrow.",
-   "I point an arrow at the target.",
+   "I draw an arrow on paper.",
+   "I aim an arrow at the target.",
    "I shoot an arrow.",
    "An arrow flies through the air.",
    "An arrow hits the target.",
@@ -285,7 +285,7 @@ window.LGR_SHEETS = [
    "What do I hold?",
    "What do I see?",
    "What do I draw?",
-   "Where do I point the arrow?",
+   "Where do I aim the arrow?",
    "What do I shoot?",
    "Where does the arrow fly?",
    "What does the arrow hit?",
@@ -339,7 +339,7 @@ window.LGR_SHEETS = [
    "I have an ax.",
    "I hold an ax.",
    "I see an ax.",
-   "I use an ax to cut wood.",
+   "Dad uses an ax to cut wood.",
    "Dad carries an ax.",
    "Dad chops wood with an ax.",
    "An ax cuts the wood.",
@@ -351,7 +351,7 @@ window.LGR_SHEETS = [
    "What do I have?",
    "What do I hold?",
    "What do I see?",
-   "What do I use to cut wood?",
+   "What does Dad use to cut wood?",
    "Who carries an ax?",
    "Who chops the wood?",
    "What does the ax cut?",
@@ -575,7 +575,7 @@ window.LGR_SHEETS = [
    "I lie in my bed.",
    "I close my eyes.",
    "I sleep in my bed.",
-   "I dream a happy dream.",
+   "I dream sweet dreams.",
    "I love my soft bed."
   ],
   "q10": null,
@@ -625,7 +625,7 @@ window.LGR_SHEETS = [
    "I see a bird.",
    "A bird sits in a tree.",
    "A bird sings a song.",
-   "A bird opens its wings.",
+   "A bird spreads its wings.",
    "A bird flies in the sky.",
    "A bird finds a worm.",
    "A bird eats the worm.",
@@ -1343,7 +1343,7 @@ window.LGR_SHEETS = [
    "A duck swims in the pond.",
    "A duck dives under the water.",
    "A duck finds food.",
-   "A duck shakes its wings.",
+   "A duck flaps its wings.",
    "A duck flies away.",
    "A duck comes back.",
    "A duck sleeps by the pond."

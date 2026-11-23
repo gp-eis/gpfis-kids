@@ -15,7 +15,7 @@
       { en: 'An airplane {flies} over the clouds.', ko: '비행기가 구름 위를 날아요.', scene: [LAV, ['plane', 190, 30, 580, 0, 'float'], ['cloud', -30, 390, 230], ['cloud', 160, 420, 200], ['cloud', 340, 385, 250], ['cloud', 560, 420, 210], ['cloud', 740, 390, 230]] },
       { en: 'An airplane {crosses} the sea.', ko: '비행기가 바다를 건너요.', scene: [YOLK, ['water', 0, 342, 140], ['plane', 200, 30, 560, 0, 'float']] },
       { en: 'An airplane {lands} at the airport.', ko: '비행기가 공항에 착륙해요.', scene: [MINT, ['runway', 0, 396, 86], ['tower', 110, 246, 54], ['plane', 300, 110, 560, -9]] },
-      { en: 'I {ride} an airplane with my family.', ko: '나는 가족과 함께 비행기를 타요.', scene: [SALMON, ['ground', 0, 420, 62, TEALG], ['plane', 420, 20, 500, 0, 'float'], ['dad', 60, 150, 140], ['mum', 210, 160, 132], ['boy', 356, 262, 88], ['girl', 452, 250, 150, 0, 'hop']] },
+      { en: 'I {take} an airplane with my family.', ko: '나는 가족과 함께 비행기를 타요.', scene: [SALMON, ['ground', 0, 420, 62, TEALG], ['plane', 420, 20, 500, 0, 'float'], ['dad', 60, 150, 140], ['mum', 210, 160, 132], ['boy', 356, 262, 88], ['girl', 452, 250, 150, 0, 'hop']] },
       { en: 'I {love} flying in an airplane.', ko: '나는 비행기를 타고 나는 것을 좋아해요.', scene: [YOLK, ['ground', 0, 420, 62, GRASS], ['plane', 400, 70, 500, 4, 'float'], ['girl', 120, 210, 190, 0, 'hop'], ['heart', 80, 110, 1.1], ['heart', 330, 60, .8], ['heart', 380, 330, 1], ['heart', 860, 370, .9]] }
     ],
     activity: { find: [1, 4, 7], own: { en: 'I want to {fly} in an airplane.', ko: '나는 비행기를 타고 날고 싶어요.' } }
