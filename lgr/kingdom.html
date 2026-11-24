@@ -40,6 +40,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
 .th.locked img.im{filter:grayscale(.75) brightness(.55)}
 .th.locked{cursor:default}
 .lock{position:absolute;left:0;bottom:calc(var(--w) * .26);transform:translateX(-50%);width:calc(var(--w) * .26);pointer-events:none}
+.sbook.shut .im{filter:grayscale(.55) brightness(.8)}.sbook .sign{font-size:20px}
 .mk{position:absolute;left:0;bottom:calc(var(--w) * .95);width:0;height:0;pointer-events:none;animation:bob .8s ease-in-out infinite}
 .mk::after{content:"";position:absolute;left:-26px;top:-40px;border:26px solid transparent;border-top:36px solid #ffd23f;filter:drop-shadow(0 4px 0 #b9820f) drop-shadow(0 6px 6px rgba(0,0,0,.4))}
 @keyframes bob{50%{translate:0 -16px}}
@@ -122,6 +123,18 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
 /* the few buttons */
 #hud{position:fixed;left:0;right:0;top:0;padding:14px 18px;display:flex;gap:12px;align-items:center;z-index:20;pointer-events:none}
 #hud>*{pointer-events:auto}
+/* THE MONTH'S SPEAKING BOOK: the real worksheet cover stands in the corner of the Ruby Cave, a dot for each finished
+   week, grey until Speak has kept a line. Pressing it opens app/speakbook/?month=1 (every week in one book). */
+#mbk{position:fixed;right:26px;bottom:52px;width:clamp(96px,9.5vw,150px);border:0;background:none;padding:0;cursor:pointer;z-index:19;rotate:4deg;display:none;transition:transform .15s}
+body.incave #mbk{display:block}
+#mbk:hover{transform:translateY(-6px) rotate(-3deg) scale(1.05)}
+#mbk img{width:100%;display:block;border-radius:4px 10px 10px 4px;box-shadow:-6px 0 0 #7d1820,0 10px 14px rgba(0,0,0,.5),0 0 0 3px #fff}
+#mbk b{position:absolute;left:50%;bottom:-12px;translate:-50% 0;background:#e23b4a;color:#fff;border-radius:999px;padding:3px 14px;font:800 clamp(12px,1.05vw,16px) "Baloo 2";white-space:nowrap;box-shadow:0 4px 0 #9c1f2c}
+#mbk .dots{position:absolute;left:50%;bottom:-38px;translate:-50% 0;display:flex;gap:6px}
+#mbk .dots i{width:15px;height:15px;border-radius:50%;background:#d9cfc2;box-shadow:0 0 0 2px #fff}#mbk .dots i.on{background:#ffd23f}
+#mbk.shut img{filter:grayscale(.7) brightness(.8)}
+#mbk.wob{animation:mwob .5s}@keyframes mwob{25%{rotate:-4deg}50%{rotate:10deg}75%{rotate:0deg}}
+body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the front map has no land yet */
 .round{width:66px;height:66px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center}
 .round[hidden]{display:none}
 .round:active{translate:0 4px;box-shadow:0 2px 0 #b98a52}
@@ -140,10 +153,11 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
 </style></head><body>
 <div id="view"><div id="world"><img id="bg" alt=""><div id="glow"></div><div id="dim"></div></div></div>
 <div id="hud"><button class="round" id="back" aria-label="Back" hidden><svg viewBox="0 0 24 24"><path d="M14 4 6 12l8 8" fill="none" stroke="#4a2508" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  <div id="title"></div><button class="round" id="snd" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#4a2508"/><path id="sw" d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14" fill="none" stroke="#4a2508" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>
+  <div id="title"></div><button class="round" id="rep" aria-label="My report"><svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1.2" fill="#e23b4a"/><rect x="10" y="8" width="4" height="13" rx="1.2" fill="#f0ab19"/><rect x="17" y="3" width="4" height="18" rx="1.2" fill="#4a2508"/></svg></button><button class="round" id="snd" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#4a2508"/><path id="sw" d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14" fill="none" stroke="#4a2508" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>
+<button id="mbk" aria-label="My Speaking Book"><img src="art/pages/1/cover.webp" alt=""><b>My Speaking Book</b><span class="dots"><i></i><i></i><i></i><i></i></span></button>
 <div id="toast"></div><div id="flash"></div>
 <div id="player" hidden><div class="box"><button class="round x" id="closeV" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#4a2508" stroke-width="4" stroke-linecap="round"/></svg></button><div id="vbody" style="width:100%;height:100%;display:grid;place-items:center"></div></div></div>
-<script>(function(){var V="mwuk3oe2";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuk3oe2"></script><script src="../kit/voice.js?v=mwuk3oe2"></script><script src="vendor/say.js?v=mwuk3oe2"></script>
+<script>(function(){var V="mwunk7b9";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwunk7b9"></script><script src="../kit/voice.js?v=mwunk7b9"></script><script src="../kit/track.js?v=mwunk7b9"></script><script src="vendor/say.js?v=mwunk7b9"></script><script src="vendor/myvoice.js?v=mwunk7b9"></script>
 <script>
 (function () {
   'use strict';
@@ -151,7 +165,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   const wait = ms => new Promise(r => setTimeout(r, ms));
   // ---- what the child has done (this device only) ----
   const KEY = 'lgr2';
-  if (Q.get('reset')) { try { localStorage.removeItem(KEY); } catch (e) {} }
+  if (Q.get('reset')) { try { localStorage.removeItem(KEY); } catch (e) {} if (window.MyVoice) MyVoice.clear(); }
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
   const save = s => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} };
   const parts = w => (load()['w' + w] || {}), weekDone = w => !!(load().done || {})[w];
@@ -160,7 +174,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   const current = () => { for (let w = 1; w <= 4; w++) if (!weekDone(w)) return w; return 5; };
   // the boss's four missions and items for Ruby 1 (content/boss-gemstone-adventure.md)
   const WEEKS = [null, ['The Lost Ruby', 'Explorer Badge'], ['The Secret Map', 'Ruby Map'], ['The Hidden Cave', 'Explorer Torch'], ['The Ruby Treasure', 'Ruby Pendant']];
-  const TOYS = [['watch', 'Watch', '보기', 190, 592, 250], ['abc', 'ABC', '읽기', 495, 545, 205], ['sheet', 'Speak', '말하기', 1207, 556, 168], ['dictation', 'Dictation', '받아쓰기', 1478, 592, 235]];
+  const TOYS = [['watch', 'Watch', '보기', 190, 592, 250], ['abc', 'ABC', '읽기', 495, 545, 205], ['sheet', 'Speak', '말하기', 1207, 556, 168], ['dictation', 'Grammar', '문법', 1478, 592, 235]];
   const SLOTS = [[722, 383], [817, 383], [912, 383], [1005, 383]];
   const PLOTS = [[427, 548], [755, 506], [1060, 464], [1372, 464]];
 
@@ -187,6 +201,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   const say = (who, text) => { line = line.then(() => (muted || !window.Say) ? null : Promise.race([Say(text, { who }), wait(5000)])).catch(() => {}); return line; };
   const hush = () => { clearTimeout(nudgeT); if (window.Say) Say.stop(); };
   const touched = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;     // browsers stay silent until the first tap
+  $('#rep').onclick = () => { snd.pop(); hush(); location.href = 'report/index.html?land=ruby&n=1&back=' + encodeURIComponent('../kingdom.html' + location.hash); };
   $('#snd').onclick = () => { muted = !muted; if (muted) hush(); $('#sw').style.display = muted ? 'none' : ''; if (!muted) snd.pop(); };
 
   // ---- small helpers ----
@@ -240,7 +255,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     return o;
   }
   let pen, ger, busy = false;
-  function clear() { [...world.children].forEach(c => { if (!['bg', 'glow', 'dim'].includes(c.id)) c.remove(); }); }
+  function clear() { document.body.classList.remove('incave'); [...world.children].forEach(c => { if (!['bg', 'glow', 'dim'].includes(c.id)) c.remove(); }); }
   const both = (px, py, gap = 110) => Promise.all([pen.go(px, py), wait(160).then(() => ger.go(px - gap, py - 12))]);
 
   // ================= THE FRONT MAP: one world, four gem lands, the golden railway =================
@@ -348,6 +363,12 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   async function cave(arrive) {
     clear(); busy = true; dfn = near; anchor = .62; WW = 1672; WH = 941; fit(); bg.src = ART + 'cave.jpg'; $('#back').hidden = false;
     $('#back').onclick = async () => { if (busy) return; busy = true; snd.pop(); await both(230, 500); pen.el.classList.add('gone'); ger.el.classList.add('gone'); flash(() => { sessionStorage.setItem('lgr2.from', 'cave'); location.hash = '#/ruby'; }); };
+    document.body.classList.add('incave');
+    { const m = $('#mbk'), anyVoice = () => (window.MyVoice ? MyVoice.keys() : Promise.resolve([])).then(k => k.length > 0);
+      [...m.querySelectorAll('.dots i')].forEach((d, i) => d.classList.toggle('on', weekDone(i + 1))); anyVoice().then(ok => m.classList.toggle('shut', !ok));
+      m.onclick = async () => { snd.pop(); m.classList.remove('wob'); void m.offsetWidth; m.classList.add('wob');
+        if (!(await anyVoice())) return toast('Do Speak first. Then your book opens!', '말하기를 먼저 해요');
+        hush(); if (window.GPTrack) GPTrack.play('lgr', 'monthbook'); flash(() => { location.href = 'speakbook/index.html?month=1&back=' + encodeURIComponent('../kingdom.html#/cave'); }); }; }
     const cur = current(); $('#title').innerHTML = 'Ruby Cave<small>Ruby · 1 · ' + (cur > 4 ? 'all four weeks done!' : 'Week ' + cur) + '</small>';
     const chests = [];
     PLOTS.forEach(([x, y], i) => { const w = i + 1, d = depth(y + 60);
@@ -393,6 +414,15 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     const P = parts(w), toys = {}, order = TOYS.map(t => t[0]);
     const next = () => order.find(p => !parts(w)[p]);
     TOYS.forEach(([id, en, ko, x, y, wd]) => { const b = toys[id] = thing('toy-' + (id === 'sheet' ? 'speak' : id), x, y, wd, '', '<span class="sign">' + en + '<small>' + ko + '</small></span>' + (P[id] ? '<span class="tick">' + STAR + '</span>' : '')); b.id2 = id; if (id === 'sheet') b.querySelector('.in').style.marginLeft = (wd * .158) + 'px'; });   // the microphone leans right: its BASE, not its middle, goes on the middle of the stand
+    // My Speaking Book (24 Nov 2026): NOT a quest and no star. A keepsake that opens once Speak has kept one of this week's lines (app/speakbook).
+    const BOOKAT = [1000, 676, 190];
+    const sbook = thing('toy-book', BOOKAT[0], BOOKAT[1], BOOKAT[2], 'sbook', '<span class="sign">My Speaking Book<small>나의 스피킹 북</small></span>');
+    const voiced = () => (window.MyVoice ? MyVoice.keys() : Promise.resolve([])).then(k => k.some(id => id[0] === 'abcd'[w - 1]));
+    voiced().then(ok => sbook.classList.toggle('shut', !ok));
+    sbook.onclick = async () => { if (busy) return; snd.pop(); clearTimeout(nudgeT);
+      if (!(await voiced())) { again(sbook, 'shake'); return toast('Do Speak first. Then your book opens!', '말하기를 먼저 해요'); }
+      busy = true; again(sbook, 'squash'); sparks(sbook.x, sbook.y - 60, 14, 120); if (window.GPTrack) GPTrack.play('lgr', 'book', { week: w }); await wait(350);
+      flash(() => { location.href = 'speakbook/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); };
     const mark = () => { world.querySelectorAll('.mk').forEach(m => m.remove()); const n = next(); if (n) toys[n].insertAdjacentHTML('beforeend', '<i class="mk"></i>'); };
     // the workbench: one ruby star for each finished toy
     order.forEach((id, i) => { if (P[id]) world.insertAdjacentHTML('beforeend', '<div class="slot" data-slot="' + i + '" style="left:' + SLOTS[i][0] + 'px;top:' + SLOTS[i][1] + 'px">' + STAR + '</div>'); });
@@ -419,9 +449,10 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     }
     Object.values(toys).forEach(b => b.onclick = async () => {
       if (busy) return; busy = true; snd.pop(); const id = b.id2, [sx, sy] = stand(b); clearTimeout(nudgeT);
-      say(...{ watch: ['gerry', "Let's watch!"], abc: ['penny', "Let's read!"], sheet: ['penny', "Let's speak!"], dictation: ['gerry', "Let's write!"] }[id]);
+      say(...{ watch: ['gerry', "Let's watch!"], abc: ['penny', "Let's read!"], sheet: ['penny', "Let's speak!"], dictation: ['gerry', "Let's make sentences!"] }[id]);
       await both(sx, sy, b.x < 836 ? -105 : 105); again(b, 'squash'); snd.boing(); await wait(380); busy = false;
       if (parts(w)[id]) sparks(b.x, b.y - b.w * .6, 10, 100);
+      if (window.GPTrack) GPTrack.play('lgr', id, { week: w });   // the shared GPFIS counter: how many times each quest was opened (kept on this device)
       if (id === 'watch') return play('videos/A-1-w' + w + '-essay.mp4', () => { if (!parts(w).watch) give('watch'); });
       if (id === 'abc') { sessionStorage.setItem('lgr2.abc', w); return flash(() => { location.href = 'book/index.html?set=a&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
       // Sheet and Dictation are not made yet: in this sample they give their star straight away so the whole trip can be tried
@@ -443,8 +474,9 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     // back from the online worksheet: the Sheet star comes once one of this week's worksheets is finished
     // back from Dictation: its star comes once one of this week's dictations is finished
     if (sessionStorage.getItem('lgr2.dict') == w) { sessionStorage.removeItem('lgr2.dict'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.dictations') || '[]'); } catch (e) {}
-      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).dictation) give('dictation'); else if (!parts(w).dictation) toast('Finish one dictation to get the star!', '받아쓰기를 하나 끝내요'); }
-    if (sessionStorage.getItem('lgr2.sheet') == w) { sessionStorage.removeItem('lgr2.sheet'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.sheets') || '[]'); } catch (e) {}
+      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).dictation) give('dictation'); else if (!parts(w).dictation) toast('Finish one reading to get the star!', '문장 만들기를 하나 끝내요'); }
+    if (sessionStorage.getItem('lgr2.sheet') == w) { voiced().then(ok => { if (ok) { sbook.classList.remove('shut'); again(sbook, 'squash'); sparks(sbook.x, sbook.y - 60, 16, 130); say('penny', 'Your Speaking Book is ready!'); } });
+      sessionStorage.removeItem('lgr2.sheet'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.sheets') || '[]'); } catch (e) {}
       if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).sheet) give('sheet'); else if (!parts(w).sheet) toast('Finish one Speak reading to get the star!', '말하기를 하나 끝내요'); }
     if (sessionStorage.getItem('lgr2.abc') == w) { sessionStorage.removeItem('lgr2.abc'); let n = 0; try { n = JSON.parse(localStorage.getItem('lgr.pages') || '[]').length; } catch (e) {}
       if (n > 0 && !parts(w).abc) give('abc'); else if (!n) toast('Read one book to get the star!', '책을 한 권 읽어요'); }
@@ -468,4 +500,4 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   }
   addEventListener('hashchange', route); route();
 })();
-</script><script src="../ext/home.js?v=mwuk3oe2" data-home="../demo/street.html"></script></body></html>
+</script><script src="../ext/home.js?v=mwunk7b9" data-home="../demo/street.html"></script></body></html>

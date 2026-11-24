@@ -418,7 +418,15 @@
       ((window.ISLE_SPR || {})[ISLE.dir] || []).map((b, i) => `<img class="under" data-i="${i}" src="${dir}/s${i}.jpg" alt="" style="clip-path:ellipse(${b[2] * 50 + 1}% ${b[3] * 50 + 1}% at ${(b[0] + b[2] / 2) * 100}% ${(b[1] + b[3] / 2) * 100}%)"><img class="spr" data-i="${i}" src="${dir}/b${i + 1}.png" alt="" style="left:${b[0] * 100}%;top:${b[1] * 100}%;width:${b[2] * 100}%;height:${b[3] * 100}%">`).join('') +
       PLOTS.map((p, i) => `<div class="plot${i < nb ? ' on' : i > nb ? ' later' : ''}" data-i="${i}"><div class="num">${i + 1}</div><b class="nm">${NAMES[i]}</b></div>`).join('') +
       `<div class="shipzone" title="Back to the airship" style="left:${zn[0]}%;top:${zn[1]}%;width:${zn[2]}%;height:${zn[3]}%"><span>Fly! <small>출발!</small></span></div>` +
-      `<div class="mate"><b><img src="art/crew/gerry/stand.webp" alt=""></b></div><div class="mate"><b><img src="art/crew/penny/stand.webp" alt=""></b></div></div>`;
+      `<div class="mate"><b><img src="art/crew/gerry/stand.webp" alt=""></b></div><div class="mate"><b><img src="art/crew/penny/stand.webp" alt=""></b></div></div>` +
+      // the month's Speech Book: its real cover stands in the corner (user's choice, 24 Nov); one dot lights up for each finished week
+      `<button class="mbk"><img src="art/pages/${I.n}/cover.webp" alt="" onerror="this.parentNode.remove()"><b>My Speech Book</b><span>${['#e8492e', '#ff9f1c', '#2fb86a', '#2f7fd6'].map(c => `<u style="--c:${c}"></u>`).join('')}</span></button>`;
+    const mb = isleEl.querySelector('.mbk'); markBook();
+    if (mb) mb.addEventListener('click', () => {
+      // in grey from day one, a dot for each finished week; it OPENS only when all four weeks are in (user, 24 Nov)
+      if (busy) return; again(mb, 'tap');
+      if (Room.weeksDone(I.n).length < 4 || !Room.month(I.n, markBook)) { snd.nope(); again(mb, 'no'); toast('Your Speech Book opens when the activities are done. <small>활동을 먼저 해요</small>'); }
+    });
     pic = isleEl.querySelector('.pic'); mates = [...pic.querySelectorAll('.mate')]; mc = mates.map((m, n) => Crew.add(m.querySelector('img'), n ? 'penny' : 'gerry', 1)); at = 'L'; cp = NODE.L.slice(); face = 1; layIsle();
     pic.querySelectorAll('.plot').forEach(p => {
       p.addEventListener('pointerdown', ev => { ev.stopPropagation(); plot(+p.dataset.i, p); });
@@ -430,6 +438,7 @@
     setTimeout(() => { if (pic && !busy) crewTo('D', () => { mc[0].pose('point', 1500); mc[1].pose('wave', 1500); }); }, 600);   // they climb down and step onto the dock
     setTimeout(() => toast(built(I.n).length ? 'Welcome back! <small>다시 왔어요!</small>' : 'Pick a place to go in! <small>가고 싶은 곳을 골라요</small>'), 500);
   }
+  function markBook() { const mb = isleEl.querySelector('.mbk'); if (!mb || !cur) return; const w = Room.weeksDone(cur.n); mb.querySelectorAll('u').forEach((u, i) => u.classList.toggle('on', w.includes(i + 1))); mb.classList.toggle('has', w.length >= 4); }
   const VOICE = [() => { tone(880, .3, 'triangle', .2); setTimeout(() => tone(660, .45, 'triangle', .2), 280); },            // ding-dong
     () => { snd.boing(); setTimeout(snd.whoosh, 180); }, () => tone(300, .5, 'sawtooth', .09, 900), () => snd.win()];
   // bring one building to life: the same pixels lifted off the painting, so only it moves
@@ -479,7 +488,7 @@
     mates.forEach(m => m.classList.add('in'));
     // the room: each thing in it is one worksheet page (room.js). ok = the show and tell is done
     wipe(() => Room.open({ month: cur.n, week: i + 1, done: ok => {
-      mates.forEach(m => m.classList.remove('in'));
+      mates.forEach(m => m.classList.remove('in')); markBook();
       setTimeout(() => { if (ok && !visit) build(i, el); else { busy = false; if (ok) { toast('You did it again! <small>또 해냈어요!</small>'); mates.forEach(m => again(m, 'jump')); mc.forEach(c => c.pose('cheer', 1100)); } } }, 900);
     } }));
   }
@@ -534,10 +543,11 @@
   if (/map/.test(h)) setTimeout(() => toggleMap(true), 300);
   const hv = h.match(/hov=(\d)/); if (hv && pic) setTimeout(() => { alive(hv[1] - 1, 'hov'); pic.querySelector(`.spr[data-i="${hv[1] - 1}"]`).style.transform = 'translateY(-26px) scale(1.06)'; }, 900);
   const rr = h.match(/room=(\w*)/); if (rr && pic) setTimeout(() => { Room.open({ month: +((h.match(/isle=(\d+)/) || [])[1] || 1), week: +((h.match(/wk=(\d)/) || [])[1] || 1), done: () => {} }); if (rr[1]) setTimeout(() => { Room.play(rr[1]); }, 500); }, 800);
+  const mbk = h.match(/mbook(?:=(.))?/); if (mbk && pic) setTimeout(() => { if (Room.month(cur.n, markBook) && mbk[1]) setTimeout(() => { const x = document.querySelector('.pdots i[data-w="' + mbk[1] + '"]'); if (x) x.click(); }, 500); }, 900);   // checking stills: #mbook opens the month's Speech Book, #mbook=2 at week 2
   const gi = h.match(/in=(\d)/); if (gi && pic) setTimeout(() => plot(gi[1] - 1, pic.querySelectorAll('.plot')[gi[1] - 1]), 1200);
   const gs = h.match(/stand=(\d)/); if (gs && pic) setTimeout(() => crewTo(gs[1] - 1), 900);
   const zm = h.match(/zoom=([\d.]+)/); if (zm) z = zt = Math.max(.42, Math.min(1, +zm[1]));
   window.__kit = { wipe, snd, burst, puff, pt, toast, again, W: () => W };
-  window.__sky = { S, ship, ISL, land, toggleMap, goShip, where: () => at, plot: i => plot(i, pic.querySelectorAll('.plot')[i]), state: () => ({ mode, busy, near: near && near.n, stars: S.stars, built: S.built, map: mapEl.classList.contains('on') }) };
+  window.__sky = { S, ship, ISL, ISLES, land, toggleMap, goShip, where: () => at, plot: i => plot(i, pic.querySelectorAll('.plot')[i]), state: () => ({ mode, busy, near: near && near.n, stars: S.stars, built: S.built, map: mapEl.classList.contains('on') }) };
   requestAnimationFrame(frame);
 })();

@@ -5,7 +5,10 @@
  "Here comes the square! Tap its vertices!",
  "Here comes the circle! Does it have vertices?",
  "Here comes the oval! Does it have vertices?",
- "One!", "Two!", "Three!", "Four!",
+ "One!",
+ "Two!",
+ "Three!",
+ "Four!",
  "Three vertices! Great job!",
  "Four vertices! Wow!",
  "Vertices are where two sides meet. Try again!",
@@ -15,5 +18,6 @@
  "Right! An oval has no vertices!",
  "Why does a circle have no vertices? Press the button and say it!",
  "Uh-oh! The alien says a circle has no points. Is that right? Tell him!",
- "Great talking! You get a star!"
+ "Great talking! You get a star!",
+ "This is your Discussion Book! Turn the pages and hear yourself."
 ]

@@ -217,3 +217,16 @@ body.still *, body.still *::before, body.still *::after { animation: none !impor
 #wipe .half.r img { left: auto; right: calc(26% + var(--x)); transform: translateX(12%) scaleX(-1); }
 #wipe.in .half.l img { transform: none; }
 #wipe.in .half.r img { transform: scaleX(-1); }
+/* the month's Speech Book: its real cover in the corner of the island screen */
+#isle .mbk { position: absolute; right: 30px; bottom: 26px; width: 190px; border: 0; background: none; padding: 0; text-align: center; z-index: 6; font-family: inherit; cursor: pointer; }
+#isle .mbk::before { content: ''; position: absolute; left: -50px; top: -40px; width: 290px; height: 290px; border-radius: 50%; background: radial-gradient(rgba(255, 236, 140, .95), rgba(255, 236, 140, 0) 66%); opacity: 0; transition: opacity .4s; pointer-events: none; }
+#isle .mbk.has::before { opacity: 1; }
+#isle .mbk img { position: relative; width: 162px; border-radius: 4px 12px 12px 4px; rotate: 4deg; border: 5px solid #fff; box-shadow: 0 10px 0 rgba(0, 0, 0, .25), 7px 0 0 #f3ead6, 11px 0 0 #e2d6bb; filter: grayscale(.7) brightness(1.05); }
+#isle .mbk.has img { filter: none; }
+#isle .mbk b { position: relative; display: inline-block; margin-top: -20px; background: var(--red); color: #fff; border-radius: 22px; padding: 8px 18px; font-size: 22px; box-shadow: 0 6px 0 #a52d17; white-space: nowrap; }
+#isle .mbk span { position: relative; display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+#isle .mbk u { width: 20px; height: 20px; border-radius: 50%; background: #c3c9d8; box-shadow: 0 0 0 3px #fff; }
+#isle .mbk u.on { background: var(--c); }
+#isle .mbk.no { animation: shake .45s; }
+#isle .mbk.has { animation: mbkbob 1.8s ease-in-out infinite; } @keyframes mbkbob { 50% { transform: translateY(-8px); } }
+body.still #isle .mbk.has { animation: none; }

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Let's Go Readers · My Speaking Book</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&family=Noto+Sans+KR:wght@500;700&display=swap">
+<style>
+/* MY SPEAKING BOOK · 나의 스피킹 북. Rebuilt 24 Nov 2026 (late) to work like Start PBL's My Speech Book (user: "i want it
+   to be like start pbl when i open the speech book"; pictures design/month-book-pbl-*.png):
+     - it opens SHUT on the month's real worksheet cover (art/pages/<number>/cover.webp); press it or the arrow
+     - then one TALL spread for each reading: LEFT the real worksheet story page (art/pages/<number>/pNN.webp),
+       RIGHT the child's voice: a Listen bar for the whole page, a small button for each of the ten lines, stars
+       (1 = some lines, 2 = half, 3 = all ten) and "Say it again" (back to Speak for that reading)
+     - under the book: Cover, one small PICTURE button for each reading of the week (the user asked what "1 2 3 4 5 6"
+       were, so they are the readings' own pictures now), and "Hear my whole book" (turns the pages as it plays)
+   TWO books from this one page:
+     ?w=1         the WEEK's book, opened from the cabin: cover + that week's six readings, Done on the last page
+     ?month=1     the MONTH's book, opened from the cover in the corner of the Ruby Cave: every week's readings in one
+                  book, with week tabs (a week with nothing in it yet is grey), no Done
+   The voice was kept by Speak (app/sheet) through vendor/myvoice.js and never leaves this device.
+   ?back=URL for the arrow and Done; ?p=N opens page N (0 = cover); ?sample=1 fills week 1 with stand-in sound
+   (Penny reading the line) so the look can be shown before a child has recorded anything.
+   The first design (my own drawn pages) is index.html.bak-own-pages. */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:"Fredoka","Noto Sans KR",sans-serif;color:#2b2d3a;user-select:none}
+body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
+#stage{position:fixed;left:50%;top:50%;width:1280px;height:720px;transform-origin:0 0}
+.round{position:absolute;left:16px;top:14px;width:62px;height:62px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center;font:800 28px "Baloo 2";text-decoration:none;color:#4a2508;z-index:8}
+.round:active{translate:0 4px;box-shadow:0 2px 0 #b98a52}
+.sign{position:absolute;left:50%;top:12px;translate:-50% 0;background:linear-gradient(#f6d39a,#e0a660 60%,#cf8f48);border-radius:16px;padding:3px 30px 6px;font:800 28px/1.05 "Baloo 2";color:#4a2508;text-align:center;white-space:nowrap;box-shadow:inset 0 2px 0 rgba(255,240,210,.6),0 5px 0 #9a5c26,0 10px 14px rgba(30,8,4,.45)}
+.sign small{display:block;font:600 13px "Fredoka","Noto Sans KR";opacity:.85}
+#samp{position:absolute;right:16px;top:20px;background:#1f1b2e;color:#fff;border-radius:999px;padding:4px 16px;font:600 14px "Fredoka","Noto Sans KR"}#samp[hidden]{display:none}
+.arrow{position:absolute;top:340px;translate:0 -50%;width:62px;height:62px;border-radius:50%;border:0;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.22);display:grid;place-items:center;font:800 30px "Baloo 2";color:#2b2d3a;cursor:pointer;z-index:7;transition:scale .12s}
+.arrow:hover{scale:1.1}.arrow:active{translate:0 calc(-50% + 4px);box-shadow:0 2px 0 rgba(0,0,0,.22)}.arrow[hidden]{display:none}
+#prev{left:218px}#next{right:218px}#next.go{animation:beat 1.3s ease-in-out infinite}@keyframes beat{50%{scale:1.14}}
+#book{position:absolute;left:0;top:0;width:1280px;height:600px}
+.turn{animation:turn .5s cubic-bezier(.2,1.3,.4,1)}@keyframes turn{0%{opacity:0;transform:perspective(1600px) rotateY(-18deg) scale(.96)}}
+.turn.back{animation-name:turnb}@keyframes turnb{0%{opacity:0;transform:perspective(1600px) rotateY(18deg) scale(.96)}}
+/* the cover */
+.cover{position:absolute;left:50%;top:86px;margin-left:-150px;width:300px;height:424px;border:0;padding:0;cursor:pointer;border-radius:6px 14px 14px 6px;background:#e98b8b center/cover;box-shadow:8px 0 0 #fff,10px 4px 0 rgba(0,0,0,.18),0 14px 22px rgba(0,0,0,.4);transition:translate .15s,rotate .15s}
+.cover:hover{translate:0 -6px;rotate:-1.2deg}
+.by{position:absolute;left:50%;top:526px;translate:-50% 0;background:#fff;color:#7d1820;border-radius:999px;padding:2px 22px;font:800 20px "Baloo 2";white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+/* a spread */
+.spread{position:absolute;left:50%;top:84px;margin-left:-350px;display:grid;grid-template-columns:335px 335px;gap:10px;padding:10px 10px 14px;background:#8f1b25;border-radius:18px;box-shadow:0 8px 0 #6e0d16,0 18px 26px rgba(0,0,0,.4)}
+.pg{height:474px;border-radius:6px;overflow:hidden;position:relative;background:#fffaf0}
+.pg img{width:100%;height:100%;object-fit:cover;display:block}
+.R{padding:20px 20px 0;display:flex;flex-direction:column;align-items:center;gap:13px}
+.card{width:100%;background:#fff;border-radius:16px;padding:14px 12px;text-align:center;font:800 27px/1.15 "Baloo 2"}
+.card small{display:block;font:600 14px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:2px}
+.listen{width:100%;border:0;background:#fff;border-radius:999px;padding:6px 18px 6px 6px;display:flex;align-items:center;gap:12px;box-shadow:0 5px 0 rgba(0,0,0,.15);font:800 19px "Baloo 2";color:#2b2d3a;cursor:pointer}
+.listen:active{translate:0 3px;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.listen b{flex:none;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a8a,#e23b4a);box-shadow:0 5px 0 #9c1f2c;color:#fff;font:800 24px/56px "Baloo 2";text-align:center;padding-left:4px}
+.listen.stop b{padding-left:0;font-size:20px}
+.wave{flex:1;height:40px;display:flex;align-items:center;gap:4px}.wave i{flex:1;background:#2f7fe0;border-radius:3px;height:calc(var(--h) * 1px);transform-origin:50% 50%}
+.listen.stop .wave i{animation:wv .5s ease-in-out infinite alternate;animation-delay:calc(var(--k) * -.07s)}@keyframes wv{to{transform:scaleY(.35)}}
+.listen.none{opacity:.55;cursor:default}.listen.none b{background:#cdbfae;box-shadow:0 5px 0 #a8977e}.listen.none .wave i{background:#cdbfae;height:6px}
+.lines{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ln{border:0;background:#fff;border-radius:14px;padding:5px 0;display:flex;align-items:center;justify-content:center;gap:5px;font:800 17px "Baloo 2";color:#2b2d3a;box-shadow:0 4px 0 rgba(0,0,0,.14);cursor:pointer;white-space:nowrap;transition:transform .12s}
+.ln:hover{transform:translateY(-3px) rotate(-3deg)}.ln s{text-decoration:none;color:#e23b4a;font-size:14px}
+.ln.now{background:#ffd23f;animation:beat .5s ease-in-out infinite}.ln.none{opacity:.5;cursor:default}.ln.none s{color:#a8977e}.ln.none:hover{transform:none}
+.stars{background:#fff;border-radius:999px;padding:2px 22px;font-size:26px;letter-spacing:4px;color:#e6ddd0}.stars b{color:#ffc93c;font-weight:400}
+.again{background:#fff;border-radius:999px;padding:5px 22px;font:700 16px "Fredoka","Noto Sans KR";color:#2b2d3a;box-shadow:0 4px 0 rgba(0,0,0,.15);text-decoration:none}
+.again:active{translate:0 3px;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+/* under the book */
+#tabs{position:absolute;left:50%;top:622px;translate:-50% 0;display:flex;gap:10px;align-items:center;white-space:nowrap}
+.pgs{display:flex;gap:8px;margin-right:6px}
+.pgs button{width:52px;height:46px;border-radius:14px;border:0;background:#fff;box-shadow:0 4px 0 rgba(0,0,0,.2);cursor:pointer;display:grid;place-items:center;padding:3px;transition:transform .12s}
+.pgs button:hover{transform:translateY(-3px) rotate(-3deg)}.pgs button svg{max-width:44px;max-height:38px;width:auto;height:auto;display:block}
+.pgs button.on{background:#ffd23f;box-shadow:0 4px 0 #c9921a,0 0 0 3px #fff;transform:scale(1.12)}
+.tab{border:0;background:#fff;border-radius:999px;padding:5px 18px;font:800 17px "Baloo 2";color:#2b2d3a;box-shadow:0 5px 0 rgba(0,0,0,.2);cursor:pointer}
+.tab.on{background:#f0ab19;color:#fff}.tab.cv.on{background:#e23b4a}.tab.off{background:#e9d6d6;color:#b99;opacity:.85}
+#hear{border:0;background:linear-gradient(#ffe36a,#ffc93c);border-radius:999px;padding:7px 26px;font:800 20px "Baloo 2";color:#4a2508;box-shadow:0 6px 0 #c9921a;margin-left:8px;cursor:pointer}
+#hear:active{translate:0 4px;box-shadow:0 2px 0 #c9921a}#hear.stop{background:linear-gradient(#ff8a8a,#e23b4a);box-shadow:0 6px 0 #9c1f2c;color:#fff}#hear[disabled]{opacity:.5;cursor:default}
+#done{border:0;border-radius:999px;padding:7px 28px;font:800 20px "Baloo 2";margin-left:4px;color:#fff;background:#c9a8a8;box-shadow:0 6px 0 rgba(0,0,0,.18);text-decoration:none;pointer-events:none}
+#done.on{background:linear-gradient(#3fcf7a,#1f9d57);box-shadow:0 6px 0 #14703c;pointer-events:auto;animation:beat 1.2s ease-in-out infinite}#done[hidden]{display:none}
+.help{position:absolute;bottom:104px;height:236px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.35));pointer-events:none}
+#bub{position:absolute;left:10px;bottom:348px;max-width:204px;background:#fff;border:3px solid #f0ab19;border-radius:18px;padding:8px 14px;font:700 17px/1.25 "Fredoka","Noto Sans KR";text-align:center;transition:opacity .3s}#bub:empty{opacity:0}
+.spark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:30}
+</style></head><body>
+<div id="stage">
+  <a class="round" id="back" aria-label="Back">←</a><div class="sign">My Speaking Book<small id="sub"></small></div><span id="samp" hidden>Sample voice · 예시</span>
+  <div id="book"></div>
+  <button class="arrow" id="prev" aria-label="Page before">‹</button><button class="arrow" id="next" aria-label="Next page">›</button>
+  <img class="help" style="left:2px" src="../art/kingdom/gerry/stand.webp" alt="Gerry"><img class="help" id="pen" style="left:104px" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bub"></div>
+  <div id="tabs"></div>
+</div>
+<script>(function(){var V="mwunk7b9";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwunk7b9"></script><script src="../book/data/set-a.js?v=mwunk7b9"></script><script src="../book/scene.js?v=mwunk7b9"></script><script src="../vendor/talk.js?v=mwunk7b9"></script>
+<script src="../../voice/clips.js?v=mwunk7b9"></script><script src="../../kit/voice.js?v=mwunk7b9"></script><script src="../vendor/say.js?v=mwunk7b9"></script><script src="../vendor/myvoice.js?v=mwunk7b9"></script>
+<script>
+(async function () {
+  'use strict';
+  const $ = s => document.querySelector(s), Q = new URLSearchParams(location.search), wait = ms => new Promise(r => setTimeout(r, ms));
+  const stage = $('#stage'), fit = () => { const s = Math.min(innerWidth / 1280, innerHeight / 720); stage.style.transform = 'scale(' + s + ') translate(-50%,-50%)'; };
+  fit(); addEventListener('resize', fit);
+  const NUM = 1, MONTH = !!Q.get('month'), wk = +Q.get('w') || 1, BACK = Q.get('back') || '../kingdom.html', SAMPLE = !!Q.get('sample'), LET = 'abcd';
+  const books = (window.LGR_SET || {}).books || [], pic = r => { const b = books.find(x => x.id === r.id); return b && window.LGR_SCENE ? window.LGR_SCENE.icon(b.img, 60).split('"art/').join('"../book/art/') : r.title.split(' ').pop()[0]; };
+  // the worksheet's story page of each reading (worksheets/lets-go-readers/lgr-01-letters-a-d: cover, contents, then a spread per reading)
+  const ALLR = window.LGR_SHEETS, pageOf = r => 'p' + String(3 + ALLR.indexOf(r) * 2).padStart(2, '0');
+  const have = new Set(await MyVoice.keys());
+  if (SAMPLE) { $('#samp').hidden = false; ALLR.filter(r => r.L === 'a' && r.q10).forEach(r => r.lines.forEach((l, i) => have.add(r.id + ':' + i))); }
+  const count = r => r.lines.filter((l, i) => have.has(r.id + ':' + i)).length;
+  const weekList = w => ALLR.filter(r => r.L === LET[w - 1] && r.q10), weekHas = w => weekList(w).some(r => count(r) > 0);
+  // the pages: 0 = the cover, then the readings (a week's six, or every week that has its readings online)
+  const PAGES = [null]; (MONTH ? [1, 2, 3, 4] : [wk]).forEach(w => weekList(w).forEach(r => PAGES.push({ r, w })));
+  const N = PAGES.length, seen = new Set([0]); let at = Math.max(0, Math.min(N - 1, +Q.get('p') || 0)), run = 0, audio = null;
+  $('#back').href = BACK;
+  $('#sub').textContent = 'Ruby · ' + NUM + (MONTH ? ' · Letters A–D' : ' · Week ' + wk) + ' · 나의 스피킹 북';
+  const hush = () => { clearTimeout(say.t); $('#bub').textContent = ''; };
+  const note = t => { $('#bub').textContent = t; clearTimeout(say.t); say.t = setTimeout(() => { $('#bub').textContent = ''; }, 2600); };
+  function say(t) { $('#bub').textContent = t; $('#pen').src = '../art/kingdom/penny/talk.webp'; Promise.race([Say(t, { who: 'penny' }), wait(5000)]).then(() => { $('#pen').src = '../art/kingdom/penny/stand.webp'; }); clearTimeout(say.t); say.t = setTimeout(() => { $('#bub').textContent = ''; }, 6000); }
+  const quiet = () => { run++; if (audio) { audio.pause(); audio = null; } Say.stop(); document.querySelectorAll('.ln.now').forEach(x => x.classList.remove('now')); const l = $('.listen'); if (l) { l.classList.remove('stop'); l.querySelector('b').textContent = '▶'; } };
+  const sparks = el => { const r = el.getBoundingClientRect(); for (let i = 0; i < 16; i++) { const s = document.createElement('i'); s.className = 'spark'; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px'; s.style.background = ['#ffe36a', '#fff', '#ff6f91', '#ffb347'][i % 4]; document.body.appendChild(s);
+    const a = Math.random() * 6.283, d = 70 + Math.random() * 110; s.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 40) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => s.remove(); } };
+
+  // one kept take (in sample mode: Penny's own recording of the line stands in for the child)
+  async function playLine(r, i, mine) {
+    const btn = document.querySelectorAll('.ln')[i]; if (btn) btn.classList.add('now');
+    if (SAMPLE) { await Promise.race([Say(r.lines[i], { who: 'penny' }), wait(7000)]); }
+    else { const blob = await MyVoice.get(r.id + ':' + i); if (blob && mine === run) { const url = URL.createObjectURL(blob), a = audio = new Audio(url);
+      await new Promise(res => { a.onended = a.onerror = res; a.play().catch(res); const iv = setInterval(() => { if (mine !== run || a.ended) { clearInterval(iv); res(); } }, 120); setTimeout(res, 12000); }); URL.revokeObjectURL(url); if (audio === a) audio = null; } }
+    if (btn) btn.classList.remove('now'); return mine === run;
+  }
+  async function playPage(r, mine) {   // every kept line of this page, in order
+    const l = $('.listen'); if (l) { l.classList.add('stop'); l.querySelector('b').textContent = '■'; }
+    for (let i = 0; i < r.lines.length; i++) { if (!have.has(r.id + ':' + i)) continue; if (!(await playLine(r, i, mine))) return false; await wait(300); if (mine !== run) return false; }
+    if (l) { l.classList.remove('stop'); l.querySelector('b').textContent = '▶'; } return true;
+  }
+
+  function draw(dir) {
+    const B = $('#book'), P = PAGES[at], cls = 'turn' + (dir < 0 ? ' back' : '');
+    if (!P) { B.innerHTML = '<button class="cover ' + cls + '" id="cv" aria-label="Open the book" style="background-image:url(../art/pages/' + NUM + '/cover.webp)"></button><span class="by">My Speaking Book</span>'; $('#cv').onclick = () => show(1); return; }
+    const r = P.r, n = count(r), stars = n >= r.lines.length ? 3 : n >= r.lines.length / 2 ? 2 : n ? 1 : 0;
+    const H = [14, 26, 34, 20, 38, 28, 16, 32, 36, 22, 30, 18, 34, 24, 12, 28, 36, 20];
+    const here = '../speakbook/index.html?' + (MONTH ? 'month=1' : 'w=' + wk) + (SAMPLE ? '&sample=1' : '') + '&p=' + at + '&back=' + encodeURIComponent(BACK);
+    B.innerHTML = '<div class="spread ' + cls + '"><div class="pg"><img alt="' + r.title + '" src="../art/pages/' + NUM + '/' + pageOf(r) + '.webp"></div><div class="pg R">' +
+      '<div class="card">' + r.title + '<small>' + (n ? n + ' lines in my voice · 내 목소리 ' + n + '줄' : 'Nothing yet · 아직 없어요') + '</small></div>' +
+      '<button class="listen' + (n ? '' : ' none') + '"><b>▶</b><span class="wave">' + H.map((h, k) => '<i style="--h:' + h + ';--k:' + k + '"></i>').join('') + '</span>Listen!</button>' +
+      '<div class="lines">' + r.lines.map((l, i) => '<button class="ln' + (have.has(r.id + ':' + i) ? '' : ' none') + '" aria-label="Line ' + (i + 1) + '"><s>' + (have.has(r.id + ':' + i) ? '▶' : '●') + '</s>' + (i + 1) + '</button>').join('') + '</div>' +
+      '<div class="stars">' + '★★★'.split('').map((s, i) => i < stars ? '<b>★</b>' : '★').join('') + '</div>' +
+      '<a class="again" href="../sheet/index.html?r=' + r.id + '&w=' + P.w + '&back=' + encodeURIComponent(here) + '">🎤 ' + (n ? 'Say it again' : 'Say it in Speak') + '</a></div></div>';
+    const L = $('.listen'); L.onclick = async () => { if (!n) return; if (L.classList.contains('stop')) return quiet(); quiet(); hush(); const mine = run; if (await playPage(r, mine)) { Talk.ding && Talk.ding(2); sparks(L); } };
+    document.querySelectorAll('.ln').forEach((b, i) => b.onclick = async () => { if (b.classList.contains('none')) return note('Say it in Speak first! · 먼저 말해요'); quiet(); hush(); Talk.pop && Talk.pop(); await playLine(r, i, run); });
+  }
+  function bar() {
+    const P = PAGES[at], curW = P ? P.w : (MONTH ? 0 : wk);
+    const dots = PAGES.map((x, i) => x && x.w === curW ? i : -1).filter(i => i > 0);   // this week's readings, as their own pictures
+    $('#tabs').innerHTML = '<button class="tab cv' + (at === 0 ? ' on' : '') + '" data-i="0">Cover</button>' +
+      (MONTH ? [1, 2, 3, 4].map(w => { const first = PAGES.findIndex(x => x && x.w === w), ok = first > 0 && weekHas(w); return '<button class="tab' + (w === curW ? ' on' : '') + (ok ? '' : ' off') + '" data-i="' + (ok ? first : -1) + '">Week ' + w + '</button>'; }).join('') : '') +
+      '<button id="hear"' + (have.size ? '' : ' disabled') + '>▶ Hear my whole book</button>' + (MONTH ? '' : '<a id="done" class="' + (seen.size >= N ? 'on' : '') + '" href="' + BACK + '">Done ✓</a>');
+    $('#tabs').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (i < 0) return note('Not yet! · 아직이에요'); show(i); });
+    $('#hear').onclick = hearAll;
+    $('#prev').hidden = at === 0; $('#next').hidden = at === N - 1; $('#next').classList.toggle('go', at === 0);
+  }
+  function show(i, keep) { const dir = i - at; if (!keep) { quiet(); hush(); } at = Math.max(0, Math.min(N - 1, i)); const was = seen.size; seen.add(at); if (Talk.pop) Talk.pop(); draw(dir); bar(); if (!MONTH && seen.size === N && was < N) { sparks($('#done')); if (!SAMPLE) try { const o = JSON.parse(localStorage.getItem('lgr.speakbooks') || '{}'); o['w' + wk] = 1; localStorage.setItem('lgr.speakbooks', JSON.stringify(o)); } catch (e) {} } }   // the week's book has been read through: kept for the reports ('lgr.speakbooks' = { w1: 1, ... })
+  async function hearAll() {
+    const h = $('#hear'); if (h.classList.contains('stop')) { quiet(); return bar(); }
+    quiet(); hush(); const mine = run; let i = at === 0 ? 1 : at;
+    for (; i < N; i++) { if (mine !== run) return; if (!count(PAGES[i].r)) continue; show(i, true); const b = $('#hear'); b.textContent = '■ Stop'; b.classList.add('stop'); await wait(600); if (mine !== run) return; if (!(await playPage(PAGES[i].r, mine))) return; await wait(500); }
+    if (mine !== run) return; bar(); Talk.ding && Talk.ding(3); sparks($('#hear')); say('You did it! Great job!');
+  }
+  $('#prev').onclick = () => show(at - 1); $('#next').onclick = () => show(at + 1);
+  addEventListener('keydown', e => { if (e.key === 'ArrowRight' && at < N - 1) show(at + 1); if (e.key === 'ArrowLeft' && at > 0) show(at - 1); });
+  addEventListener('pagehide', quiet);
+  draw(0); bar();
+  if (at === 0 && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) say('This is your Speaking Book!');
+})();
+</script><script src="../../ext/home.js?v=mwunk7b9" data-home="../../demo/street.html"></script></body></html>

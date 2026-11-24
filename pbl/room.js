@@ -103,7 +103,7 @@ window.Room = (() => {
   }
   let flow = false;   // true while the child is going through the pages with Next (started from START)
   function open(c) {
-    ctx = c; R = ROOMS[c.month + '-' + c.week] || ROOMS['1-1']; flow = false;
+    ctx = c; R = ROOMS[c.month + '-' + c.week] || ROOMS['1-1']; flow = false; document.querySelector('#inside').classList.remove('mbook');
     all = load(); all[c.month] = all[c.month] || {}; D = all[c.month][c.week] = all[c.month][c.week] || {};
     box = document.querySelector('#inside');
     const bt = bookT();
@@ -130,7 +130,9 @@ window.Room = (() => {
     const k = K(), P = plays(), t = P.find(x => !isDone(x.id)) || P[0];
     k.again(box.querySelector('.startb'), 'tap'); k.snd.pop(); crew(); Crew.hush(); goPage(t, true);
   }
-  function goPage(t, inFlow) { flow = !!inFlow; TYPES[t.type](t); if (INTRO[t.type]) chat(INTRO[t.type]); }
+  // the shared GPFIS counter (gpfis-site/kit/track.js, when it is loaded): one more PLAY of this activity today, for the month board and the report
+  const track = id => { try { if (window.GPTrack) window.GPTrack.play('pbl', id, { week: ctx.week, month: ctx.month }); } catch (e) {} };
+  function goPage(t, inFlow) { flow = !!inFlow; track(t.type === 'book' ? 'book' : t.id); TYPES[t.type](t); if (INTRO[t.type]) chat(INTRO[t.type]); }
   // the three buttons always show where the child is
   function paint() {
     const P = plays(), n = count(), sb = box.querySelector('.startb'), bt = bookT(), card = box.querySelector('.nowc'), nx = P.find(x => !isDone(x.id));
@@ -346,19 +348,22 @@ window.Room = (() => {
     // MY BOOK: the online version of the whole worksheet. One page per activity: the child's work, their sentence,
     // and their own recording ("Hear me!"). "Hear my whole book" plays every page in turn and finishes the place.
     book(t) {
-      const a = box.querySelector('#act'), P = plays(); let n = -1, busy = false, audio = null, urls = {};   // n = -1 is the COVER (the month's worksheet cover); the pages are 0..
+      // t.month (the island's corner cover): the SAME book and cover with every finished week inside, one after another, and week tabs below
+      const MB = !!t.month, P = MB ? t.weeks.flatMap(w => (ROOMS[ctx.month + '-' + w] || ROOMS['1-1']).things.filter(x => x.type !== 'book' && x.type !== 'stage').map(x => Object.assign(Object.create(x), { wk: w }))) : plays();
+      const WD = p => MB ? (all[ctx.month][p.wk] || {}) : D, pno = i => MB ? P.slice(0, i + 1).filter(p => p.wk === P[i].wk).length : i + 1;
+      const a = box.querySelector('#act'); let n = -1, busy = false, audio = null, urls = {};   // n = -1 is the COVER (the month's worksheet cover); the pages are 0..
       a.style.setProperty('--c', t.col);
-      a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>My Speech Book</h2>` +
+      a.innerHTML = `<button class="back pill">${MB ? '← Island <small>섬으로</small>' : '← Room <small>방으로</small>'}</button><h2>My Speech Book</h2>` +
         `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small><div class="sheet"></div></div><div class="pg r"><div class="cov"><img src="art/pages/${ctx.month}/cover.webp" alt="" onerror="this.remove()"><b class="by"></b></div><div class="sent"></div>` +
         `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
         `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
         `<button class="bturn prev">‹</button><button class="bturn next">›</button>` +
-        `<div class="pdots"><i data-n="-1" class="cv">Cover</i>${P.map((_, i) => `<i data-n="${i}">${i + 1}</i>`).join('')}<button class="hearall">▶ Hear my whole book</button></div>` +
+        `<div class="pdots"><i data-n="-1" class="cv">Cover</i>${MB ? [1, 2, 3, 4].map(w => `<i class="cv wt${t.weeks.includes(w) ? '' : ' lock'}" data-w="${w}" data-n="${P.findIndex(p => p.wk === w)}">Week ${w}</i>`).join('') : P.map((_, i) => `<i data-n="${i}">${i + 1}</i>`).join('')}<button class="hearall">▶ Hear my whole book</button></div>` +
         `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt=""><button class="ok">Done ✓</button>`;
       a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
       const $ = q => a.querySelector(q), ok = $('.ok'), hm = $('.hearme'), bk = $('.bk');
-      if (isDone(t.id)) ok.classList.add('on');
-      const d = i => D[P[i].id] || {};
+      if (MB) ok.remove(); else if (isDone(t.id)) ok.classList.add('on');   // the month's book has no Done: it is only for looking and listening
+      const d = i => WD(P[i])[P[i].id] || {};
       // what the child made on that page: their drawing, the things they chose, or the page's own picture
       const work = (p, v) => {
         if (v.draw) return `<img class="dr" src="${v.draw}" alt="">${v.name ? `<div class="nm2">${v.name}</div>` : ''}`;
@@ -374,15 +379,15 @@ window.Room = (() => {
       const show = dir => {
         // the cover: the book is shut, only the worksheet cover shows, with the child's name on it
         bk.classList.toggle('cover', n < 0);
-        a.querySelectorAll('.pdots i').forEach(x => x.classList.toggle('on', +x.dataset.n === n));
+        a.querySelectorAll('.pdots i').forEach(x => x.classList.toggle('on', MB && n >= 0 ? +x.dataset.w === P[n].wk : +x.dataset.n === n && !x.dataset.w));
         $('.prev').classList.toggle('off', n < 0); $('.next').classList.toggle('off', n === P.length - 1);
-        if (n < 0) { const nm = (Object.values(D).find(x => x && x.name) || {}).name; $('.cov .by').textContent = nm ? 'by ' + nm : ''; return; }
+        if (n < 0) { const nm = ((MB ? t.weeks.flatMap(w => Object.values(all[ctx.month][w])) : Object.values(D)).find(x => x && x.name) || {}).name; $('.cov .by').textContent = nm ? 'by ' + nm : ''; return; }
         const p = P[n], v = d(n);
         // each spread wears the colour of its worksheet page, like the printed book (white title on dark colours, dark on light ones)
         const col = (p.page && p.pageCol) || p.col || '#fffaf0', h = col.replace('#', '');   // a real worksheet page: the facing page takes ITS colour
         const lum = (parseInt(h.slice(0, 2), 16) * .299 + parseInt(h.slice(2, 4), 16) * .587 + parseInt(h.slice(4, 6), 16) * .114) / 255;
         [$('.pg.l'), $('.pg.r')].forEach(x => { x.style.setProperty('--pc', col); x.classList.toggle('lt', lum > .7); });
-        $('.pg.l h3').innerHTML = `<span>Page ${n + 1}</span>${p.title}`; $('.work').innerHTML = work(p, v);
+        $('.pg.l h3').innerHTML = `<span>${MB ? 'Week ' + p.wk + ' · ' : ''}Page ${pno(n)}</span>${p.title}`; $('.work').innerHTML = work(p, v);
         // an activity that matches a printed worksheet page shows THAT page, with the child's own drawing and words placed where they answer
         // (spots are in the page's own pixels, 905 x 1280; the .sheet box is scaled down to the book page)
         $('.pg.l').classList.toggle('sheeted', !!p.page);
@@ -391,7 +396,7 @@ window.Room = (() => {
           if (sp.text) { const tx = sp.text(v) || ''; return tx ? `<div class="ink" style="left:${sp.at[0]}px;top:${sp.at[1]}px;font-size:${sp.size}px;${sp.rot ? `rotate:${sp.rot}deg;` : ''}">${String(tx).replace(/</g, '&lt;')}</div>` : ''; }
           if (sp.ring) { const [x, y, r] = sp.ring; return v.ok ? `<div class="ring" style="left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px"></div>` : ''; }
           return ''; }).join('');
-        $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${ctx.week} · ${String(n + 1).padStart(2, '0')}`;
+        $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${p.wk || ctx.week} · ${String(pno(n)).padStart(2, '0')}`;
         $('.sent').textContent = v.said || '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
         hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
         seenPg.add(n); if (seenPg.size >= P.length && !ok.classList.contains('on')) { ok.classList.add('on'); if (!a.classList.contains('reading')) { K().snd.win(); cheer(); } }
@@ -417,8 +422,8 @@ window.Room = (() => {
       };
       // play this page: the child's own recording if there is one, else a helper reads the sentence
       const playPage = async () => {
-        const v = d(n), id = P[n].id; hm.classList.add('playing');
-        let blob = v.voice ? await VDB.get(vkey(id)) : null;
+        const v = d(n), wk = P[n].wk, id = (wk || '') + P[n].id; hm.classList.add('playing');
+        let blob = v.voice ? await VDB.get(MB ? `${ctx.month}-${wk}-${P[n].id}` : vkey(P[n].id)) : null;
         if (blob && a.classList.contains('on')) {
           Crew.mute(true); urls[id] = urls[id] || URL.createObjectURL(blob);
           await new Promise(res => { audioDone = res; audio = new Audio(urls[id]); audio.onended = audio.onerror = res; audio.play().catch(res); setTimeout(res, 20000); });
@@ -430,7 +435,7 @@ window.Room = (() => {
       hm.addEventListener('click', async () => { if (n < 0 || a.classList.contains('reading')) return; if (busy) { stop(); return; } busy = true; stop(); K().snd.pop(); await playPage(); busy = false; });
       const go = k2 => { if (busy || flipping) return; const m = n + k2; if (m < -1 || m >= P.length) return wrong(bk); stop(); turn(m); };
       $('.next').addEventListener('click', () => go(1)); $('.prev').addEventListener('click', () => go(-1));
-      a.querySelectorAll('.pdots i').forEach(x => x.addEventListener('click', () => { if (busy || flipping) return; const m = +x.dataset.n; if (m === n) return; stop(); turn(m); }));
+      a.querySelectorAll('.pdots i').forEach(x => x.addEventListener('click', () => { if (busy || flipping) return; const m = +x.dataset.n; if (x.classList.contains('lock')) return wrong(x); if (m === n || (x.dataset.w && n >= 0 && P[n].wk === +x.dataset.w)) return; stop(); turn(m); }));
       // Hear my whole book: every page in turn. While it plays the button is a STOP button.
       const ha = $('.hearall');
       ha.addEventListener('click', async () => {
@@ -443,10 +448,10 @@ window.Room = (() => {
           await playPage(); if (halt) { all = false; break; } await wait(350);
         }
         a.classList.remove('reading'); ha.textContent = '▶ Hear my whole book'; busy = false;
-        if (all && a.classList.contains('on')) { ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); chat('What a wonderful Speech Book! Press Done.', 2); }
+        if (all && a.classList.contains('on')) { if (!MB) ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); if (!MB) chat('What a wonderful Speech Book! Press Done.', 2); }
       });
-      $('.again').addEventListener('click', () => { if (busy || n < 0) return; stop(); const p = P[n]; goPage(p, false); });
-      $('.back').addEventListener('click', () => { stop(); a.classList.remove('on'); });
+      if (MB) $('.again').remove(); else $('.again').addEventListener('click', () => { if (busy || n < 0) return; stop(); const p = P[n]; goPage(p, false); });
+      $('.back').addEventListener('click', () => { halt = true; stop(); a.classList.remove('on'); if (MB) { K().snd.pop(); box.classList.remove('on', 'mbook'); box.innerHTML = ''; document.body.classList.remove('inroom'); ctx.done(); } });
       ok.addEventListener('click', () => {
         if (!ok.classList.contains('on')) return; stop();
         const first = !isDone(t.id); D[t.id] = Object.assign(D[t.id] || {}, { ok: true, at: Date.now() }); save();
@@ -454,7 +459,7 @@ window.Room = (() => {
         if (first) setTimeout(() => close(true), 900);   // the whole book has been heard: this place is finished
       });
       const fz0 = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1]; if (fz0) setTimeout(() => { if (+fz0 < 0) { n = 2; show(0); turn(1); } else turn(1); }, 300);
-      show(0); chat(isDone(t.id) ? 'Here is your Speech Book again!' : 'This is your Speech Book! Turn the pages and hear yourself.', 2);
+      show(0); chat(MB || isDone(t.id) ? 'Here is your Speech Book again!' : 'This is your Speech Book! Turn the pages and hear yourself.', 2);
       bk.addEventListener('click', () => { if (n < 0) go(1); });   // press the cover to open the book
     },
     // a few quick questions, one card at a time: look or listen, then tap the right answer
@@ -519,7 +524,7 @@ window.Room = (() => {
   // The week's video opens as a POP-UP over the room. The browser's own player gives play / pause, full screen and
   // dragging along the timeline to any moment. A room names its file as  video: 'video/1-1.mp4'  (none made yet).
   function video() {
-    K().snd.pop(); Crew.hush();
+    K().snd.pop(); Crew.hush(); track('video');
     let v = box.querySelector('.vpop'); if (v) v.remove();
     v = document.createElement('div'); v.className = 'vpop';
     v.innerHTML = `<div class="vbox"><button class="vx" title="Close">✕</button>` +
@@ -697,6 +702,15 @@ window.Room = (() => {
       }
     }
   };
+  // THE MONTH'S SPEECH BOOK, opened from the cover in the corner of the island: every finished week of that island in one book.
+  // weeksDone = the weeks whose own Speech Book has been finished. Returns false when there is nothing to show yet.
+  const weeksDone = month => { const M = load()[month] || {}; return [1, 2, 3, 4].filter(w => M[w] && M[w].book && M[w].book.ok); };
+  function monthBook(month, done) {
+    const weeks = weeksDone(month); if (!weeks.length || document.body.classList.contains('inroom')) return false;
+    all = load(); ctx = { month, week: 0, done: done || (() => {}) }; D = {}; R = null; rp = null; flow = false;
+    box = document.querySelector('#inside'); box.innerHTML = '<div id="act"></div>'; box.classList.add('on', 'mbook'); document.body.classList.add('inroom'); K().snd.boing();
+    TYPES.book({ id: '_month', col: '#2f7fd6', type: 'book', month: true, weeks }); return true;
+  }
   addEventListener('resize', () => setTimeout(lay, 0));   // after sky.js has measured the new window (this file loads first, so its listener runs first)
-  return { open, lay, data: () => all, rooms: ROOMS, kidVoice, play: id => { const t = R.things.find(x => x.id === id); if (t) TYPES[t.type](t); }, voice: VDB };
+  return { open, lay, month: monthBook, weeksDone, data: () => all, rooms: ROOMS, kidVoice, play: id => { const t = R.things.find(x => x.id === id); if (t) TYPES[t.type](t); }, voice: VDB };
 })();

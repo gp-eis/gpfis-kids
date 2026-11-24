@@ -409,3 +409,7 @@ body.inroom #title { margin-left: 232px; }
 .bk.cover .flp .pg { visibility: visible; }
 .pdots i.cv { width: auto; padding: 0 16px; border-radius: 24px; font-size: 18px; }
 #act:has(.bk.cover) .bturn.prev { opacity: 0; }
+/* the month's Speech Book (opened from the island's corner cover): week tabs instead of page dots */
+.pdots i.wt { color: var(--ink); } .pdots i.wt.on { color: #fff; }
+.pdots i.wt[data-w="1"].on { background: #e8492e; } .pdots i.wt[data-w="2"].on { background: #ff9f1c; } .pdots i.wt[data-w="3"].on { background: #2fb86a; } .pdots i.wt[data-w="4"].on { background: #2f7fd6; }
+.pdots i.wt.lock { background: #dfe3ec; color: #aab1c4; box-shadow: none; }

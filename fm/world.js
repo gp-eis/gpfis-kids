@@ -96,7 +96,7 @@
 
   /* ---------- screens ---------- */
   const starSvg = `<svg viewBox="0 0 60 60"><path d="M30 4 L37.5 21 L56 23 L42 36 L46 55 L30 45 L14 55 L18 36 L4 23 L22.5 21z" fill="#ffc94a" stroke="#d99a1c" stroke-width="3.5" stroke-linejoin="round"/></svg>`;
-  function setTitle(en, ko) { $('#title').innerHTML = `<span>${en}<small>${ko}</small></span>`; }
+  function setTitle(en, ko) { $('#bookb').hidden = true; $('#title').innerHTML = `<span>${en}<small>${ko}</small></span>`; }
   function setBack(en, ko, fn) { const b = $('#back'); b.hidden = !en; if (en) { b.querySelector('.l').innerHTML = `${en}<small>${ko}</small>`; b.onclick = () => { if (!busy) { snd.pop(); fn(); } }; } }
   function setStars(bump) { const c = $('#stars'); c.querySelector('b').textContent = S.stars; if (bump) { c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); } }
   function toast(en, ko) { const t = $('#toast'); t.innerHTML = `${en}<small>${ko}</small>`; t.hidden = false; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2300); }
@@ -144,34 +144,39 @@
   }
   /* on a planet: five stops on the path, then the landing pad. Each stop is an empty slot for one worksheet activity. */
   function planet(g, i) {
-    const num = g * 6 + i + 1, finished = S.done >= num; let at = finished ? 5 : (S.done === num - 1 ? Math.min(4, S.stop || 0) : 0);
+    const num = g * 6 + i + 1, finished = S.done >= num; let at = finished ? 4 : (S.done === num - 1 ? Math.min(3, S.stop || 0) : 0);   // 4 stops = the month's 4 weeks; the 5th tile is the book
     swap('land', s => {
       const f = W / BASE, OY = 380, M = q => [(q[0] - 590) * f + W / 2, (q[1] - OY) * f + OY], ST = STOPS.map(M), PD = M(PAD), SR = M(START);   // where things are on the real stage
-      sky = false; redraw = () => planet(g, i); rk.style.setProperty('--rs', f); setBack(GAL[g].en, GAL[g].ko, () => galaxy(g)); setTitle(`${num} · ${LESSONS[num - 1][0]}`, `미션 ${num} · ${LESSONS[num - 1][1]}`); $('#pass').hidden = true;
+      sky = false; redraw = () => planet(g, i); rk.style.setProperty('--rs', f); setBack(GAL[g].en, GAL[g].ko, () => galaxy(g)); setTitle(`${num} · ${LESSONS[num - 1][0]}`, `미션 ${num} · ${LESSONS[num - 1][1]}`); $('#pass').hidden = true; $('#bookb').hidden = false; $('#bookb').onclick = () => { if (!busy) missionLog(num); }; 
       let d = `M${START[0]} ${START[1]}`; STOPS.forEach(p => d += ` L${p[0]} ${p[1]}`); d += ` L${PAD[0]} ${PAD[1]}`;
       s.innerHTML = `<div class="zoom" style="left:${(W - BASE) / 2}px;transform:scale(${Math.max(f, W / BASE)});transform-origin:590px ${OY}px"><img class="surf" src="art/surface.jpg" alt="" style="filter:hue-rotate(${HUE[i]}deg)"><svg class="link" viewBox="0 0 ${BASE} ${H}"><path d="${d}"/></svg>
         <span class="flag ${finished ? 'up' : ''}" style="left:${PAD[0] - 96}px;top:${PAD[1] + 10}px"><img src="art/flag.png" alt=""></span>
-        ${STOPS.map((p, k) => `<button class="stp ${k < at ? 'done' : k === at ? 'now' : 'todo'}" data-k="${k}" style="left:${p[0]}px;top:${p[1]}px;animation-delay:${.15 + k * .08}s"><span class="in"><b>${k + 1}</b></span></button>`).join('')}
+        ${STOPS.slice(0, 4).map((p, k) => `<button class="stp ${k < at ? 'done' : k === at ? 'now' : 'todo'}" data-k="${k}" style="left:${p[0]}px;top:${p[1]}px;animation-delay:${.15 + k * .08}s"><span class="in"><b>${k + 1}</b></span></button>`).join('')}
+        <button class="bk5${finished || at > 0 ? '' : ' locked'}" style="left:${STOPS[4][0]}px;top:${STOPS[4][1]}px"><img src="art/book.png" alt=""><b>Discussion Book</b></button>
         <img class="pal p1" src="art/pal.png" alt=""><img class="pal p2" src="art/pal.png" alt=""></div>`;
       const padAt = [PD[0] + 6 * f, PD[1] + 16 * f], home = finished ? padAt : at ? [ST[at - 1][0], ST[at - 1][1] - 8 * f] : SR;
       rpos = [home[0] - 260, -140]; rk.style.transform = `translate(${rpos[0]}px, ${rpos[1]}px)`; busy = true;
-      setTimeout(() => fly(home, () => { busy = false; snd.boing(); burst(home[0], home[1], 16, 6, false); if (!finished && !at) toast('We landed! Tap stop 1.', '착륙했어요! 1번 정거장을 눌러요.'); }), 350);
+      setTimeout(() => fly(home, () => { busy = false; snd.boing(); burst(home[0], home[1], 16, 6, false); if (!finished && !at) toast('We landed! Tap week 1.', '착륙했어요! 1주를 눌러요.'); }), 350);
       let rest = home;   // where the rocket waits now
       s.onclick = async e => {
+        const bt = e.target.closest('.bk5');   // the 5th step: My Discussion Book, open once the four weeks are done (as in Start PBL)
+        if (bt) { if (busy) return; if (S.done < num && !(S.done === num - 1 && S.stop > 0)) { bt.classList.remove('shake'); void bt.offsetWidth; bt.classList.add('shake'); snd.nope(); return toast('Your Discussion Book opens when week 1 is done.', '1주를 하면 디스커션 북이 열려요.'); }
+          snd.pop(); return discussionBook(num); }
         const b = e.target.closest('.stp'); if (!b || busy) return; const k = +b.dataset.k;
         if (b.classList.contains('done')) {   // a finished stop can be played again: the rocket flies back, the activity opens, no second star
           b.classList.remove('squash'); void b.offsetWidth; b.classList.add('squash'); snd.pop(); const again = ACTS[`${num}-${k}`];
-          if (!again) { toast(`Stop ${k + 1} is done. Its activity goes here.`, `정거장 ${k + 1} 완료! 여기에 워크시트 활동이 들어가요.`); return; }
-          busy = true; await flyP([ST[k][0], ST[k][1] - 8 * f]); const ok = await again(); if (ok) { burst(ST[k][0], ST[k][1], 22, 8); toast('You did it again! Great talking!', '다시 해냈어요! 말하기 최고!'); }
+          if (!again) { toast(`Week ${k + 1} is done. Its activities and talking go here.`, `${k + 1}주 완료! 여기에 이 주의 활동과 말하기가 들어가요.`); return; }
+          busy = true; await flyP([ST[k][0], ST[k][1] - 8 * f]); const ok = await again(); if (ok) { S.book = S.book || {}; S.book[`${num}-${k}`] = 1; save(); burst(ST[k][0], ST[k][1], 22, 8); toast('You did it again! Great talking!', '다시 해냈어요! 말하기 최고!'); }
           await flyP(rest); busy = false; return; }
         if (b.classList.contains('todo')) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); snd.nope(); return; }
         busy = true; snd.pop(); await flyP([ST[k][0], ST[k][1] - 8 * f]);
         const act = ACTS[`${num}-${k}`]; if (act && !(await act())) { busy = false; return; }
-        rest = [ST[k][0], ST[k][1] - 8 * f]; b.className = 'stp done squash'; snd.ding(k); burst(ST[k][0], ST[k][1], 22, 8); S.stars += 1; S.stop = k + 1; save(); setStars(true);
-        toast(act ? `Stop ${k + 1} done! Great talking!` : `Stop ${k + 1} done! The activity goes here.`, act ? `정거장 ${k + 1} 완료! 말하기 최고!` : `정거장 ${k + 1} 완료! 여기에 워크시트 활동이 들어가요.`);
+        if (act) { S.book = S.book || {}; S.book[`${num}-${k}`] = 1; save(); }
+        rest = [ST[k][0], ST[k][1] - 8 * f]; s.querySelector('.bk5').classList.remove('locked'); b.className = 'stp done squash'; snd.ding(k); burst(ST[k][0], ST[k][1], 22, 8); S.stars += 1; S.stop = k + 1; save(); setStars(true);
+        toast(act ? `Week ${k + 1} done! Great talking!` : `Week ${k + 1} done! Its activities and talking go here.`, act ? `${k + 1}주 완료! 말하기 최고!` : `${k + 1}주 완료! 여기에 이 주의 활동과 말하기가 들어가요.`);
         const nx = s.querySelector(`.stp[data-k="${k + 1}"]`); if (nx) { nx.className = 'stp now'; busy = false; return; }
         await wait(500); await flyP(padAt); rest = padAt; s.querySelector('.flag').classList.add('up'); s.querySelectorAll('.pal').forEach(p => p.classList.add('jump'));
-        snd.win(); burst(PD[0], PD[1] - 60 * f, 60, 13); S.done = Math.max(S.done, num); S.stop = 0; save(); await wait(1300); busy = false; party(g, i);
+        snd.win(); burst(PD[0], PD[1] - 60 * f, 60, 13); S.done = Math.max(S.done, num); S.stop = 0; save(); s.querySelector('.bk5').classList.remove('locked'); await wait(1300); busy = false; party(g, i);
       };
     });
   }
@@ -179,9 +184,11 @@
     const num = g * 6 + i + 1, L = $('#levelup');
     L.innerHTML = `<i class="rays"></i><div class="lu"><img class="friend" src="art/alien.png" alt="" style="filter:hue-rotate(${HUE[i] + g * 50}deg) drop-shadow(0 0 30px rgba(255,226,122,.8))"><h1 class="sm">Mission complete!</h1>
       <p>${LESSONS[num - 1][0]}: a new friend from planet ${num}!<small>행성 ${num}에서 새 친구가 왔어요! · 여권에 도장 쾅!</small></p>
-      <button class="go"><span>▶</span><span class="l">Hooray!<small>야호!</small></span></button></div>`;
+      <button class="go"><span>▶</span><span class="l">Hooray!<small>야호!</small></span></button>${BOOKS[num] ? '<button class="pill bookgo"><span class="l">Open my Discussion Book<small>디스커션 북 열기</small></span></button>' : ''}</div>`;
     L.hidden = false; let k = 0; const iv = setInterval(() => { burst(W * (.1 + Math.random() * .8), 120 + Math.random() * 400, 26, 11); if (++k > 4) clearInterval(iv); }, 300);
-    L.querySelector('.go').onclick = () => { clearInterval(iv); L.hidden = true; snd.pop(); if (S.done % 6 === 0 && S.done === num) levelUp(g); else galaxy(g); };
+    const on = () => { if (S.done % 6 === 0 && S.done === num) levelUp(g); else galaxy(g); };
+    L.querySelector('.go').onclick = () => { clearInterval(iv); L.hidden = true; snd.pop(); on(); };
+    const bg = L.querySelector('.bookgo'); if (bg) bg.onclick = () => { clearInterval(iv); L.hidden = true; discussionBook(num, on); };   // the last step: the book; closing it carries on
   }
   function levelUp(g) {
     const lastOne = g >= 3, L = $('#levelup'), nx = GAL[Math.min(3, g + 1)];
@@ -198,13 +205,18 @@
      Stand-ins: the lesson video (not made yet), Gerry's voice (free Windows voice), "Press and say" (the kids' site's shared piece). */
   const vid = t => { let h = 2166136261; for (const c of String(t).toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9']+/g, ' ').trim()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, '0'); };
   /* "Press and say" stand-in: waits until the child has really finished. The microphone is only used on this device to
-     see how loud it is (nothing is recorded, kept or sent): it ends after the child has spoken and then been quiet for
-     1.5 s, or when the button is tapped again. No microphone: tap again when finished. It does not check the words. */
+     see how loud it is and to keep the child's own voice for My Discussion Book (kept in this browser only, never sent
+     anywhere): it ends after the child has spoken and then been quiet for 1.5 s, or when the button is tapped again.
+     No microphone: tap again when finished. It does not check the words. Resolves with the recording (a Blob) or null. */
   function listen(b) {
     return new Promise(async done => { let over = false, iv = 0, stream = null, ctx = null; const lab = b.querySelector('.l');
-      const end = () => { if (over) return; over = true; clearInterval(iv); if (stream) stream.getTracks().forEach(t => t.stop()); if (ctx) ctx.close().catch(() => {}); b.onclick = null; b.style.removeProperty('--lv'); done(); };
+      let rec = null; const chunks = [];
+      const end = () => { if (over) return; over = true; clearInterval(iv); b.onclick = null; b.style.removeProperty('--lv');
+        const fin = clip => { if (stream) stream.getTracks().forEach(t => t.stop()); if (ctx) ctx.close().catch(() => {}); done(clip); };
+        if (rec && rec.state !== 'inactive') { rec.onstop = () => fin(chunks.length ? new Blob(chunks, { type: rec.mimeType }) : null); rec.stop(); } else fin(null); };
       b.classList.add('on'); lab.innerHTML = 'I am listening…<small>말해요! 다 말하면 눌러요</small>'; snd.pop(); setTimeout(() => { if (!over) b.onclick = end; }, 700);
       try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); if (over) { stream.getTracks().forEach(t => t.stop()); return; }
+        if (window.MediaRecorder) { try { rec = new MediaRecorder(stream); rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; rec.start(); } catch (e) { rec = null; } }
         ctx = new (window.AudioContext || window.webkitAudioContext)(); const an = ctx.createAnalyser(); an.fftSize = 512; ctx.createMediaStreamSource(stream).connect(an);
         const buf = new Uint8Array(an.fftSize), t0 = Date.now(); let spoke = 0, quiet = 0;
         iv = setInterval(() => { an.getByteTimeDomainData(buf); let q = 0; for (const v of buf) q += (v - 128) ** 2; const lv = Math.sqrt(q / buf.length) / 128;
@@ -227,6 +239,7 @@
       else if (V) V.say(en, { who: 'gerry' }).then(end);
       gerry.t = setTimeout(end, Math.max(1500, en.length * 85)); });   // also the way on when sound is off
   }
+  const track = (what, week) => { try { if (window.GPTrack) GPTrack.play('fm', what, { week }); } catch (e) {} };   // 'video' | 'game' | 'talk', for the star board and the reports
   const ACTS = {
     '1-0': () => new Promise(finish => {
       const c = $('#card'), SH = [   // the four shapes of the worksheet's activity, in play order, with their vertices
@@ -244,9 +257,9 @@
       /* 1 the lesson video */
       const video = async () => {
         // the week's lesson video (forest-math/video/week1-circles, copied to world/video/): big play button, tap the picture to pause
-        A.innerHTML = `<div class="tv"><div class="scr vid"><video src="video/fm01-week1-circles.mp4" poster="video/fm01-week1-circles.jpg" playsinline preload="metadata"></video><button class="playb" aria-label="Play"></button></div><button class="go next">Play the game<small>게임 하러 가요</small></button></div>`;
+        A.innerHTML = `<div class="tv"><div class="scr vid"><video src="video/fm01-week1-circles.mp4" poster="video/fm01-week1-circles.jpg" playsinline preload="metadata"></video><button class="playb" aria-label="Play"></button></div><button class="go next">Start the activity<small>활동 하러 가요</small></button></div>`;
         const v = A.querySelector('video'), pb = A.querySelector('.playb');
-        v.onplay = () => { pb.hidden = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp'; };   // Gerry is quiet while the video talks
+        let seen = false; v.onplay = () => { if (!seen) { seen = true; track('video', 1); } pb.hidden = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp'; };   // Gerry is quiet while the video talks
         v.onpause = () => { pb.hidden = false; }; v.onended = () => { pb.hidden = false; A.querySelector('.next').classList.add('ready'); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; };
         await gerry("Hi! I'm Gerry! First, let's watch the video.", '안녕! 나는 게리야! 먼저 영상을 봐요.', 'point'); };
       /* 2 the game: catch the vertices of each shape as it flies in */
@@ -262,15 +275,15 @@
         await wait(700); if (!alive) return; A.querySelector('.ship').classList.add('away'); await line; if (!alive) return;
         sl.classList.add('full'); sl.querySelector('g').setAttribute('fill', q.col); sl.querySelector('g').setAttribute('stroke', '#fff'); sl.querySelector('b').textContent = q.v.length; snd.ding(cur); await wait(350); next(); };
       /* 3 the speaking that belongs to this page: say the reason, then answer an opposite idea */
-      const turn = (alien, en, ko, frame, frameKo) => new Promise(async done => {
+      const turn = (key, alien, en, ko, frame, frameKo) => new Promise(async done => {
         A.innerHTML = `<div class="talkp">${alien ? '<div class="claim"><img src="art/alien.png" alt=""><span>“A circle has no points!”<small>“동그라미에는 점이 없어!”</small></span></div>' : ''}
           <div class="frame"><span>Say it:</span>${frame}<small>${frameKo}</small></div><button class="go say"><span class="mic"></span><span class="l">Press and say<small>누르고 말해요</small></span></button></div>`;
         A.querySelector('.say').onclick = async e => { const b = e.currentTarget; if (b.classList.contains('on')) return; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
-          await listen(b); if (!alive) return; snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
+          const clip = await listen(b); if (clip) VDB.put(key, clip); if (!alive) return; snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
         await gerry(en, ko, alien ? 'think' : 'point'); });
-      const speak = async () => {
-        await turn(false, 'Why does a circle have no vertices? Press the button and say it!', '동그라미는 왜 꼭짓점이 없을까요? 버튼을 누르고 말해요!', 'A circle has no vertices because it is <b>round all around</b>.', '동그라미는 둥글어서 꼭짓점이 없어요.'); if (!alive) return;
-        await turn(true, 'Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertices.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.'); if (!alive) return;
+      const speak = async () => { track('talk', 1);
+        await turn('1-0-a', false, 'Why does a circle have no vertices? Press the button and say it!', '동그라미는 왜 꼭짓점이 없을까요? 버튼을 누르고 말해요!', 'A circle has no vertices because it is <b>round all around</b>.', '동그라미는 둥글어서 꼭짓점이 없어요.'); if (!alive) return;
+        await turn('1-0-b', true, 'Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertices.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.'); if (!alive) return;
         A.innerHTML = ''; burst(W / 2, 360, 80, 15); await gerry('Great talking! You get a star!', '말하기 최고! 별을 받아요!', 'cheer'); await wait(500); if (alive) out(true); };
 
       c.onclick = e => {
@@ -278,7 +291,7 @@
         if (e.target.closest('.ws')) { const im = document.createElement('div'); im.className = 'wsview'; im.innerHTML = '<img src="art/ws/fm01-w1-04.png" alt="">'; im.onclick = ev => { ev.stopPropagation(); im.remove(); }; c.appendChild(im); return; }
         if (e.target.closest('.playb')) { const v = A.querySelector('video'); if (v) v.play().catch(() => {}); return; }
         if (e.target.closest('.scr.vid video')) { const v = e.target; if (!v.paused) v.pause(); return; }
-        if (e.target.closest('.next')) { const v = A.querySelector('video'); if (v) v.pause(); snd.pop(); gerry("Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!', 'cheer').then(next); A.innerHTML = ''; return; }
+        if (e.target.closest('.next')) { const v = A.querySelector('video'); if (v) v.pause(); snd.pop(); track('game', 1); gerry("Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!', 'cheer').then(next); A.innerHTML = ''; return; }
         if (lock || cur < 0 || cur >= SH.length) return; const q = SH[cur], at = pt(e), ship = A.querySelector('.ship');
         const vx = e.target.closest('.vx');
         if (vx) { if (vx.classList.contains('on')) return; vx.classList.add('on'); vx.setAttribute('r', 22); got++; const cn = A.querySelector('.count'); cn.textContent = got; cn.classList.remove('bump'); void cn.offsetWidth; cn.classList.add('bump'); snd.ding(got); burst(at[0], at[1], 18, 7);
@@ -291,6 +304,83 @@
       video();
     }),
   };
+  /* ---------- My Discussion Book (boss, 24 Nov 2026: the same idea as Start PBL's My Speech Book) ----------
+     One book per month, the 5th step of the planet, open once the four weeks are done. It opens shut on the month's
+     worksheet cover and then shows ALL the month's worksheet pages, two by two like the printed book (user, 24 Nov).
+     On a page the child did online, their answers sit where they would write them. Every week has its recordings:
+     under the book, the sentences the child said that week, each with their OWN voice to hear again.
+     The recordings stay in this browser (IndexedDB fm-voice) and are never sent anywhere.
+     BOOKS[month] = { cover, n pages (art/ws/<month>/NN.webp, 8 a week), weeks: [{ key (the stop), says [{ clip, a }] }],
+       ans: { page index: { key, dots [[x, y]] coloured vertices, nums [[x, y, text]] } } (x, y on the 905 x 1280 page) }.
+     Sample: month 1; only Week 1 · 04 has an online activity so far. */
+  const VDB = (() => { let p; const db = () => p || (p = new Promise((res, rej) => { const r = indexedDB.open('fm-voice', 1); r.onupgradeneeded = () => r.result.createObjectStore('clips'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+    const tx = (mode, f) => db().then(d => new Promise((res, rej) => { const q = f(d.transaction('clips', mode).objectStore('clips')); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); })).catch(() => null);
+    return { put: (k, b) => tx('readwrite', st => st.put(b, k)), get: k => tx('readonly', st => st.get(k)) }; })();
+  const BOOKS = { 1: { cover: 'art/ws/fm01-cover.jpg', n: 32, name: 'FRESH MATH 1 · Vertices',
+    weeks: [{ key: '1-0', t: 'The World of Circles', says: [{ clip: '1-0-a', a: 'A circle has no vertices because it is round all around.' }, { clip: '1-0-b', a: 'A circle has many points, but no vertices.' }] },
+      { key: '1-1', t: 'The World of Triangles', says: [] }, { key: '1-2', t: 'The World of Quadrilaterals', says: [] }, { key: '1-3', t: 'The World of Polygons', says: [] }],
+    ans: { 3: { key: '1-0', dots: [[164, 751], [221, 851], [107, 851], [497, 756], [599, 756], [599, 858], [497, 858]], nums: [[164, 903, '3'], [356, 903, '0'], [548, 903, '4'], [740, 903, '0']] } } } };
+  function discussionBook(month, after) {
+    const BK = BOOKS[month]; if (!BK) { toast('This month\'s Discussion Book is coming soon.', '이 달의 디스커션 북은 곧 나와요.'); if (after) after(); return; }
+    const c = $('#card'), SP = BK.n / 2, did = key => !!(S.book && S.book[key]), pg = i => `art/ws/${month}/${String(i + 1).padStart(2, '0')}.webp`;
+    let n = -1, audio = null, alive = true, token = 0; const urls = {};   // n = -1 is the cover; then spread n shows pages 2n and 2n + 1
+    // the book grows week by week: a week's pages open when that week's stop is done
+    const OPEN = S.done >= month ? BK.weeks.length : S.done === month - 1 ? Math.min(BK.weeks.length, S.stop || 0) : 0, LAST = Math.max(0, OPEN * 4) - 1;
+    c.innerHTML = `<div class="dbk"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button><h2 class="dtitle">My Discussion Book</h2>
+      <div class="dwk"><i data-w="-1" class="cv">Cover</i>${BK.weeks.map((_, w) => `<i data-w="${w}"${w < OPEN ? '' : ' class="shut"'}>Week ${w + 1}</i>`).join('')}</div>
+      <div class="dbook"><div class="dpg l"><img class="sheet" alt=""><div class="ans"></div></div><div class="dpg r"><div class="dcov"><img src="${BK.cover}" alt=""></div><img class="sheet" alt=""><div class="ans"></div></div></div>
+      <button class="dturn prev" aria-label="Back"></button><button class="dturn next" aria-label="Next"></button>
+      <div class="dvoice"></div><img id="gy" src="art/gerry/wave.webp" alt=""><div id="gsay"></div></div>`;
+    c.hidden = false; const q = x => c.querySelector(x), bk = q('.dbook');
+    const stop = () => { token++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.listen.on').forEach(b => b.classList.remove('on')); };
+    const play = async (key, btn) => { stop(); const my = token; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
+      const blob = await VDB.get(key); if (my !== token || !alive) return false; if (!blob) { if (btn) { btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope'); } snd.nope(); return false; }
+      urls[key] = urls[key] || URL.createObjectURL(blob); audio = new Audio(urls[key]); if (btn) btn.classList.add('on');
+      return new Promise(res => { const fin = () => { if (btn) btn.classList.remove('on'); res(true); }; audio.onended = fin; audio.onerror = fin; audio.play().catch(fin); }); };
+    const answers = i => { const A = BK.ans[i]; return A && did(A.key) ? A.dots.map(([x, y], j) => `<i class="vd" style="left:${x / 9.05}%;top:${y / 12.8}%;animation-delay:${j * .07}s"></i>`).join('') + A.nums.map(([x, y, t], j) => `<b class="wn" style="left:${x / 9.05}%;top:${y / 12.8}%;animation-delay:${.5 + j * .1}s">${t}</b>`).join('') : ''; };
+    const show = async k => { stop(); n = Math.max(-1, Math.min(SP - 1, LAST, k)); const w = n < 0 ? -1 : Math.floor(n / 4); bk.classList.toggle('shut', n < 0); bk.classList.remove('flip'); void bk.offsetWidth; bk.classList.add('flip');
+      c.querySelectorAll('.dwk i').forEach(d => d.classList.toggle('on', +d.dataset.w === w)); q('.prev').disabled = n < 0; q('.next').disabled = n >= Math.min(SP - 1, LAST); snd.pop();
+      const V = q('.dvoice'), all = '<button class="go hearall"><span class="tri"></span>Hear my whole book</button>';
+      if (n < 0) { V.innerHTML = all; return; }
+      [q('.dpg.l'), q('.dpg.r')].forEach((P, j) => { P.querySelector('.sheet').src = pg(2 * n + j); P.querySelector('.ans').innerHTML = answers(2 * n + j); });
+      const W = BK.weeks[w], has = await Promise.all(W.says.map(sy => VDB.get(sy.clip).then(b => !!b))); if (!alive || Math.floor(n / 4) !== w) return;
+      V.innerHTML = `<b class="wkl">Week ${w + 1} · my voice</b>` + (did(W.key) && W.says.length ? W.says.map((sy, i) => `<button class="listen${has[i] ? '' : ' none'}" data-clip="${sy.clip}" title="${has[i] ? 'Listen to me!' : 'No voice yet'}"><b></b><em>${sy.a}</em></button>`).join('')
+        : `<span class="none">${W.says.length ? `Play week ${w + 1} to hear yourself here.` : `The talking for week ${w + 1} comes with its activities.`}</span>`); };
+    const out = () => { alive = false; stop(); Object.values(urls).forEach(u => URL.revokeObjectURL(u)); if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); c.hidden = true; c.onclick = null; c.innerHTML = ''; if (after) after(); };
+    c.onclick = async e => { const t = e.target;
+      if (t.closest('.dback')) return out();
+      if (t.closest('.dcov') || t.closest('.next')) return show(n + 1);
+      if (t.closest('.prev')) return show(n - 1);
+      const d = t.closest('.dwk i'); if (d) { if (d.classList.contains('shut')) { d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake'); snd.nope(); return toast(`Week ${+d.dataset.w + 1} opens here when you finish it.`, `${+d.dataset.w + 1}주를 하면 여기에 열려요.`); }
+        return show(+d.dataset.w < 0 ? -1 : +d.dataset.w * 4); }
+      const l = t.closest('.listen'); if (l) { if (l.classList.contains('on')) return stop(); return play(l.dataset.clip, l); }
+      if (t.closest('.hearall')) { let any = false;   // every week's voices in order, each on the page it belongs to
+        for (let w = 0; w < BK.weeks.length && alive; w++) { const W = BK.weeks[w]; if (!did(W.key) || !W.says.length) continue;
+          const at = Object.keys(BK.ans).map(Number).find(i => BK.ans[i].key === W.key); await show(at == null ? w * 4 : Math.floor(at / 2)); await wait(600);
+          for (const b of [...c.querySelectorAll('.dvoice .listen:not(.none)')]) { if (!alive || Math.floor(n / 4) !== w) return; any = (await play(b.dataset.clip, b)) || any; await wait(350); } }
+        if (!any && alive) { snd.nope(); toast('No voice in your book yet. Play a week first!', '아직 목소리가 없어요. 먼저 한 주를 해 봐요!'); } } };
+    show(-1); gerry('This is your Discussion Book! Turn the pages and hear yourself.', '디스커션 북이에요! 쪽을 넘기고 내 목소리를 들어 봐요.', 'point');
+  }
+  /* ---------- My Mission Log: the month's report, one card a week (user chose option 1, 24 Nov 2026) ----------
+     Boss: a monthly report with weekly progress: how many times opened, which parts were done and how often.
+     The three parts of a week are called Video, Activity and Discussion (user: Fresh Math does not call anything a game).
+     Numbers come from the kids' site's shared counter (GPTrack, kept on this device), so they match Story Street's star
+     board; what is finished comes from this world's own save. The counter still names the activity 'game' inside. */
+  function missionLog(month) {
+    const BK = BOOKS[month]; if (!BK) return toast('This month\'s Mission Log is coming soon.', '이 달의 미션 기록은 곧 나와요.');
+    const c = $('#card'), D = window.GPTrack ? GPTrack.days() : {}, WK = BK.weeks, did = key => !!(S.book && S.book[key]), per = WK.map(() => ({ video: 0, game: 0, talk: 0 })); let opens = 0, days = 0;
+    for (const k in D) { const f = D[k].fm; if (!f) continue; days++; opens += f.o || 0;
+      for (const a of ['video', 'game', 'talk']) { const x = f.a && f.a[a]; if (x && x.p) per[Math.min(WK.length, Math.max(1, x.w || 1)) - 1][a] += x.p; } }
+    const PARTS = [['video', 'Video'], ['game', 'Activity'], ['talk', 'Discussion']], ready = w => !!ACTS[WK[w].key];
+    const stars = w => (per[w].video ? 1 : 0) + (did(WK[w].key) ? 2 : 0), weeksDone = WK.filter(w => did(w.key)).length, allStars = WK.reduce((n, _, w) => n + stars(w), 0);
+    c.innerHTML = `<div class="mlog"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button>
+      <h2 class="dtitle">My Mission Log<small>${BK.name} · 미션 기록</small></h2>
+      <div class="msum"><div><b>${opens}</b>times opened</div><div><b>${days}</b>days played</div><div><b>${S.stars}</b>stars</div><div><b>${weeksDone} of ${WK.length}</b>weeks done</div></div>
+      <div class="mweeks">${WK.map((W, w) => `<div class="mwk${ready(w) ? '' : ' soon'}" style="animation-delay:${.08 * w}s"><h3>Week ${w + 1}<em class="${did(W.key) ? 'ok' : ''}">${did(W.key) ? 'done' : ready(w) ? 'not yet' : 'coming soon'}</em></h3><div class="t">${W.t}</div>
+        ${PARTS.map(([id, lab]) => `<div class="mact${per[w][id] ? '' : ' z'}"><img src="art/ic-${id}.png" alt=""><span>${lab}</span><b>${per[w][id] ? '× ' + per[w][id] : '–'}</b></div>`).join('')}
+        <div class="mst">${[0, 1, 2].map(i => `<i class="${i < stars(w) ? 'on' : ''}"></i>`).join('')}</div></div>`).join('')}</div></div>`;
+    c.hidden = false; snd.pop(); c.onclick = e => { if (e.target.closest('.dback')) { c.hidden = true; c.onclick = null; c.innerHTML = ''; } };
+  }
   /* My Planet: the child's own little planet. Stars buy decorations; the alien friends from finished missions live here. */
   const DECO = [['Crystals', '크리스탈', 5, -32], ['Space tree', '우주 나무', 8, 30], ['Dome house', '돔 하우스', 12, 0], ['Flag', '깃발', 5, 62], ['Slide', '미끄럼틀', 15, -64], ['Dish', '안테나', 10, 94]];   // name, ko, price, angle from the top
   const FR_AT = [-96, 124, -124, 152, -152];   // friends stand around the sides and underneath, away from the decorations
@@ -413,7 +503,7 @@
   /* for pictures of the sample: index.html#done=8 shows 8 missions done, #done=8&g=1 opens galaxy 2, #done=8&g=1&p=2 lands on its planet 3 */
   const hp = new URLSearchParams(location.hash.slice(1)); if (hp.has('still')) document.body.classList.add('still'); if (hp.has('done')) { S.done = +hp.get('done'); S.stars = S.done * 5; S.stop = +(hp.get('stop') || 0); }
   setStars(); if (hp.has('deco')) S.deco = hp.get('deco').split('').map(Number);
-  if (hp.has('act')) { planet(0, 0); setTimeout(() => ACTS['1-0'](), 1800); } else if (hp.has('map')) journey(); else if (hp.has('game')) { game(hp.get('game') in SHAPES ? hp.get('game') : null); if (hp.has('say')) setTimeout(() => G && (G.run = false, G.speak()), 900); } else if (hp.has('mine')) mine(); else if (hp.has('p')) planet(+hp.get('g') || 0, +hp.get('p')); else if (hp.has('g')) galaxy(+hp.get('g')); else universe(false);
+  if (hp.has('log')) { planet(0, 0); setTimeout(() => missionLog(1), 1800); } else if (hp.has('book')) { planet(0, 0); setTimeout(() => discussionBook(1), 1800); } else if (hp.has('act')) { planet(0, 0); setTimeout(() => ACTS['1-0'](), 1800); } else if (hp.has('map')) journey(); else if (hp.has('game')) { game(hp.get('game') in SHAPES ? hp.get('game') : null); if (hp.has('say')) setTimeout(() => G && (G.run = false, G.speak()), 900); } else if (hp.has('mine')) mine(); else if (hp.has('p')) planet(+hp.get('g') || 0, +hp.get('p')); else if (hp.has('g')) galaxy(+hp.get('g')); else universe(false);
   if (hp.has('pass')) setTimeout(passport, 600);
   window.__fmWorld = { get game() { return G; }, journey, startGame: game, get state() { return S; }, get busy() { return busy; }, set(n) { S.done = n; S.stars = n * 5; S.stop = 0; S.deco = []; save(); setStars(); universe(false); } };   // for testing the sample
 })();

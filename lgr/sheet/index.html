@@ -117,9 +117,9 @@ body:not(.reading) #wrap{padding-left:250px}
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwuk3oe2";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwuk3oe2"></script><script src="../book/data/set-a.js?v=mwuk3oe2"></script><script src="../book/scene.js?v=mwuk3oe2"></script><script src="../vendor/talk.js?v=mwuk3oe2"></script>
+<script>(function(){var V="mwunk7b9";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwunk7b9"></script><script src="../book/data/set-a.js?v=mwunk7b9"></script><script src="../book/scene.js?v=mwunk7b9"></script><script src="../vendor/talk.js?v=mwunk7b9"></script>
 <!-- recorded voices: the shared GPFIS kit (the online build fixes these two paths), then our adapter -->
-<script src="../../voice/clips.js?v=mwuk3oe2"></script><script src="../../kit/voice.js?v=mwuk3oe2"></script><script src="../vendor/say.js?v=mwuk3oe2"></script>
+<script src="../../voice/clips.js?v=mwunk7b9"></script><script src="../../kit/voice.js?v=mwunk7b9"></script><script src="../vendor/say.js?v=mwunk7b9"></script><script src="../vendor/myvoice.js?v=mwunk7b9"></script>
 <script>
 (function () {
   'use strict';
@@ -154,7 +154,9 @@ body:not(.reading) #wrap{padding-left:250px}
 
   $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
   $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · speak · 말하기</small>';
-  const STEPS = [reading, circle, firstLetter, namingDoing, finish]; let at = 0;
+  // 24 Nov 2026 (user): Speak is only the speaking part now. Phonics and Nouns and Verbs moved to Grammar (app/dictation);
+  // their functions below are no longer in STEPS. The child's take of every line is kept for My Speaking Book (app/speakbook).
+  const STEPS = [reading, finish]; let at = 0;
   $('#dots').innerHTML = STEPS.slice(0, -1).map(() => '<i></i>').join('');
   const go = () => { [...$('#dots').children].forEach((d, i) => d.classList.toggle('on', i < at)); STEPS[at](); };
   const next = () => { at++; go(); };
@@ -165,12 +167,12 @@ body:not(.reading) #wrap{padding-left:250px}
     const book = (window.LGR_SET.books.find(b => b.id === R.id) || {}), pic = book.img ? icon(book.img, 200) : '';
     wrap.innerHTML = '<div class="two pop"><div class="page"><div class="pic">' + pic + '</div><h2>' + R.title + '</h2><ol class="lines">' +
       R.lines.map((l, i) => '<li class="ln" data-i="' + i + '"><span class="no"><b>' + (i + 1) + '</b></span><span class="tx">' + l.split(' ').map((w, k) => '<span class="w" style="--i:' + k + '">' + w + '</span>').join('') + '</span></li>').join('') + '</ol></div>' +
-      '<div class="side"><span class="tag">1 · READING · 읽고 말하기</span><div class="count">' + R.lines.map(() => '<i></i>').join('') + '</div><div class="qn" id="qn"></div><div class="q" id="q"></div><div id="fb"></div><div id="heard"></div>' +
+      '<div class="side"><span class="tag">READ AND SPEAK · 읽고 말하기</span><div class="count">' + R.lines.map(() => '<i></i>').join('') + '</div><div class="qn" id="qn"></div><div class="q" id="q"></div><div id="fb"></div><div id="heard"></div>' +
       '<div class="talkrow"><img id="mate" src="../art/kingdom/penny/stand.webp" alt="Penny">' + (Talk.canHear ? '<button id="mic" aria-label="Speak">🎤</button>' : '<button class="big" id="said" style="margin-bottom:22px">I said it!</button>') +
       '<div class="mini"><button id="again" aria-label="Hear the question">🔊</button><button id="slow" aria-label="Hear the answer slowly">🐢</button></div></div></div></div>';
     mateEl = $('#mate');
     const linesEl = $('.lines'), lns = [...document.querySelectorAll('.ln')], dots = [...document.querySelectorAll('.count i')], heardEl = $('#heard'), mic = $('#mic');
-    let qi = Math.max(0, Math.min(9, (+Q.get('q') || 1) - 1)), tries = 0, fix = null, busy = false;
+    let qi = Math.max(0, Math.min(9, (+Q.get('q') || 1) - 1)), tries = 0, fix = null, busy = false, take = null;   // take = the child's last try at the whole line
     const word = el => Talk.words(el.textContent)[0] || '';
     const ask = () => {                               // the next question: its sentence lights up in the reading
       tries = 0; fix = null; heardEl.textContent = ''; linesEl.classList.add('asking');
@@ -179,7 +181,7 @@ body:not(.reading) #wrap{padding-left:250px}
       $('#qn').textContent = 'Question ' + (qi + 1) + ' of ' + R.lines.length; $('#q').textContent = R.q10[qi];
       const s = $('.side'); s.classList.remove('shake'); tell('Look at the yellow line. Say it!', { model: [R.q10[qi], 'Look at the yellow line. Say it!'] });
     };
-    const good = async () => { const l = lns[qi]; l.classList.remove('now', 'fixing'); l.classList.add('done'); l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); cheer(l); pose('cheer');
+    const good = async () => { const l = lns[qi]; if (take && window.MyVoice) MyVoice.put(R.id + ':' + qi, take); take = null; l.classList.remove('now', 'fixing'); l.classList.add('done'); l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); cheer(l); pose('cheer');
       qi++; if (qi < R.lines.length) { await wait(900); ask(); } else { dots.forEach(d => { d.classList.add('on'); d.classList.remove('at'); }); linesEl.classList.remove('asking'); await tell('You read the whole story!'); await wait(500); next(); } };
     $('#again').onclick = () => Say(R.q10[qi]); $('#slow').onclick = () => Say(fix ? word(fix[0]) : R.lines[qi], { slow: true });
     const said = $('#said'); if (said) said.onclick = () => good();
@@ -189,7 +191,7 @@ body:not(.reading) #wrap{padding-left:250px}
       const r = await Talk.listen({ ms: 6000, onLevel: v => mic.style.setProperty('--lv', v), onWords: t => heardEl.textContent = t });
       mic.classList.remove('live'); busy = false;
       if (!r.heard.length) { $('.side').classList.add('shake'); setTimeout(() => $('.side').classList.remove('shake'), 400); return tell("I couldn't hear you. Say it loudly!"); }
-      heardEl.textContent = r.heard[0];
+      heardEl.textContent = r.heard[0]; if (!fix && r.clip) take = r.clip;
       if (fix) {                                     // practising one missed word
         const el = fix[0], ok = Talk.score(word(el), r.heard) >= 60; el.n = (el.n || 0) + 1;
         if (!ok && el.n < 3) return tell('Almost! Listen: ' + word(el) + '.', { model: ['Almost! Listen.', word(el)] });
@@ -260,4 +262,4 @@ body:not(.reading) #wrap{padding-left:250px}
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwuk3oe2" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwunk7b9" data-home="../../demo/street.html"></script></body></html>

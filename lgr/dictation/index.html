@@ -1,9 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Let's Go Readers · Dictation</title>
+<title>Let's Go Readers · Grammar</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&family=Andika:wght@700&family=Noto+Sans+KR:wght@500;700&display=swap">
 <style>
-/* DICTATION · 받아쓰기 (21 Nov 2026; user chose "tiles, then writing"). The child HEARS it from the golden horn and
+/* GRAMMAR · 문법 (was Dictation; 24 Nov 2026 the boss keeps this quest but as GRAMMAR: only the shuffled-words
+   sentence building stays, three sentences per reading (the three Gerry already recorded). The letter-tile word
+   and the handwriting steps below are no longer in STEPS; the old page is index.html.bak-dictation.
+   Older note: DICTATION · 받아쓰기 (21 Nov 2026; user chose "tiles, then writing"). The child HEARS it from the golden horn and
    writes it. Nothing new is invented: the words and sentences are the week's own reading (app/sheet/data.js).
      1 WORD      - hear a word, build it from letter tiles          (2 words: the reading's word + one more)
      2 SENTENCE  - hear a sentence, put its word tiles in order     (2 sentences from the story)
@@ -56,6 +59,20 @@ body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);bac
 .big{border:0;border-radius:999px;background:linear-gradient(#ffe36a,#ffc93c);box-shadow:0 6px 0 #c9921a;font:800 22px "Baloo 2";color:#4a2508;padding:7px 28px;cursor:pointer;display:inline-block;text-decoration:none}
 .big:active{translate:0 4px;box-shadow:0 2px 0 #c9921a}.big.w2{background:#fff;box-shadow:0 6px 0 #e2c9b0}.big[hidden]{display:none}
 .hint{font:600 16px "Fredoka","Noto Sans KR";color:#7a6a92}
+/* phonics and nouns and verbs (moved here from Speak, 24 Nov 2026) */
+.line{font:800 clamp(26px,3.4vw,46px)/1.2 "Baloo 2";margin:8px 0}
+.words{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:14px}
+.wd{position:relative;border:0;font:800 clamp(24px,3vw,38px) "Baloo 2";color:#3a2a55;background:#fff;border-radius:24px;padding:14px 30px;box-shadow:0 7px 0 #e2c9b0,0 0 0 3px #f1e3cc;cursor:pointer;transition:transform .12s}
+.wd:hover{transform:translateY(-4px) rotate(-2deg)}
+.wd.ring{background:#fff7d6;box-shadow:0 0 0 6px #e23b4a,0 7px 0 #e2c9b0}.wd.dim{opacity:.45}
+.gap{display:inline-grid;place-items:center;width:1.1em;height:1.25em;border-bottom:6px solid #e23b4a;color:#e23b4a;vertical-align:-.12em}
+.letters{display:flex;gap:16px;justify-content:center;margin-top:16px}
+.lt{width:92px;height:92px;border:0;border-radius:26px;background:linear-gradient(#fff,#ffeccc);box-shadow:0 7px 0 #e2c9b0;font:800 50px "Baloo 2";color:#3a2a55;cursor:pointer}
+.pots{display:flex;gap:26px;justify-content:center;margin:10px 0 18px}
+.pot{border:0;border-radius:26px;padding:10px 26px 12px;font:800 24px "Baloo 2";color:#fff;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.25);opacity:.6;transition:transform .15s,opacity .15s}
+.pot small{display:block;font:600 14px "Noto Sans KR";opacity:.95}
+.pot.n{background:#2f7fe0}.pot.v{background:#ef6a3a}.pot.on{opacity:1;transform:scale(1.12);outline:6px solid #ffd23f}
+.wd.n{background:#2f7fe0;color:#fff;box-shadow:0 7px 0 #1f58a3}.wd.v{background:#ef6a3a;color:#fff;box-shadow:0 7px 0 #b0431d}
 /* chooser + end */
 .shelf{width:min(1180px,100%)}
 .shelf h1{font:800 clamp(34px,4vw,56px)/1 "Baloo 2";color:#fff;text-shadow:0 4px 0 rgba(60,14,10,.55);margin:0 0 16px 6px}
@@ -71,8 +88,8 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
 </style></head><body>
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div></div>
 <div id="wrap"></div>
-<script>(function(){var V="mwuk3oe2";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwuk3oe2"></script><script src="../book/data/set-a.js?v=mwuk3oe2"></script><script src="../book/scene.js?v=mwuk3oe2"></script><script src="../vendor/talk.js?v=mwuk3oe2"></script>
-<script src="../../voice/clips.js?v=mwuk3oe2"></script><script src="../../kit/voice.js?v=mwuk3oe2"></script><script src="../vendor/say.js?v=mwuk3oe2"></script>
+<script>(function(){var V="mwunk7b9";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwunk7b9"></script><script src="../book/data/set-a.js?v=mwunk7b9"></script><script src="../book/scene.js?v=mwunk7b9"></script><script src="../vendor/talk.js?v=mwunk7b9"></script>
+<script src="../../voice/clips.js?v=mwunk7b9"></script><script src="../../kit/voice.js?v=mwunk7b9"></script><script src="../vendor/say.js?v=mwunk7b9"></script>
 <script>
 (function () {
   'use strict';
@@ -92,18 +109,21 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
   // ---------- the week's readings: the same covers as ABC and Sheet ----------
   if (!R) {
     const list = ALL.filter(r => r.L === WEEK[wk]), got = done(), books = window.LGR_SET.books;
-    $('#back').href = BACK; $('#title').innerHTML = 'Dictation<small>Ruby · 1 · Week ' + wk + ' · 받아쓰기</small>';
-    wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Dictation <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(r => {
+    $('#back').href = BACK; $('#title').innerHTML = 'Grammar<small>Ruby · 1 · Week ' + wk + ' · 문법</small>';
+    wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Grammar <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(r => {
       const b = books.find(x => x.id === r.id), [my, ...rest] = r.title.split(' '), inner = '<b>' + my + ' <span>' + rest.join(' ') + '</span></b>' + (b ? icon(b.img, b.img === 'apple' || b.img === 'arrow' ? 150 : 210) : '') + (got.includes(r.id) ? '<i>⭐</i>' : '');
       return r.q10 ? '<a class="bk" style="background:' + (b ? b.color : '#e9d9bf') + '" href="?r=' + r.id + '&w=' + wk + '&back=' + encodeURIComponent(BACK) + '">' + inner + '</a>' : '<span class="bk" style="background:#cdbfae;opacity:.5">' + inner + '</span>'; }).join('') + '</div></div>';
     Say('Pick a reading!'); return;
   }
 
   $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
-  $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · dictation · 받아쓰기</small>';
+  $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · grammar · 문법</small>';
   // what is dictated, all from this reading: two words, two sentences to build, one sentence to write
-  const WORDS = [R.w, R.first.find(w => w !== R.w) || R.first[0]], BUILD = [R.lines[1], R.lines[7]], WRITE = R.lines[3];
-  const STEPS = [() => word(0), () => word(1), () => sentence(0), () => sentence(1), write, finish]; let at = 0;
+  const WORDS = [R.w, R.first.find(w => w !== R.w) || R.first[0]], BUILD = [R.lines[1], R.lines[3], R.lines[7]], WRITE = R.lines[3];
+  // 1 phonics (two parts), 2 nouns and verbs, 3 three sentences (user, 24 Nov: the worksheet's Phonics Activity and Noun/Verb part live here now)
+  const STEPS = [circle, () => firstLetter(0), nounsVerbs, () => sentence(0), () => sentence(1), () => sentence(2), finish];
+  const penny = t => Say(t, { who: 'penny' });   // these prompts and the single words are Penny's recordings (made for Speak)
+  let at = 0;
   $('#dots').innerHTML = STEPS.slice(0, -1).map(() => '<i></i>').join('');
   const go = () => { [...$('#dots').children].forEach((d, i) => d.classList.toggle('on', i < at)); STEPS[at](); };
   const next = () => { at++; go(); };
@@ -122,16 +142,51 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
       if (t.textContent !== pieces[k]) return shake(t);
       t.classList.add('used'); const s = slots[k]; s.textContent = pieces[k]; s.classList.remove('next'); s.classList.add('in'); Talk.pop(); k++;
       if (k < pieces.length) return slots[k].classList.add('next');
-      card.querySelector('.slots').classList.add('done'); card.querySelectorAll('.tile').forEach(x => x.classList.add('used')); cheer(card.querySelector('.slots')); await Say(said); await wait(500); then();
+      card.querySelector('.slots').classList.add('done'); card.querySelectorAll('.tile').forEach(x => x.classList.add('used')); cheer(card.querySelector('.slots')); await Promise.race([Say(said), wait(6000)]); await wait(500); then();   // never wait for the voice for ever
     });
   }
   // 1 WORD: build the word you hear from letter tiles (two extra letters mixed in)
   function word(i) { const w = WORDS[i], extra = shuffle('bcdfghklmnprst'.split('').filter(c => !w.includes(c))).slice(0, 2);
     build('1 · WORD · 낱말 받아쓰기', 'Listen. Build the word!', w, w.split(''), extra, false, w, next); }
   // 2 SENTENCE: put the word tiles in the order you hear
-  function sentence(i) { const s = BUILD[i]; build('2 · SENTENCE · 문장 받아쓰기', 'Listen. Put the words in order!', s, s.split(' '), [], true, s, next); }
+  function sentence(i) { const s = BUILD[i]; build('3 · SENTENCE ' + (i + 1) + ' · 문장 만들기', 'Listen. Put the words in order!', s, s.split(' '), [], true, s, next); }
 
-  // 3 WRITE IT: write the sentence by hand, then see the answer and compare
+  // 1 PHONICS (a): tap the words that start with the letter
+  function circle() {
+    const need = R.start.filter(w => w[0] === R.L).length; let got = 0;
+    fresh('<span class="tag">1 · PHONICS · 파닉스</span><div class="ask">Tap the words that start with <b style="color:#e23b4a">' + R.L.toUpperCase() + R.L + '</b>.</div><div class="words">' + R.start.map(w => '<button class="wd">' + w + '</button>').join('') + '</div>');
+    penny('Tap the words that start with the letter ' + R.L + '.');
+    card.querySelectorAll('.wd').forEach(b => b.onclick = async () => {
+      if (b.classList.contains('ring')) return; penny(b.textContent);
+      if (b.textContent[0] !== R.L) return shake(b);
+      b.classList.add('ring'); cheer(b); if (++got === need) { card.querySelectorAll('.wd:not(.ring)').forEach(x => x.classList.add('dim')); await wait(1100); next(); }
+    });
+  }
+  // 1 PHONICS (b): the first letter of two words
+  function firstLetter(k) {
+    const w = R.first[k], pool = shuffle([R.L, ...shuffle('abcdmst'.split('').filter(c => c !== R.L)).slice(0, 2)]);
+    fresh('<span class="tag">1 · PHONICS · 첫 글자</span><div class="ask">What is the first letter?</div><div class="line"><span class="gap" id="gap">&nbsp;</span>' + w.slice(1) + '</div><div class="letters">' + pool.map(c => '<button class="lt">' + c + '</button>').join('') + '</div>');
+    Say(['What is the first letter?', w], { who: 'penny' });
+    card.querySelectorAll('.lt').forEach(b => b.onclick = async () => {
+      if (b.textContent !== R.L) return shake(b);
+      $('#gap').textContent = R.L; cheer($('#gap')); penny(w); await wait(1200); k + 1 < R.first.length ? firstLetter(k + 1) : next();
+    });
+  }
+  // 2 NOUNS AND VERBS: colour the six story words with the right pot
+  function nounsVerbs() {
+    let pot = 'n', left = R.nv.length;
+    fresh('<span class="tag">2 · NOUNS AND VERBS · 명사와 동사</span><div class="ask">Colour the words!</div><div class="pots"><button class="pot n on" data-p="n">Noun<small>명사</small></button><button class="pot v" data-p="v">Verb<small>동사</small></button></div>' +
+      '<div class="words">' + shuffle(R.nv).map(([w, t]) => '<button class="wd" data-t="' + t + '">' + w + '</button>').join('') + '</div>');
+    penny('Blue for nouns. Orange for verbs. Pick a colour, then tap the words.');
+    card.querySelectorAll('.pot').forEach(p => p.onclick = () => { pot = p.dataset.p; Talk.pop(); card.querySelectorAll('.pot').forEach(x => x.classList.toggle('on', x === p)); });
+    card.querySelectorAll('.wd').forEach(b => b.onclick = async () => {
+      if (b.classList.contains('n') || b.classList.contains('v')) return; penny(b.textContent);
+      if (b.dataset.t !== pot) return shake(b);
+      b.classList.add(pot); cheer(b); if (--left === 0) { await wait(1000); next(); }
+    });
+  }
+
+  // (not used since 24 Nov) WRITE IT: write the sentence by hand, then see the answer and compare
   function write() {
     fresh('<span class="tag">3 · WRITE IT · 손으로 쓰기</span><div class="ask">Listen. Write the sentence!</div>' + HORN + '<div class="pad"><canvas></canvas></div><div class="answer" id="ans"></div>' +
       '<div class="bar"><button class="big w2" id="clear">Erase</button><button class="big" id="show">Show the answer</button><button class="big" id="ok" hidden>I wrote it! ⭐</button><button class="big w2" id="retry" hidden>Try again</button></div><div class="hint" id="hint"></div>');
@@ -152,10 +207,10 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
   function finish() {
     const got = done(); if (!got.includes(R.id)) { got.push(R.id); try { localStorage.setItem('lgr.dictations', JSON.stringify(got)); } catch (e) {} }
     [...$('#dots').children].forEach(d => d.classList.add('on'));
-    fresh('<div class="stars">★★★</div><div class="ask">You did the dictation!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" href="' + BACK + '">Back to the cabin</a><a class="big w2" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
-    Say('You did the dictation! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
+    fresh('<div class="stars">★★★</div><div class="ask">You did the grammar!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" href="' + BACK + '">Back to the cabin</a><a class="big w2" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
+    Say('You made the sentences! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
   }
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));
   go();
 })();
-</script><script src="../../ext/home.js?v=mwuk3oe2" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwunk7b9" data-home="../../demo/street.html"></script></body></html>
