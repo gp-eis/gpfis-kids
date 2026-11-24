@@ -45,6 +45,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
 .cap{position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:#fff;background:rgba(43,45,58,.78);padding:2px 8px;border-radius:999px;opacity:0;transition:opacity .3s .4s;pointer-events:none}
 .total{display:none;position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:16px;font-weight:700;color:#2b2d3a;background:#fff8e6;border:3px solid #d9a92e;padding:3px 14px;border-radius:999px;opacity:0;transition:opacity .3s .4s;pointer-events:none;box-shadow:0 4px 0 rgba(0,0,0,.12)}
 #world.zoomed .cap.w-on,#world.zoomed .total.w-on{opacity:1}
+.cap.book{opacity:1;background:#23863a;font-size:12px;box-shadow:0 0 0 2px #fff}.at.hasbk{filter:drop-shadow(0 0 6px #ffe27a) drop-shadow(0 0 2px #ffb52e)}
 .trophy{transition:opacity .3s}#world.zoomed:not(.z-months) .trophy{opacity:0;pointer-events:none}   /* the centre podium stands in front of the wings: hide it while one wing is zoomed */
 /* 24-month panel beside a zoomed wing */
 #panel{position:fixed;right:14px;top:132px;bottom:14px;z-index:55;background:rgba(255,251,242,.97);border:3px solid #e2c27a;border-radius:28px;box-shadow:0 20px 50px rgba(80,50,0,.3);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .55s cubic-bezier(.45,0,.2,1);overflow:hidden}
@@ -101,9 +102,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
 <button class="btn" id="back" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M62 18 L28 50 L62 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
 </div>
-<script>(function(){var V="mwutrmfr";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwutrmfr"></script>
-<script src="../kit/voice.js?v=mwutrmfr"></script>
-<script src="../kit/turn.js?v=mwutrmfr"></script>
+<script>(function(){var V="mwuu5cop";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuu5cop"></script>
+<script src="../kit/voice.js?v=mwuu5cop"></script>
+<script src="../kit/turn.js?v=mwuu5cop"></script>
 <script>
 /* ---------- 24 months per programme (final 목차, worksheets/contents/*-24-months.md) ---------- */
 const N = 24;
@@ -116,13 +117,14 @@ const LEVELS = [['ruby', 'Ruby'], ['sapphire', 'Sapphire'], ['emerald', 'Emerald
 const BOOKPAIR = n => n <= 12 ? [`Literacy and Math ${n}`, `Play and Speak ${n}`] : [`Daily Essay ${n - 12}`, `ECS ${n - 12}`];   // two books per number, as on the platform
 /* ---------- what the child finished (sample: months 1–7 done in all three; in the real site each programme hands this over) ---------- */
 const range = n => Array.from({ length: n }, (_, i) => i + 1);
+const STAMP = (((document.querySelector('script[src*="voice.js"]') || {}).src || '').match(/[?&]v=([^&#]+)/) || [])[1], VQ = STAMP ? '&v=' + STAMP : '';   // the upload's stamp: a link with it never opens an older saved copy of the programme page
 const HERE = encodeURIComponent(location.pathname), JS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') || {}; } catch (e) { return {}; } };
 function monthBook(prog, m) {   // -> { link, weeks: how many of the 4 weeks are finished } or null when there is no book yet
   let weeks = 0, link = '';
-  if (prog === 'pbl') { const P = JS('spbl.pages')[m] || {}; weeks = [1, 2, 3, 4].filter(w => ((P[w] || {}).book || {}).ok).length; link = '../pbl/index.html?back=' + HERE + '#book=' + m; }
+  if (prog === 'pbl') { const P = JS('spbl.pages')[m] || {}; weeks = [1, 2, 3, 4].filter(w => ((P[w] || {}).book || {}).ok).length; link = '../pbl/index.html?back=' + HERE + VQ + '#book=' + m; }
   if (prog === 'lgr') { const B = JS('lgr.speakbooks'), said = Object.keys(JS('lgr.said'));   // a week is in the month book as soon as Speak kept a line for it (the Readers chat's rule): week 1 = the a- readings, 2 = b-, 3 = c-, 4 = d-
-    weeks = m === 1 ? [1, 2, 3, 4].filter(w => B['w' + w] || said.some(k => k.startsWith('abcd'[w - 1] + '-'))).length : 0; link = '../lgr/speakbook/index.html?month=' + m + '&back=' + HERE; }   // Readers saves number 1 only so far
-  if (prog === 'fm') { const B = JS('fm.world.sample').book || {}; weeks = [0, 1, 2, 3].filter(k => B[m + '-' + k]).length; link = '../fm/index.html#book=' + m + '&back=' + HERE; }
+    weeks = m === 1 ? [1, 2, 3, 4].filter(w => B['w' + w] || said.some(k => k.startsWith('abcd'[w - 1] + '-'))).length : 0; link = '../lgr/speakbook/index.html?month=' + m + '&back=' + HERE + VQ; }   // Readers saves number 1 only so far
+  if (prog === 'fm') { const B = JS('fm.world.sample').book || {}; weeks = [0, 1, 2, 3].filter(k => B[m + '-' + k]).length; link = '../play.html?v=mwuu5cop&u=fm/index.html' + (STAMP ? '?v=' + STAMP : '') + '#book=' + m + '&back=' + HERE; }
   return weeks ? { link, weeks } : null; }
 const WKS = b => b ? '<u class="wk4">' + [1, 2, 3, 4].map(w => '<s class="' + (w <= b.weeks ? 'on' : '') + '"></s>').join('') + '</u><em class="wkn">' + b.weeks + ' of 4</em>' : '';
 /* what the Hall shows (24 Nov 2026, user: "the rest of the island should be closed"): the child's REAL progress on this device.
@@ -205,7 +207,8 @@ function warp(el, [p0, p1, p2, p3], W = 100, H = 80) {   // matrix3d mapping a W
     transform: `matrix3d(${a / W},${d / W},0,${g / W},${b / H},${e / H},0,${h / H},0,0,1,0,${x0},${y0},0,1)` });
 }
 /* a thing on the wall whose month has a book opens that book when tapped (the island picture, the gem, the stamp) */
-const opens = (e, prog, m) => { const b = !SAMPLE && monthBook(prog, m); if (b) { e.style.cursor = 'pointer'; e.onclick = ev => { ev.stopPropagation(); location.href = b.link; }; } };
+const opens = (e, prog, m) => { const b = !SAMPLE && monthBook(prog, m); if (!b) return; e.style.cursor = 'pointer'; e.classList.add('hasbk'); e.onclick = ev => { ev.stopPropagation(); location.href = b.link; };
+  const cp = [...document.querySelectorAll('.cap.w-' + prog)].pop(); if (cp) cp.classList.add('book'); };   // its label ("island 1 · 1 of 4") shows all the time, in green, so it is plain what can be opened
 const part = (prog, m) => SAMPLE || WKN(prog, m) === 4 ? '' : ` · ${WKN(prog, m)} of 4`;
 FRAMES.forEach(([x, y, w, h], i) => {
   const m = pblShow[i];
@@ -228,7 +231,7 @@ LEVELS.forEach(([k, name], i) => {
 const CIRCLES = [[1118, 467], [1209, 463], [1305, 460], [1118, 565], [1209, 565], [1305, 563]];
 const fmShow = newest(EARNED.fm, 6);
 CIRCLES.forEach(([cx, cy], i) => { const m = fmShow[i];
-  if (m) { const e = add(cx - 36, cy - 36, 72, 72, 'stamp', stampSvg(m), `Mission ${m}: ${T.fm[m - 1]}`, 'Fresh Math · stamp', `· ${m}${part('fm', m)}`, 'fm'); e.style.setProperty('--r', (i % 2 ? 8 : -6) + 'deg'); opens(e, 'fm', m); } });
+  if (m) { const e = add(cx - 36, cy - 36, 72, 72, 'stamp', stampSvg(m), `Mission ${m}: ${T.fm[m - 1]}`, 'Fresh Math · stamp', SAMPLE ? `· ${m}` : `mission ${m}${part('fm', m)}`, 'fm'); e.style.setProperty('--r', (i % 2 ? 8 : -6) + 'deg'); opens(e, 'fm', m); } });
 newest(FULL.fm, 4).forEach((m, i) => add([1074, 1164, 1257, 1336][i] - 19, 606, 38, 44, 'alien' + (i % 2 ? ' b' : ''), ALIEN(m), `Friend from planet ${m}`, 'Fresh Math · alien friend', null, 'fm'));
 /* each programme's BOOK with the child's recordings (boss, 24 Nov). No separate book stands in the room: tapping a month in a
    wing's panel (an island, a Readers number, a mission) opens that month's book in the programme itself, and the book comes
@@ -320,5 +323,5 @@ world.classList.add('nozoomanim'); fit();
 const zm = location.hash.match(/zoom=([a-z]+)/); if (zm) zoomTo(zm[1]);   // for checking pictures: open already zoomed
 setTimeout(() => world.classList.remove('nozoomanim'), 300);
 </script>
-<script src="hall-fun.js?v=mwutrmfr"></script>
+<script src="hall-fun.js?v=mwuu5cop"></script>
 </html>

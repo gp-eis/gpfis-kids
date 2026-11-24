@@ -609,3 +609,14 @@ body.still *, body.still .screen.on { animation: none !important; transition: no
 .dsay.two { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: 8px; } .dsay.two .dqq, .dsay.two p { flex: 0 0 100%; }
 .dsay.two .listen { padding-right: 14px; } .dsay.two .listen .wv i:nth-child(n+8) { display: none; } .dsay.two .dst { padding: 6px 10px; }
 .dsay.two p small.ys { margin-top: 6px; padding-top: 5px; font-size: 14.5px; line-height: 1.25; }
+
+/* My Mission Log on a phone: one week's card at a time, large (user, 25 Nov 2026) */
+.mtabs { display: none; }
+.mlog.ph .dtitle small { display: none; } .mlog.ph .dtitle { top: 30px; }
+.mlog.ph .msum { left: 50%; right: auto; margin-left: -670px; top: 130px; width: 550px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mlog.ph .msum div { min-width: 0; padding: 18px 10px 16px; font-size: 27px; line-height: 1.2; } .mlog.ph .msum b { font-size: 58px; }
+.mlog.ph .mtabs { display: grid; position: absolute; left: 50%; margin-left: -670px; top: 430px; width: 550px; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mtab { height: 84px; border: 0; border-radius: 26px; background: rgba(255,255,255,.2); color: #dfe2ff; font: 700 29px/1 'Fredoka'; padding: 0 0 2px; cursor: pointer; }
+.mtab.on { background: #fff; color: #2b2d3a; box-shadow: 0 7px 0 #b9bde6; }
+.mlog.ph .mweeks { display: block; left: 50%; right: auto; margin: 0 0 0 -78px; top: 100px; width: 440px; max-width: none; transform: scale(1.62); transform-origin: 0 0; }
+.mlog.ph .mwk { display: none; animation: none; } .mlog.ph .mwk.cur { display: block; }

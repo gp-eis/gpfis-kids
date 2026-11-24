@@ -563,6 +563,7 @@
     c.innerHTML = `<div class="mlog"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button>
       <h2 class="dtitle">My Mission Log<small>${BK.name} · 미션 기록</small></h2>
       <div class="msum"><div><b>${allDays.length}</b>days played</div><div><b>${fin} of ${tot}</b>pages finished</div><div><b>${stars}</b>speaking stars</div><div><b>${keys.length}</b>recordings saved</div></div>
+      <div class="mtabs">${rows.map(r => `<button class="mtab" data-w="${r.w}">Week ${r.w + 1}</button>`).join('')}</div>
       <div class="mweeks">${rows.map(r => `<div class="mwk${r.P ? '' : ' soon'}" style="animation-delay:${.08 * r.w}s"><h3>Week ${r.w + 1}<em class="${r.done === 8 ? 'ok' : ''}">${r.done === 8 ? 'done' : r.P ? (r.done ? r.done + ' of 8' : 'not yet') : 'coming soon'}</em></h3><div class="t">${r.W.t}</div>
         <div class="mdays"><span class="rk">${[0, 1, 2, 3, 4, 5, 6].map(i => `<img src="art/rocket.png" class="${i < r.days.length ? 'on' : ''}" alt="">`).join('')}</span><span>${r.days.length ? `<b>${r.days.length} ${r.days.length > 1 ? 'days' : 'day'}</b> · last ${r.last}` : 'no days yet'}</span></div>
         <div class="mact${r.plays.video ? '' : ' z'}"><img src="art/ic-video.png" alt=""><span>Video</span><b>${x(r.plays.video)}</b></div>
@@ -570,10 +571,15 @@
         <div class="mact${r.plays.book ? '' : ' z'}"><img src="art/book.png" alt=""><span>Discussion Book</span><b>${x(r.plays.book)}</b></div>
         <div class="mfoot"><span class="mstar"><i></i><b>${r.got}</b><small>/ ${r.max || '–'}</small></span><button class="go lhear" data-w="${r.w}"${r.mine.length ? '' : ' disabled'}><span class="tri"></span>Hear</button></div></div>`).join('')}</div></div>`;
     c.hidden = false; snd.pop(); const box = c.firstElementChild;
+    /* on a phone (a short screen) the four cards side by side are too small to read (user, 25 Nov 2026: "Yes, phone layout"):
+       one week's card at a time, large, with the totals and Week 1-4 buttons beside it */
+    const week = w => { box.querySelectorAll('.mwk').forEach((e, i) => e.classList.toggle('cur', i === w)); box.querySelectorAll('.mtab').forEach((e, i) => e.classList.toggle('on', i === w)); };
+    box.classList.toggle('ph', innerHeight < 520); week(Math.max(0, rows.map(r => r.done > 0 || r.days.length > 0).lastIndexOf(true)));
     VDB.keys().then(ks => { if (c.firstElementChild !== box) return; for (const r of rows) r.mine = r.clips.filter(k => ks.includes(k));
       box.querySelector('.msum div:nth-child(4) b').textContent = ks.length; box.querySelectorAll('.lhear').forEach(b => { b.disabled = !rows[+b.dataset.w].mine.length; }); });
     const stop = () => { tok++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.lhear.on').forEach(b => b.classList.remove('on')); };
     c.onclick = async e => { if (e.target.closest('.dback')) { stop(); c.hidden = true; c.onclick = null; c.innerHTML = ''; return; }
+      const tb = e.target.closest('.mtab'); if (tb) { stop(); snd.pop(); return week(+tb.dataset.w); }
       const h = e.target.closest('.lhear'); if (!h || h.disabled) return; if (h.classList.contains('on')) return stop(); stop(); const my = tok; h.classList.add('on');
       for (const k of rows[+h.dataset.w].mine) { const blob = await VDB.get(k); if (my !== tok) return; if (!blob) continue; const u = URL.createObjectURL(blob); audio = new Audio(u);
         await new Promise(r => { audio.onended = audio.onerror = r; audio.play().catch(r); }); URL.revokeObjectURL(u); if (my !== tok) return; await wait(300); }

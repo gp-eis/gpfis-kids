@@ -57,11 +57,40 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
  display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .big{background:linear-gradient(#ffe36a,#ffc93c);border-radius:20px;box-shadow:0 6px 0 #c9921a;padding:5px 10px 6px;text-align:center;font:600 15px "Fredoka","Noto Sans KR";color:#4a2508;animation:drop .5s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(.4s + var(--k) * .08s)}
 .big b{font:800 36px/1 "Baloo 2"}.big em{font:700 18px "Baloo 2";font-style:normal;opacity:.75;margin-left:4px}.big span{display:block}
+/* ---- one week at a time, for a phone ---- */
+body.land .round,body.port .round{width:44px;height:44px;left:8px;top:8px;font-size:21px}
+body.land #samp,body.port #samp{display:none}   /* on a phone the word "sample" sits beside the title */
+.ph{position:absolute;inset:0;display:grid;gap:8px;padding:10px 12px 10px}
+.ph.land{grid-template:"pt pt" 40px "pa pq" minmax(0,1fr) "pa pb" auto / 250px minmax(0,1fr);padding-left:14px}
+.ph.port{grid-template:"pt" 40px "pa" auto "pq" auto "pb" auto / minmax(0,1fr);padding-bottom:62px;align-content:start}
+.ph>*{min-width:0}
+.ph.port .pt{font-size:17px}.ph.port .pt b i{display:none}.ph.port .wtabs{gap:5px}.ph.port .wtabs button{width:32px;height:32px;font-size:16px}
+.pt b i{font:600 11px "Fredoka";font-style:normal;background:#1f1b2e;border-radius:999px;padding:1px 8px;margin-left:6px;text-shadow:none;vertical-align:2px}
+.pt{grid-area:pt;display:flex;align-items:center;justify-content:space-between;padding-left:50px;color:#fff;font:800 21px/1 "Baloo 2";text-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap}
+.wtabs{display:flex;gap:7px}
+.wtabs button{width:36px;height:36px;border-radius:50%;border:0;background:#fff;font:800 18px "Baloo 2";color:#4a2508;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer}
+.wtabs button.on{background:#ffd23f;box-shadow:0 4px 0 #c9921a,0 0 0 3px #fff}.wtabs button.lock{opacity:.6}
+.pa,.pq{background:#fffdf6;border-radius:20px;box-shadow:0 5px 0 #e6cfa4;padding:10px 12px}
+.pa.lock,.pq.lock{background:#e9dccb}
+.pa{grid-area:pa;display:grid;grid-template-columns:76px 1fr;gap:6px 10px;align-content:start;align-items:center}
+.ph.land .pa{margin-bottom:58px}   /* the shared site's round home button sits in the bottom-left corner */
+.pa .chest{height:70px;max-width:76px}
+.pa h3{font:800 21px/1 "Baloo 2";color:var(--ink)}.pa h3 small{display:block;font:600 12px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:3px}
+.pa .st svg{width:22px;height:22px}
+.pa .dy{grid-column:1 / 3;margin:2px 0 0;padding:6px 8px;gap:6px}.pa .days{gap:3px}.pa .days i{width:19px;height:19px;font:700 11px/19px "Fredoka"}
+.pa .dy span{font-size:13px}.pa .dy span small{font-size:11px}
+.pq{grid-area:pq;display:flex;flex-direction:column;justify-content:space-between;gap:3px}
+.pq .q{grid-template-columns:36px 1fr auto;font:700 16px/1.1 "Fredoka";padding:3px 8px;margin:0}.pq .q img{height:32px;max-width:36px}
+.pq .q small{font-size:12px}.pq .q b{font-size:14px}.pq .q .hear{font-size:14px}
+.pb{grid-area:pb;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ph.port .pb{grid-template-columns:repeat(2,1fr)}
+.pb .big{padding:3px 4px 4px;border-radius:14px;box-shadow:0 4px 0 #c9921a;font:600 11px/1.15 "Fredoka","Noto Sans KR";animation:none;white-space:nowrap;overflow:hidden}
+.pb .big b{font:800 20px/1 "Baloo 2"}.pb .big em{font:700 12px "Baloo 2"}
 .spark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:30}
 </style></head><body>
 <a class="round" id="back" aria-label="Back">←</a><span id="samp" hidden>Sample numbers · 예시</span>
 <div id="stage"></div>
-<script>(function(){var V="mwutrmfr";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwutrmfr"></script><script src="../vendor/myvoice.js?v=mwutrmfr"></script>
+<script>(function(){var V="mwuu5cop";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwuu5cop"></script><script src="../vendor/myvoice.js?v=mwuu5cop"></script>
 <script>
 (async function () {
   'use strict';
@@ -75,8 +104,12 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
   const land = THEME[Q.get('land')] ? Q.get('land') : 'ruby', T = THEME[land], num = +Q.get('n') || 1;
   const st = document.documentElement.style; st.setProperty('--bg', 'url(' + ART + T.bg + ')'); st.setProperty('--dark', T.dark); st.setProperty('--veil', T.veil); st.setProperty('--ink', T.ink); st.setProperty('--pill', T.pill);
   $('#back').href = Q.get('back') || '../kingdom.html';
-  const stage = $('#stage'), fit = () => { const s = Math.min(innerWidth / 1280, innerHeight / 720); stage.style.transform = 'scale(' + s + ') translate(-50%,-50%)'; };
-  fit(); addEventListener('resize', fit);
+  /* THREE LAYOUTS (25 Nov 2026: the user asked that the reports fit a phone; at 667 x 375 the four-card page shrank its
+     text to 6 px). wide = the four cards side by side on a 1280 x 720 stage; on a small window ONE week is shown at a
+     readable size with week buttons: land = 640 x 360 (phone on its side), port = 360 x 640 (phone upright). */
+  const stage = $('#stage'); let SW = 1280, SH = 720, mode = '';
+  const pick = () => Math.min(innerWidth / 1280, innerHeight / 720) >= .88 ? 'wide' : innerWidth >= innerHeight ? 'land' : 'port';
+  const fit = () => { const s = Math.min(innerWidth / SW, innerHeight / SH); stage.style.width = SW + 'px'; stage.style.height = SH + 'px'; stage.style.transform = 'scale(' + s + ') translate(-50%,-50%)'; };
 
   const QUESTS = [['watch', 'Watch', '../tiles/watch'], ['abc', 'ABC', '../tiles/abc'], ['sheet', 'Speak', '../tiles/sheet'], ['dictation', 'Grammar', '../tiles/dictation']];   // the same tile pictures the GPFIS star board uses (app/art/tiles)
   const LET = 'ABCD', DAY = 'MTWTFSS', MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], NREAD = 6;
@@ -104,18 +137,36 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
   const SUB = (w, k) => k === 0 ? (w.done[0] ? 'watched · 봤어요' : 'not yet · 아직') : w.read[k - 1] + ' of ' + NREAD + ' readings';
   const back = encodeURIComponent('../report/index.html' + location.search);
 
-  stage.innerHTML = '<div class="sign">My ' + T.name + ' Report<small>' + T.name + ' · ' + num + ' · 나의 한 달</small></div><div class="row">' + W.map((w, i) =>
+  const chest = (w, i) => ART + (w.built ? 't' + (i + 1) : w.open ? 'chest-open' : 'chest') + '.png';
+  const totals = () => TOT.map((t, i) => '<div class="big" style="--k:' + i + '"><b data-n="' + t[0] + '">0</b>' + (t[1] ? '<em>of ' + t[1] + '</em>' : '') + '<span>' + t[2] + '</span></div>').join('');
+  let sel = Math.max(0, W.filter(w => w.open).length - 1);   // the phone layouts open on the week the child is in
+  function wide() {
+    stage.innerHTML = '<div class="sign">My ' + T.name + ' Report<small>' + T.name + ' · ' + num + ' · 나의 한 달</small></div><div class="row">' + W.map((w, i) =>
     '<div class="wk' + (w.open ? '' : ' lock') + '" style="--k:' + i + '"><div class="hd"><img class="chest" alt="" src="' + ART + (w.built ? 't' + (i + 1) : w.open ? 'chest-open' : 'chest') + '.png">' +
       '<div><h3>Week ' + (i + 1) + ' · ' + LET[i] + LET[i].toLowerCase() + '<small>' + (w.open ? sum(w.done) + ' of 4 stars · 별 ' + sum(w.done) + '개' : 'Not open yet · 아직') + '</small></h3><div class="st">' + w.done.map(d => STAR(!d)).join('') + '</div></div></div>' +
     '<div class="dy"><div class="days">' + w.days.map((d, k) => '<i class="' + (d ? 'on' : '') + '">' + DAY[k] + '</i>').join('') + '</div><span>' + w.nDays + (w.nDays === 1 ? ' day' : ' days') + '<small>' + (w.last ? 'last: ' + when(w.last) : '—') + '</small></span></div>' +
     QUESTS.map((q, k) => '<div class="q' + (w.done[k] ? ' done' : '') + (w.plays[k] ? '' : ' zero') + '"><img alt="" src="' + ART + q[2] + '.png"><span>' + (w.done[k] ? '<s>★</s>' : '') + q[1] + '<small>' + SUB(w, k) + '</small></span><b>×' + w.plays[k] + '</b></div>').join('') +
     '<div class="q' + (w.lines ? ' done' : ' zero') + '"><img alt="" src="' + ART + '../tiles/book.png"><span>Speaking Book<small>' + w.lines + ' of 60 lines' + (w.bookPlays ? ' · ×' + w.bookPlays : '') + '</small></span><a class="hear' + (w.lines ? '' : ' off') + '" href="../speakbook/index.html?w=' + (i + 1) + '&back=' + back + '">▶ Hear</a></div></div>').join('') + '</div>' +
     '<div class="bot">' + TOT.map((t, i) => '<div class="big" style="--k:' + i + '"><b data-n="' + t[0] + '">0</b>' + (t[1] ? '<em>of ' + t[1] + '</em>' : '') + '<span>' + t[2] + '</span></div>').join('') + '</div>';
-
+  }
+  function phone() {   // one week at a time, big enough to read
+    const w = W[sel], i = sel;
+    stage.innerHTML = '<div class="ph ' + mode + '"><div class="pt"><b>My ' + T.name + ' Report' + (Q.get('sample') ? '<i>sample</i>' : '') + '</b><span class="wtabs">' + W.map((x, k) => '<button class="' + (k === sel ? 'on' : '') + (x.open ? '' : ' lock') + '" data-w="' + k + '" aria-label="Week ' + (k + 1) + '">' + (k + 1) + '</button>').join('') + '</span></div>' +
+      '<div class="pa' + (w.open ? '' : ' lock') + '"><img class="chest" alt="" src="' + chest(w, i) + '"><div><h3>Week ' + (i + 1) + ' · ' + LET[i] + LET[i].toLowerCase() + '<small>' + (w.open ? sum(w.done) + ' of 4 stars · 별 ' + sum(w.done) + '개' : 'Not open yet · 아직') + '</small></h3><div class="st">' + w.done.map(d => STAR(!d)).join('') + '</div></div>' +
+        '<div class="dy"><div class="days">' + w.days.map((d, k) => '<i class="' + (d ? 'on' : '') + '">' + DAY[k] + '</i>').join('') + '</div><span>' + w.nDays + (w.nDays === 1 ? ' day' : ' days') + '<small>' + (w.last ? 'last: ' + when(w.last) : '—') + '</small></span></div></div>' +
+      '<div class="pq' + (w.open ? '' : ' lock') + '">' + QUESTS.map((q, k) => '<div class="q' + (w.done[k] ? ' done' : '') + (w.plays[k] ? '' : ' zero') + '"><img alt="" src="' + ART + q[2] + '.png"><span>' + (w.done[k] ? '<s>★</s>' : '') + q[1] + '<small>' + SUB(w, k) + '</small></span><b>×' + w.plays[k] + '</b></div>').join('') +
+        '<div class="q' + (w.lines ? ' done' : ' zero') + '"><img alt="" src="' + ART + '../tiles/book.png"><span>Speaking Book<small>' + w.lines + ' of 60 lines' + (w.bookPlays ? ' · ×' + w.bookPlays : '') + '</small></span><a class="hear' + (w.lines ? '' : ' off') + '" href="../speakbook/index.html?w=' + (i + 1) + '&back=' + back + '">▶ Hear</a></div></div>' +
+      '<div class="pb">' + totals().replace(/<span>([^<·]*) · [^<]*<\/span>/g, '<span>$1</span>').replace('lines in my voice', 'voice lines') + '</div></div>';   // on a phone the totals keep the English label only (the two-language one does not fit)
+    stage.querySelectorAll('.wtabs button').forEach(b => b.onclick = () => { sel = +b.dataset.w; phone(); fx(false); });
+  }
   // the totals count up; a tapped card bounces and throws sparks
-  document.querySelectorAll('.big b').forEach(b => { const n = +b.dataset.n, t0 = performance.now() + 500; const tick = t => { const f = Math.max(0, Math.min(1, (t - t0) / 900)); b.textContent = Math.round(n * (1 - Math.pow(1 - f, 3))); if (f < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); setTimeout(() => { b.textContent = n; }, 1800); });
-  document.querySelectorAll('.wk').forEach(c => c.onclick = e => { if (e.target.closest('.hear')) return; c.style.animationDelay = '0s'; c.classList.remove('boing'); void c.offsetWidth; c.classList.add('boing'); if (c.classList.contains('lock')) return;
-    const r = c.querySelector('.chest').getBoundingClientRect(); for (let i = 0; i < 14; i++) { const s = document.createElement('i'); s.className = 'spark'; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px'; s.style.background = ['#ffe36a', '#fff', T.pill, '#ffb347'][i % 4]; document.body.appendChild(s);
-      const a = Math.random() * 6.283, d = 60 + Math.random() * 90; s.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 40) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => s.remove(); } });
+  function fx(count) {
+    document.querySelectorAll('.big b').forEach(b => { const n = +b.dataset.n; if (!count) { b.textContent = n; return; } const t0 = performance.now() + 500; const tick = t => { const f = Math.max(0, Math.min(1, (t - t0) / 900)); b.textContent = Math.round(n * (1 - Math.pow(1 - f, 3))); if (f < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); setTimeout(() => { b.textContent = n; }, 1800); });
+    document.querySelectorAll('.wk').forEach(c => c.onclick = e => { if (e.target.closest('.hear')) return; c.style.animationDelay = '0s'; c.classList.remove('boing'); void c.offsetWidth; c.classList.add('boing'); if (c.classList.contains('lock')) return;
+      const r = c.querySelector('.chest').getBoundingClientRect(); for (let i = 0; i < 14; i++) { const s = document.createElement('i'); s.className = 'spark'; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px'; s.style.background = ['#ffe36a', '#fff', T.pill, '#ffb347'][i % 4]; document.body.appendChild(s);
+        const a = Math.random() * 6.283, d = 60 + Math.random() * 90; s.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 40) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => s.remove(); } });
+  }
+  const layout = first => { const m = pick(); if (m !== mode) { mode = m; [SW, SH] = m === 'wide' ? [1280, 720] : m === 'land' ? [640, 360] : [360, 640]; document.body.className = m; m === 'wide' ? wide() : phone(); fx(first === true); } fit(); };
+  layout(true); addEventListener('resize', layout);
 })();
-</script><script src="../../ext/home.js?v=mwutrmfr" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwuu5cop" data-home="../../demo/street.html"></script></body></html>

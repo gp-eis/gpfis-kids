@@ -16,10 +16,13 @@ html,body{margin:0;height:100%;background:#101536;overflow:hidden;overscroll-beh
 #f{position:fixed;left:0;top:0;border:0;transform-origin:0 0;background:#101536}
 </style>
 <iframe id="f" allow="microphone; autoplay; fullscreen" allowfullscreen></iframe>
-<script>(function(){var V="mwutrmfr";try{fetch("./version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
+<script>(function(){var V="mwuu5cop";try{fetch("./version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
 const q = new URLSearchParams(location.search), f = document.getElementById('f');
 let u = q.get('u') || 'pbl/index.html';
-if (!/^(pbl|lgr|fm)\/[A-Za-z0-9_./?=&%-]*$/.test(u) || u.includes('..')) u = 'pbl/index.html';   // only our own programme pages
+/* only our own programme pages: the PAGE part (before ? or #) must be a plain path inside pbl/, lgr/ or fm/; what follows it
+   (a ?back= address, a #book=1 or #log=1 switch) may use address characters, "#" included. Before 25 Nov "#" was not allowed
+   here, so every link with a # part (the Hall of Fame's books) fell back to Start PBL on phones. */
+{ const page = u.split(/[?#]/)[0]; if (!/^(pbl|lgr|fm)\/[A-Za-z0-9_.\/-]*$/.test(page) || page.includes('..') || !/^[A-Za-z0-9_.\/?=&%#:+~,-]*$/.test(u)) u = 'pbl/index.html'; }
 /* The programmes' screens were designed for a laptop-size window (about 720 px tall or more). A phone held sideways is only
    about 360 px tall, where their cards and panels get cut off. So on short screens the programme is laid out as if the
    window were MIN_H tall (and proportionally wider) and the whole thing is shrunk to fit: nothing is cut, the same picture
