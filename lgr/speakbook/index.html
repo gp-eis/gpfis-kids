@@ -37,16 +37,18 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
 /* the cover */
 .cover{position:absolute;left:50%;top:86px;margin-left:-150px;width:300px;height:424px;border:0;padding:0;cursor:pointer;border-radius:6px 14px 14px 6px;background:#e98b8b center/cover;box-shadow:8px 0 0 #fff,10px 4px 0 rgba(0,0,0,.18),0 14px 22px rgba(0,0,0,.4);transition:translate .15s,rotate .15s}
 .cover:hover{translate:0 -6px;rotate:-1.2deg}
-.by{position:absolute;left:50%;top:526px;translate:-50% 0;background:#fff;color:#7d1820;border-radius:999px;padding:2px 22px;font:800 20px "Baloo 2";white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.by{position:absolute;left:50%;top:526px;translate:-50% 0;background:#fff;color:#7d1820;border-radius:999px;padding:2px 22px;font:800 20px "Baloo 2";white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.2);display:flex;align-items:center;gap:12px}
+.by .w4{display:flex;gap:5px}.by .w4 i{width:16px;height:16px;border-radius:50%;background:#eadfd2;box-shadow:inset 0 0 0 2px #d2c3b0}.by .w4 i.on{background:#e23b4a;box-shadow:inset 0 0 0 2px #9c1f2c}
+.by small{font:700 14px "Fredoka","Noto Sans KR";color:#8a6a5c}
 /* a spread */
 .spread{position:absolute;left:50%;top:84px;margin-left:-350px;display:grid;grid-template-columns:335px 335px;gap:10px;padding:10px 10px 14px;background:#8f1b25;border-radius:18px;box-shadow:0 8px 0 #6e0d16,0 18px 26px rgba(0,0,0,.4)}
 .pg{height:474px;border-radius:6px;overflow:hidden;position:relative;background:#fffaf0}
 .pg img{width:100%;height:100%;object-fit:cover;display:block}
 /* the right page keeps the same 16 px margin on all four sides; the ten rows share whatever height is left, evenly (user, 24 Nov: observe spacing and sizing) */
 .R{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
-.card{width:100%;background:#fff;border-radius:16px;padding:6px 12px 7px;text-align:center;font:800 22px/1.1 "Baloo 2";flex:none}
+.card{width:100%;background:#fff;border-radius:14px;padding:5px 14px 6px;font:800 20px/1.15 "Baloo 2";flex:none;display:flex;align-items:baseline;justify-content:space-between;gap:10px;white-space:nowrap}
 .card small b{color:#e8a200}
-.card small{display:block;font:600 13px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:2px}
+.card small{font:600 13px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:2px}
 .listen{flex:none;width:100%;border:0;background:#fff;border-radius:999px;padding:4px 16px 4px 4px;display:flex;align-items:center;gap:12px;box-shadow:0 5px 0 rgba(0,0,0,.15);font:800 19px "Baloo 2";color:#2b2d3a;cursor:pointer}
 .listen:active{translate:0 3px;box-shadow:0 2px 0 rgba(0,0,0,.15)}
 .listen b{flex:none;width:38px;height:38px;line-height:38px!important;font-size:17px!important;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a8a,#e23b4a);box-shadow:0 5px 0 #9c1f2c;color:#fff;font:800 24px/56px "Baloo 2";text-align:center;padding-left:4px}
@@ -56,11 +58,14 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
 .listen.none{opacity:.55;cursor:default}.listen.none b{background:#cdbfae;box-shadow:0 5px 0 #a8977e}.listen.none .wave i{background:#cdbfae;height:6px}
 /* one row a line (the speaking style approved in Start PBL, 24 Nov 2026): the sentence, the words the child missed in red
    with a wavy line under them, and the stars of the best try (three only when the whole line was said right) */
-.lines{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between}
-.ln{border:0;background:#fff;border-radius:11px;height:23px;padding:0 10px 0 6px;display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:6px;text-align:left;font:700 13.5px/1.25 "Fredoka";color:#2b2d3a;box-shadow:0 3px 0 rgba(0,0,0,.12);cursor:pointer;white-space:nowrap;transition:transform .12s}
+.lines{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding-bottom:3px}
+.ln{flex:none;border:0;background:#fff;border-radius:11px;height:24px;padding:0 10px 0 6px;display:grid;grid-template-columns:20px 1fr auto;align-items:center;column-gap:6px;row-gap:0;text-align:left;font:700 13.5px/1.25 "Fredoka";color:#2b2d3a;box-shadow:0 3px 0 rgba(0,0,0,.12);cursor:pointer;white-space:nowrap;transition:transform .12s}
 .ln:hover{transform:translateX(3px)}.ln s{text-decoration:none;color:#fff;background:#e23b4a;border-radius:50%;width:20px;height:20px;font-size:9px;display:grid;place-items:center;padding-left:1px}
 .ln .tx{overflow:hidden;text-overflow:ellipsis}
 .ln u{text-decoration:none}.ln u.miss{color:#c23a1e;background:#ffe0d9;border-radius:4px;text-decoration:underline wavy #e8492e;text-underline-offset:2px}
+/* NO "You said" line in this book (user, 25 Nov): a page has ten lines, and ten wrong lines with a transcript each do not fit.
+   The red words stay; the transcript is shown in Speak right after each try, and kept in lgr.said for the reports. */
+.ln .ys{grid-column:2 / 4;font:600 11px/1.2 "Fredoka";color:#8a6a5c;overflow:hidden;text-overflow:ellipsis;padding-bottom:2px}.ln .ys q{quotes:none;color:#c23a1e}
 .ln em{font-style:normal;font-size:12px;letter-spacing:1px;color:#e6ddd0}.ln em b{color:#ffc93c;font-weight:400}
 .ln.now{background:#ffd23f}.ln.none{opacity:.55;cursor:default}.ln.none s{background:#b9aa96}.ln.none:hover{transform:none}
 .again{flex:none;margin-bottom:3px;background:#fff;border-radius:999px;padding:4px 22px;font:700 14px "Fredoka","Noto Sans KR";color:#2b2d3a;box-shadow:0 4px 0 rgba(0,0,0,.15);text-decoration:none}
@@ -76,7 +81,7 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
 #hear{border:0;background:linear-gradient(#ffe36a,#ffc93c);border-radius:999px;padding:7px 26px;font:800 20px "Baloo 2";color:#4a2508;box-shadow:0 6px 0 #c9921a;margin-left:8px;cursor:pointer}
 #hear:active{translate:0 4px;box-shadow:0 2px 0 #c9921a}#hear.stop{background:linear-gradient(#ff8a8a,#e23b4a);box-shadow:0 6px 0 #9c1f2c;color:#fff}#hear[disabled]{opacity:.5;cursor:default}
 #done{border:0;border-radius:999px;padding:7px 28px;font:800 20px "Baloo 2";margin-left:4px;color:#fff;background:#c9a8a8;box-shadow:0 6px 0 rgba(0,0,0,.18);text-decoration:none;pointer-events:none}
-#done.on{background:linear-gradient(#3fcf7a,#1f9d57);box-shadow:0 6px 0 #14703c;pointer-events:auto;animation:beat 1.2s ease-in-out infinite}#done[hidden]{display:none}
+#done.on{background:linear-gradient(#3fcf7a,#1f9d57);box-shadow:0 6px 0 #14703c;pointer-events:auto;animation:beat 1.2s ease-in-out infinite}#done.on.m{animation:none}#done[hidden]{display:none}
 .help{position:absolute;bottom:104px;height:236px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.35));pointer-events:none}
 #bub{position:absolute;left:10px;bottom:348px;max-width:204px;background:#fff;border:3px solid #f0ab19;border-radius:18px;padding:8px 14px;font:700 17px/1.25 "Fredoka","Noto Sans KR";text-align:center;transition:opacity .3s}#bub:empty{opacity:0}
 .spark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:30}
@@ -88,8 +93,8 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
   <img class="help" style="left:2px" src="../art/kingdom/gerry/stand.webp" alt="Gerry"><img class="help" id="pen" style="left:104px" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bub"></div>
   <div id="tabs"></div>
 </div>
-<script>(function(){var V="mwutbju5";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwutbju5"></script><script src="../book/data/set-a.js?v=mwutbju5"></script><script src="../book/scene.js?v=mwutbju5"></script><script src="../vendor/talk.js?v=mwutbju5"></script>
-<script src="../../voice/clips.js?v=mwutbju5"></script><script src="../../kit/voice.js?v=mwutbju5"></script><script src="../vendor/say.js?v=mwutbju5"></script><script src="../vendor/myvoice.js?v=mwutbju5"></script>
+<script>(function(){var V="mwutrmfr";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwutrmfr"></script><script src="../book/data/set-a.js?v=mwutrmfr"></script><script src="../book/scene.js?v=mwutrmfr"></script><script src="../vendor/talk.js?v=mwutrmfr"></script>
+<script src="../../voice/clips.js?v=mwutrmfr"></script><script src="../../kit/voice.js?v=mwutrmfr"></script><script src="../vendor/say.js?v=mwutrmfr"></script><script src="../vendor/myvoice.js?v=mwutrmfr"></script>
 <script>
 (async function () {
   'use strict';
@@ -107,7 +112,11 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
   const count = r => r.lines.filter((l, i) => have.has(r.id + ':' + i)).length;
   const weekList = w => ALLR.filter(r => r.L === LET[w - 1] && r.q10), weekHas = w => weekList(w).some(r => count(r) > 0);
   // the pages: 0 = the cover, then the readings (a week's six, or every week that has its readings online)
-  const PAGES = [null]; (MONTH ? [1, 2, 3, 4] : [wk]).forEach(w => weekList(w).forEach(r => PAGES.push({ r, w })));
+  // THE MONTH'S BOOK OPENS PART-DONE (user, 24 Nov: 'even if they only finished week one, it would still open but only up to week 1'):
+  // it holds only the weeks that have something in them; four circles on the cover show how many of the four weeks are in the book.
+  let BOOKS = {}; try { BOOKS = JSON.parse(localStorage.getItem('lgr.speakbooks') || '{}') || {}; } catch (e) {}
+  const inBook = w => weekHas(w), weeksIn = [1, 2, 3, 4].filter(inBook);
+  const PAGES = [null]; (MONTH ? weeksIn : [wk]).forEach(w => weekList(w).forEach(r => PAGES.push({ r, w })));
   const N = PAGES.length, seen = new Set([0]); let at = Math.max(0, Math.min(N - 1, +Q.get('p') || 0)), run = 0, audio = null;
   $('#back').href = BACK;
   $('#sub').textContent = 'Ruby · ' + NUM + (MONTH ? ' · Letters A–D' : ' · Week ' + wk) + ' · 나의 스피킹 북';
@@ -134,16 +143,16 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
 
   function draw(dir) {
     const B = $('#book'), P = PAGES[at], cls = 'turn' + (dir < 0 ? ' back' : '');
-    if (!P) { B.innerHTML = '<button class="cover ' + cls + '" id="cv" aria-label="Open the book" style="background-image:url(../art/pages/' + NUM + '/cover.webp)"></button><span class="by">My Speaking Book</span>'; $('#cv').onclick = () => show(1); return; }
+    if (!P) { B.innerHTML = '<button class="cover ' + cls + '" id="cv" aria-label="Open the book" style="background-image:url(../art/pages/' + NUM + '/cover.webp)"></button><span class="by">My Speaking Book' + (MONTH ? '<span class="w4">' + [1, 2, 3, 4].map(w => '<i class="' + (inBook(w) ? 'on' : '') + '"></i>').join('') + '</span><small>' + weeksIn.length + ' of 4 weeks · 4주 중 ' + weeksIn.length + '주</small>' : '') + '</span>'; $('#cv').onclick = () => { if (N > 1) show(1); else note('Do Speak first! · 말하기를 먼저 해요'); }; return; }
     const r = P.r, n = count(r), meta = i => SAID[r.id + ':' + i], got = r.lines.reduce((t, l, i) => t + ((meta(i) || {}).s || 0), 0), scored = r.lines.some((l, i) => meta(i));
     const words = (l, i) => { const m = (meta(i) || {}).m || []; return l.split(' ').map((w, k) => '<u class="' + (m.includes(k) ? 'miss' : '') + '">' + w + '</u>').join(' '); };
     const row = n3 => '★★★'.split('').map((x, k) => k < n3 ? '<b>★</b>' : '★').join('');
     const H = [14, 26, 34, 20, 38, 28, 16, 32, 36, 22, 30, 18, 34, 24, 12, 28, 36, 20];
     const here = '../speakbook/index.html?' + (MONTH ? 'month=1' : 'w=' + wk) + (SAMPLE ? '&sample=1' : '') + '&p=' + at + '&back=' + encodeURIComponent(BACK);
     B.innerHTML = '<div class="spread ' + cls + '"><div class="pg"><img alt="' + r.title + '" src="../art/pages/' + NUM + '/' + pageOf(r) + '.webp"></div><div class="pg R">' +
-      '<div class="card">' + r.title + '<small>' + (n ? n + ' lines in my voice' + (scored ? ' · <b>★ ' + got + '</b> / ' + r.lines.length * 3 : '') : 'Nothing yet · 아직 없어요') + '</small></div>' +
+      '<div class="card">' + r.title + '<small>' + (n ? (scored ? '<b>★ ' + got + '</b> / ' + r.lines.length * 3 : n + ' lines · ' + n + '줄') : 'Nothing yet · 아직') + '</small></div>' +
       '<button class="listen' + (n ? '' : ' none') + '"><b>▶</b><span class="wave">' + H.map((h, k) => '<i style="--h:' + h + ';--k:' + k + '"></i>').join('') + '</span>Listen!</button>' +
-      '<div class="lines">' + r.lines.map((l, i) => '<button class="ln' + (have.has(r.id + ':' + i) ? '' : ' none') + '" aria-label="Line ' + (i + 1) + '"' + (meta(i) && meta(i).h ? ' title="You said: ' + String(meta(i).h).replace(/"/g, '') + '"' : '') + '><s>' + (have.has(r.id + ':' + i) ? '▶' : '●') + '</s><span class="tx">' + words(l, i) + '</span><em>' + (meta(i) ? row(meta(i).s) : '') + '</em></button>').join('') + '</div>' +
+      '<div class="lines">' + r.lines.map((l, i) => '<button class="ln' + (have.has(r.id + ':' + i) ? '' : ' none') + '" aria-label="Line ' + (i + 1) + '"' + (meta(i) && meta(i).h ? ' title="You said: ' + String(meta(i).h).replace(/"/g, '') + '"' : '') + '><s>' + (have.has(r.id + ':' + i) ? '▶' : '●') + '</s><span class="tx">' + words(l, i) + '</span><em>' + (meta(i) ? row(meta(i).s) : '') + '</em>' + '</button>').join('') + '</div>' +
       '<a class="again" href="../sheet/index.html?r=' + r.id + '&w=' + P.w + '&back=' + encodeURIComponent(here) + '">🎤 ' + (n ? 'Say it again' : 'Say it in Speak') + '</a></div></div>';
     const L = $('.listen'); L.onclick = async () => { if (!n) return; if (L.classList.contains('stop')) return quiet(); quiet(); hush(); const mine = run; if (await playPage(r, mine)) { Talk.ding && Talk.ding(2); sparks(L); } };
     document.querySelectorAll('.ln').forEach((b, i) => b.onclick = async () => { if (b.classList.contains('none')) return note('Say it in Speak first! · 먼저 말해요'); quiet(); hush(); Talk.pop && Talk.pop(); await playLine(r, i, run); });
@@ -153,7 +162,7 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
     const dots = PAGES.map((x, i) => x && x.w === curW ? i : -1).filter(i => i > 0);   // this week's readings, as their own pictures
     $('#tabs').innerHTML = '<button class="tab cv' + (at === 0 ? ' on' : '') + '" data-i="0">Cover</button>' +
       (MONTH ? [1, 2, 3, 4].map(w => { const first = PAGES.findIndex(x => x && x.w === w), ok = first > 0 && weekHas(w); return '<button class="tab' + (w === curW ? ' on' : '') + (ok ? '' : ' off') + '" data-i="' + (ok ? first : -1) + '">Week ' + w + '</button>'; }).join('') : '') +
-      '<button id="hear"' + (have.size ? '' : ' disabled') + '>▶ Hear my whole book</button>' + (MONTH ? '' : '<a id="done" class="' + (seen.size >= N ? 'on' : '') + '" href="' + BACK + '">Done ✓</a>');
+      '<button id="hear"' + (have.size ? '' : ' disabled') + '>▶ Hear my whole book</button>' + '<a id="done" class="' + (MONTH ? 'on m' : seen.size >= N ? 'on' : '') + '" href="' + BACK + '">Done ✓</a>';   // the month's book can be closed at any time
     $('#tabs').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (i < 0) return note('Not yet! · 아직이에요'); show(i); });
     $('#hear').onclick = hearAll;
     $('#prev').hidden = at === 0; $('#next').hidden = at === N - 1; $('#next').classList.toggle('go', at === 0);
@@ -171,4 +180,4 @@ body{background:radial-gradient(circle at 50% 45%,#ef5a64,#c7222f 70%,#a5131f)}
   draw(0); bar();
   if (at === 0 && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) say('This is your Speaking Book!');
 })();
-</script><script src="../../ext/home.js?v=mwutbju5" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwutrmfr" data-home="../../demo/street.html"></script></body></html>

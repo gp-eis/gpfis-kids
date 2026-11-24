@@ -14,9 +14,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
 #world{position:absolute;left:0;top:0;width:1536px;height:1024px;transform-origin:0 0}
 #room{position:absolute;inset:0;background:url(../options/art/gpfis-hall-inside.webp) center/cover;box-shadow:0 0 80px 40px rgba(242,226,196,.9)}
 .at{position:absolute}
-.mybook{cursor:pointer;z-index:3;filter:drop-shadow(0 4px 4px rgba(0,0,0,.45));animation:mbBob 2.6s ease-in-out infinite}.mybook img{width:100%;height:100%;object-fit:cover;border-radius:5px;border:2px solid #fff;display:block;box-sizing:border-box}
-.mybook i{position:absolute;right:-9px;bottom:-9px;width:24px;height:24px;border-radius:50%;background:#ff6b5e;border:2px solid #fff;box-sizing:border-box}.mybook i::before{content:'';position:absolute;left:8px;top:5px;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent}
-.mybook.none{filter:grayscale(1) opacity(.45);animation:none}@keyframes mbBob{50%{translate:0 -3px}}
+.cell.hasbook{box-shadow:0 0 0 3px #ffb52e,0 4px 0 rgba(0,0,0,.1);animation:hbBob 2.4s ease-in-out infinite}@keyframes hbBob{50%{translate:0 -3px}}
+.wk4{display:flex;gap:4px;text-decoration:none;margin-top:2px}.wk4 s{width:13px;height:13px;border-radius:50%;background:#e6dfd2;box-shadow:inset 0 0 0 2px #cfc5b2;text-decoration:none}.wk4 s.on{background:#35b24a;box-shadow:inset 0 0 0 2px #23863a}
+.wkn{font:700 12px Fredoka,sans-serif;font-style:normal;color:#23863a;white-space:nowrap}
 .logo{display:grid;place-items:center}.logo img{max-width:100%;max-height:100%}
 /* art wing: the child's own pictures, set inside the painted frames */
 .art{overflow:hidden;background:#fffaf0;cursor:pointer}.art::after,.empty::after{content:"";position:absolute;inset:0;box-shadow:inset 0 4px 4px rgba(90,50,0,.3),inset 3px 0 3px rgba(90,50,0,.14);pointer-events:none}.art svg{width:100%;height:100%;display:block}
@@ -85,7 +85,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
 .btn svg{width:56px;height:56px}
 #back{left:24px;top:20px;transform-origin:0 0}
 #snd{right:24px;top:20px;transform-origin:100% 0}
-#sampleTag{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;background:rgba(43,45,58,.82);color:#fff;font:600 16px Fredoka,"Malgun Gothic",sans-serif;padding:7px 18px;border-radius:999px;pointer-events:none}
+#sampleTag[hidden]{display:none}#sampleTag{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;background:rgba(43,45,58,.82);color:#fff;font:600 16px Fredoka,"Malgun Gothic",sans-serif;padding:7px 18px;border-radius:999px;pointer-events:none}
 </style>
 <div id="rot">
 <div class="fill"></div>
@@ -97,13 +97,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
   <div id="wings"></div><div id="items"></div><div id="tip"></div>
 </div></div>
 <div id="panel"></div>
-<div id="sampleTag">Sample · 예시 화면</div>
+<div id="sampleTag" hidden>Sample · 예시 화면</div>
 <button class="btn" id="back" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M62 18 L28 50 L62 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
 </div>
-<script>(function(){var V="mwutbju5";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwutbju5"></script>
-<script src="../kit/voice.js?v=mwutbju5"></script>
-<script src="../kit/turn.js?v=mwutbju5"></script>
+<script>(function(){var V="mwutrmfr";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwutrmfr"></script>
+<script src="../kit/voice.js?v=mwutrmfr"></script>
+<script src="../kit/turn.js?v=mwutrmfr"></script>
 <script>
 /* ---------- 24 months per programme (final 목차, worksheets/contents/*-24-months.md) ---------- */
 const N = 24;
@@ -116,8 +116,22 @@ const LEVELS = [['ruby', 'Ruby'], ['sapphire', 'Sapphire'], ['emerald', 'Emerald
 const BOOKPAIR = n => n <= 12 ? [`Literacy and Math ${n}`, `Play and Speak ${n}`] : [`Daily Essay ${n - 12}`, `ECS ${n - 12}`];   // two books per number, as on the platform
 /* ---------- what the child finished (sample: months 1–7 done in all three; in the real site each programme hands this over) ---------- */
 const range = n => Array.from({ length: n }, (_, i) => i + 1);
-const EARNED = { pbl: range(7), lgr: range(7), fm: range(7), books: range(7) };
-const allThree = () => range(N).filter(m => EARNED.pbl.includes(m) && EARNED.lgr.includes(m) && EARNED.fm.includes(m));
+const HERE = encodeURIComponent(location.pathname), JS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') || {}; } catch (e) { return {}; } };
+function monthBook(prog, m) {   // -> { link, weeks: how many of the 4 weeks are finished } or null when there is no book yet
+  let weeks = 0, link = '';
+  if (prog === 'pbl') { const P = JS('spbl.pages')[m] || {}; weeks = [1, 2, 3, 4].filter(w => ((P[w] || {}).book || {}).ok).length; link = '../pbl/index.html?back=' + HERE + '#book=' + m; }
+  if (prog === 'lgr') { const B = JS('lgr.speakbooks'), said = Object.keys(JS('lgr.said'));   // a week is in the month book as soon as Speak kept a line for it (the Readers chat's rule): week 1 = the a- readings, 2 = b-, 3 = c-, 4 = d-
+    weeks = m === 1 ? [1, 2, 3, 4].filter(w => B['w' + w] || said.some(k => k.startsWith('abcd'[w - 1] + '-'))).length : 0; link = '../lgr/speakbook/index.html?month=' + m + '&back=' + HERE; }   // Readers saves number 1 only so far
+  if (prog === 'fm') { const B = JS('fm.world.sample').book || {}; weeks = [0, 1, 2, 3].filter(k => B[m + '-' + k]).length; link = '../fm/index.html#book=' + m + '&back=' + HERE; }
+  return weeks ? { link, weeks } : null; }
+const WKS = b => b ? '<u class="wk4">' + [1, 2, 3, 4].map(w => '<s class="' + (w <= b.weeks ? 'on' : '') + '"></s>').join('') + '</u><em class="wkn">' + b.weeks + ' of 4</em>' : '';
+/* what the Hall shows (24 Nov 2026, user: "the rest of the island should be closed"): the child's REAL progress on this device.
+   EARNED = months that are STARTED (at least one week's book): shown in colour, with "n of 4" circles; everything else is closed.
+   FULL   = months with all four weeks done: these count as built / stamped / won.  hall.html?sample still shows the old sample. */
+const SAMPLE = /[?&]sample/.test(location.search), WKN = (g, m) => { const b = monthBook(g, m); return b ? b.weeks : 0; };
+const EARNED = SAMPLE ? { pbl: range(7), lgr: range(7), fm: range(7), books: range(7) } : { pbl: range(N).filter(m => WKN('pbl', m)), lgr: range(N).filter(m => WKN('lgr', m)), fm: range(N).filter(m => WKN('fm', m)), books: [] };
+const FULL = SAMPLE ? EARNED : { pbl: EARNED.pbl.filter(m => WKN('pbl', m) === 4), lgr: EARNED.lgr.filter(m => WKN('lgr', m) === 4), fm: EARNED.fm.filter(m => WKN('fm', m) === 4), books: [] };
+const allThree = () => range(N).filter(m => FULL.pbl.includes(m) && FULL.lgr.includes(m) && FULL.fm.includes(m));
 /* ---------- simple crayon-style drawings stand in for the child's real pictures (one per Start PBL month) ---------- */
 const crayon = '<filter id="cr"><feTurbulence baseFrequency=".9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"/></filter>';
 const G = body => `<svg viewBox="0 0 100 80"><defs>${crayon}</defs><rect width="100" height="80" fill="#fffaf0"/><g filter="url(#cr)" fill="none" stroke-linecap="round" stroke-width="3">${body}</g></svg>`;
@@ -155,12 +169,12 @@ const PASSPORT = n => `<svg viewBox="0 0 120 80"><g transform="skewX(-8)"><rect 
 
 /* ---------- placing it all in the painted room (positions in picture pixels, 1536 x 1024) ---------- */
 const items = document.getElementById('items'), tip = document.getElementById('tip');
-const lvlDone = i => EARNED.lgr.filter(m => m > i * 6 && m <= i * 6 + 6).length;
+const lvlDone = i => FULL.lgr.filter(m => m > i * 6 && m <= i * 6 + 6).length;
 /* the wings (+ bookshelf and the trophy podium), in picture pixels: tap one to zoom in and see all 24 months */
 const WINGS = {
-  pbl:    { r: [150, 280, 360, 500], name: 'Start PBL', total: () => `${EARNED.pbl.length} of 24 islands built` },
-  lgr:    { r: [575, 320, 385, 330], name: "Let's Go Readers", total: () => `${EARNED.lgr.length} of 24 months · ${LEVELS.filter((_, i) => lvlDone(i) === 6).length} of 4 gems` },
-  fm:     { r: [1030, 290, 355, 430], name: 'Fresh Math', total: () => `${EARNED.fm.length} of 24 missions` },
+  pbl:    { r: [150, 280, 360, 500], name: 'Start PBL', total: () => `${FULL.pbl.length} of 24 islands built` },
+  lgr:    { r: [575, 320, 385, 330], name: "Let's Go Readers", total: () => `${FULL.lgr.length} of 24 months · ${LEVELS.filter((_, i) => lvlDone(i) === 6).length} of 4 gems` },
+  fm:     { r: [1030, 290, 355, 430], name: 'Fresh Math', total: () => `${FULL.fm.length} of 24 missions` },
   books:  { r: [0, 520, 330, 300], name: 'My books', total: () => `${EARNED.books.length * 2} of 48 books` },
   months: { r: [560, 520, 415, 370], name: 'Month trophies', total: () => `${allThree().length} of 24 months complete` },
 };
@@ -190,35 +204,36 @@ function warp(el, [p0, p1, p2, p3], W = 100, H = 80) {   // matrix3d mapping a W
   Object.assign(el.style, { left: 0, top: 0, width: W + 'px', height: H + 'px', transformOrigin: '0 0',
     transform: `matrix3d(${a / W},${d / W},0,${g / W},${b / H},${e / H},0,${h / H},0,0,1,0,${x0},${y0},0,1)` });
 }
+/* a thing on the wall whose month has a book opens that book when tapped (the island picture, the gem, the stamp) */
+const opens = (e, prog, m) => { const b = !SAMPLE && monthBook(prog, m); if (b) { e.style.cursor = 'pointer'; e.onclick = ev => { ev.stopPropagation(); location.href = b.link; }; } };
+const part = (prog, m) => SAMPLE || WKN(prog, m) === 4 ? '' : ` · ${WKN(prog, m)} of 4`;
 FRAMES.forEach(([x, y, w, h], i) => {
   const m = pblShow[i];
-  const e = m ? add(x, y, w, h, 'art isle', ISLE(m), `Island ${m}: ${T.pbl[m - 1]}`, 'Start PBL · my island', `island ${m}`, 'pbl')
+  const e = m ? add(x, y, w, h, 'art isle', ISLE(m), `Island ${m}: ${T.pbl[m - 1]}`, 'Start PBL · my island', SAMPLE || WKN('pbl', m) === 4 ? `island ${m}` : `island ${m} · ${WKN('pbl', m)} of 4`, 'pbl')
               : add(x, y, w, h, 'empty', '+', 'Your next island goes here', 'Start PBL', null, 'pbl');
   warp(e, QUADS[i]); const sv = e.querySelector('svg'); if (sv) sv.setAttribute('preserveAspectRatio', 'none');
+  if (m) opens(e, 'pbl', m);
 });
-add(290, 640, 104, 58, 'passport', PASSPORT(EARNED.pbl.length), 'Explorer’s log', `Start PBL · ${EARNED.pbl.length} of 24 islands`, 'explorer’s log', 'pbl');
+add(290, 640, 104, 58, 'passport', PASSPORT(FULL.pbl.length), 'Explorer’s log', `Start PBL · ${FULL.pbl.length} of 24 islands`, 'explorer’s log', 'pbl');
 // Let's Go Readers wing: one gem per level (6 months each): won = glowing, on its way = half-lit with x/6, not yet = faint
 LEVELS.forEach(([k, name], i) => {
   const d = lvlDone(i), x = [645, 730, 814, 897][i] - 18;   // centres of the painted glass cases
-  const e = add(x, 553, 36, 44, 'gem' + (d === 6 ? '' : d ? ' part' : ' ghost'), gemImg(k), d === 6 ? name + '!' : d ? `${name}: ${d} of 6` : 'Still to come', "Let's Go Readers · " + (i * 6 + 1) + '–' + (i * 6 + 6), d === 6 ? name : d ? `${name} ${d}/6` : 'still to come', 'lgr');
+  const going = EARNED.lgr.filter(m => m > i * 6 && m <= i * 6 + 6 && !FULL.lgr.includes(m))[0];   // a number of this level that is started but not finished
+  const e = add(x, 553, 36, 44, 'gem' + (d === 6 ? '' : d || going ? ' part' : ' ghost'), gemImg(k), d === 6 ? name + '!' : d ? `${name}: ${d} of 6` : going ? `${name} · ${going}${part('lgr', going)}` : 'Still to come', "Let's Go Readers · " + (i * 6 + 1) + '–' + (i * 6 + 6), d === 6 ? name : d ? `${name} ${d}/6` : going ? `${name} ${going}${part('lgr', going)}` : 'still to come', 'lgr');
+  if (going) opens(e, 'lgr', going);
   const cp = [...document.querySelectorAll('.cap.w-lgr')].pop(); if (cp) cp.style.top = '630px';   // label under the case's base, not over it
-  e.style.setProperty('--glow', GEM[k][2]); e.style.setProperty('--fill', .3 + d / 6 * .7);
+  e.style.setProperty('--glow', GEM[k][2]); e.style.setProperty('--fill', going && !d ? .75 : .3 + d / 6 * .7);
 });
 // Fresh Math wing: the six newest mission stamps in the round frames, the four newest alien friends on the shelf
 const CIRCLES = [[1118, 467], [1209, 463], [1305, 460], [1118, 565], [1209, 565], [1305, 563]];
 const fmShow = newest(EARNED.fm, 6);
 CIRCLES.forEach(([cx, cy], i) => { const m = fmShow[i];
-  if (m) { const e = add(cx - 36, cy - 36, 72, 72, 'stamp', stampSvg(m), `Mission ${m}: ${T.fm[m - 1]}`, 'Fresh Math · stamp', `· ${m}`, 'fm'); e.style.setProperty('--r', (i % 2 ? 8 : -6) + 'deg'); } });
-newest(EARNED.fm, 4).forEach((m, i) => add([1074, 1164, 1257, 1336][i] - 19, 606, 38, 44, 'alien' + (i % 2 ? ' b' : ''), ALIEN(m), `Friend from planet ${m}`, 'Fresh Math · alien friend', null, 'fm'));
-/* each programme's BOOK with the child's recordings (boss, 24 Nov): the cover stands in its wing and opens the programme's own
-   book, which comes back here when closed. Shown only when that week's book exists on this device. */
-{ const here = encodeURIComponent(location.pathname), J = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') || {}; } catch (e) { return {}; } };
-  const BOOKS3 = [
-    ['pbl', 176, 612, 50, 70, '../pbl/art/pages/1/cover.webp', '../pbl/index.html?back=' + here + '#book=1-1', 'My Speech Book', !!((((J('spbl.pages')[1] || {})[1] || {}).book || {}).ok)],
-    ['lgr', 584, 520, 40, 56, '../lgr/art/pages/1/cover.webp', '../lgr/speakbook/index.html?w=1&back=' + here, 'My Speaking Book', !!J('lgr.speakbooks').w1],
-    ['fm', 1099, 594, 40, 56, '../fm/art/ws/fm01-cover.jpg', '../fm/index.html#book=1&back=' + here, 'My Discussion Book', !!(J('fm.world.sample').book || {})['1-0']]];
-  for (const [wing, x, y, bw, bh, cover, link, name, got] of BOOKS3) { const e = add(x, y, bw, bh, 'mybook' + (got ? '' : ' none'), '<img src="' + cover + '" alt=""><i></i>', null, null, got ? 'hear my book' : null, wing);
-    e.title = name; e.onclick = ev => { ev.stopPropagation(); if (got) location.href = link; else show(x + bw / 2, y - 4, 'Finish week 1 to get this book', name); }; } }
+  if (m) { const e = add(cx - 36, cy - 36, 72, 72, 'stamp', stampSvg(m), `Mission ${m}: ${T.fm[m - 1]}`, 'Fresh Math · stamp', `· ${m}${part('fm', m)}`, 'fm'); e.style.setProperty('--r', (i % 2 ? 8 : -6) + 'deg'); opens(e, 'fm', m); } });
+newest(FULL.fm, 4).forEach((m, i) => add([1074, 1164, 1257, 1336][i] - 19, 606, 38, 44, 'alien' + (i % 2 ? ' b' : ''), ALIEN(m), `Friend from planet ${m}`, 'Fresh Math · alien friend', null, 'fm'));
+/* each programme's BOOK with the child's recordings (boss, 24 Nov). No separate book stands in the room: tapping a month in a
+   wing's panel (an island, a Readers number, a mission) opens that month's book in the programme itself, and the book comes
+   back here when closed. It opens as soon as ONE week is finished and shows the weeks done so far; four little circles
+   under the month say how many of its four weeks are in the book. */
 // month trophy on the podium: how many months are complete in all three
 if (allThree().length) add(733, 610, 70, 73, 'trophy',   /* base centred on the gold disc (top centre x 768, y 683); its top stays below the glass cases (y 606) so all four gems show */ TROPHY(allThree().length), `${allThree().length} months complete!`, 'All three programmes', null, 'months');
 // finished books on the left bookshelf: two spines per number, in the two compartments
@@ -231,23 +246,24 @@ EARNED.books.flatMap(n => BOOKPAIR(n).map((t, b) => [n, b, t])).slice(-16).forEa
   add(x, yb - h, w, h, 'spine', '<i></i><i></i>', t, 'Book finished', null, 'books').style.setProperty('--c', ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][(n + b) % 4]);
 });
 
+if (SAMPLE) document.getElementById('sampleTag').hidden = false;
 /* ---------- the 24-month panel that opens beside a zoomed wing ---------- */
 const panel = document.getElementById('panel');
-const cell = (html, cls, title) => `<button class="cell ${cls}" data-t="${title.replace(/"/g, '&quot;')}">${html}</button>`;
+const cell = (html, cls, title, book) => `<button class="cell ${cls}${book ? ' hasbook' : ''}" data-t="${title.replace(/"/g, '&quot;')}"${book ? ` data-link="${book.link}"` : ''}>${html}${WKS(book)}</button>`;
 function panelFor(k) {
   const W = WINGS[k]; let body = '';
   if (k === 'pbl') {
     [[1, 'Islands 1–12'], [13, 'Islands 13–24']].forEach(([from, h]) => {
       body += `<h4>${h}</h4><div class="grid g6">` + range(12).map(i => { const m = from + i - 1, on = EARNED.pbl.includes(m);
-        return cell(`<span class="fr sea${on ? '' : ' off'}">${ISLE(m)}</span><i>${m}</i>`, on ? '' : 'off', on ? `Island ${m}: ${T.pbl[m - 1]}` : `Island ${m}: still to explore`); }).join('') + '</div>';
+        return cell(`<span class="fr sea${on ? '' : ' off'}">${ISLE(m)}</span><i>${m}</i>`, on ? '' : 'off', on ? `Island ${m}: ${T.pbl[m - 1]}` : `Island ${m}: still to explore`, monthBook('pbl', m)); }).join('') + '</div>';
     });
   } else if (k === 'lgr') {
     body = LEVELS.map(([g, name], i) => { const d = lvlDone(i);
       return `<div class="lvl"><span class="lg ${d === 6 ? '' : d ? 'part' : 'ghost'}" style="--glow:${GEM[g][2]};--fill:${.3 + d / 6 * .7}">${gemImg(g)}</span><b>${name}</b><div class="grid g6 sm">` +
-        range(6).map(j => { const m = i * 6 + j, on = EARNED.lgr.includes(m); return cell(`<span class="dot" style="--c:${GEM[g][1]}">${m}</span>`, on ? '' : 'off', `· ${m} ${T.lgr[m - 1]}`); }).join('') + '</div></div>'; }).join('');
+        range(6).map(j => { const m = i * 6 + j, on = EARNED.lgr.includes(m); return cell(`<span class="dot" style="--c:${GEM[g][1]}">${m}</span>`, on ? '' : 'off', `· ${m} ${T.lgr[m - 1]}`, monthBook('lgr', m)); }).join('') + '</div></div>'; }).join('');
   } else if (k === 'fm') {
     body = '<div class="grid g6">' + range(N).map(m => { const on = EARNED.fm.includes(m);
-      return cell(on ? `<span class="st">${stampSvg(m)}</span>` : `<span class="st off"><b>${m}</b></span>`, on ? '' : 'off', `Mission ${m}: ${T.fm[m - 1]}`); }).join('') + '</div>';
+      return cell(on ? `<span class="st">${stampSvg(m)}</span>` : `<span class="st off"><b>${m}</b></span>`, on ? '' : 'off', `Mission ${m}: ${T.fm[m - 1]}`, monthBook('fm', m)); }).join('') + '</div>';
   } else if (k === 'books') {
     body = '<div class="grid g6">' + range(N).map(n => { const on = EARNED.books.includes(n), [a, b] = BOOKPAIR(n);
       return cell(`<span class="bk2"><s style="--c:${on ? ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][n % 4] : '#e6dfd2'}"></s><s style="--c:${on ? ['#e8492e', '#2f7fd6', '#f2a33a', '#2c9a5b'][(n + 1) % 4] : '#e6dfd2'}"></s></span><i>${n}</i>`, on ? '' : 'off', `· ${n}: ${a} + ${b}`); }).join('') + '</div><p class="note">1–12: Literacy and Math + Play and Speak · 13–24: Daily Essay + ECS</p>';
@@ -255,8 +271,9 @@ function panelFor(k) {
     body = '<div class="grid g6">' + range(N).map(m => { const on = allThree().includes(m);
       return cell(`<span class="tr">${TROPHY(m, !on)}</span>`, on ? '' : 'off', on ? `Month ${m} complete in all three!` : `Month ${m}`); }).join('') + '</div>';
   }
-  panel.innerHTML = `<header><b>${W.name}</b><span>${W.total()}</span></header><div class="pb">${body}</div><footer id="pf">Tap one to see its name</footer>`;
-  panel.querySelectorAll('.cell').forEach(c => c.onclick = ev => { ev.stopPropagation(); document.getElementById('pf').textContent = c.dataset.t; say(c.dataset.t.replace(/·/g, '')); });
+  panel.innerHTML = `<header><b>${W.name}</b><span>${W.total()}</span></header><div class="pb">${body}</div><footer id="pf">${panel && ['pbl', 'lgr', 'fm'].includes(k) ? 'Tap one with circles to open its book and hear it' : 'Tap one to see its name'}</footer>`;
+  panel.querySelectorAll('.cell').forEach(c => c.onclick = ev => { ev.stopPropagation(); if (c.dataset.link) { location.href = c.dataset.link; return; }   // this month has a book: open it
+    document.getElementById('pf').textContent = c.dataset.t; say(c.dataset.t.replace(/·/g, '')); });
 }
 function say(t) { Voice.say(t, { who: 'penny' }); }
 
@@ -303,5 +320,5 @@ world.classList.add('nozoomanim'); fit();
 const zm = location.hash.match(/zoom=([a-z]+)/); if (zm) zoomTo(zm[1]);   // for checking pictures: open already zoomed
 setTimeout(() => world.classList.remove('nozoomanim'), 300);
 </script>
-<script src="hall-fun.js?v=mwutbju5"></script>
+<script src="hall-fun.js?v=mwutrmfr"></script>
 </html>

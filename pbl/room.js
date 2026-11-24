@@ -365,7 +365,7 @@ window.Room = (() => {
       const WD = p => MB ? (all[ctx.month][p.wk] || {}) : D, pno = i => MB ? P.slice(0, i + 1).filter(p => p.wk === P[i].wk).length : i + 1;
       const a = box.querySelector('#act'); let n = -1, busy = false, audio = null, urls = {};   // n = -1 is the COVER (the month's worksheet cover); the pages are 0..
       a.style.setProperty('--c', t.col);
-      a.innerHTML = `<button class="back pill">${BACK ? '← Back <small>돌아가기</small>' : MB ? '← Island <small>섬으로</small>' : '← Room <small>방으로</small>'}</button><h2>My Speech Book</h2>` +
+      a.innerHTML = `<button class="back pill">${BACK ? '← Back <small>돌아가기</small>' : MB ? '← Island <small>섬으로</small>' : '← Room <small>방으로</small>'}</button><h2>My Speech Book${MB ? `<span class="of4">${[1, 2, 3, 4].map(w => `<u${t.weeks.includes(w) ? ' class="on"' : ''}></u>`).join('')}<b>${t.weeks.length} of 4 weeks</b></span>` : ''}</h2>` +
         `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small><div class="sheet"></div></div><div class="pg r"><div class="cov"><img src="art/pages/${ctx.month}/cover.webp" alt="" onerror="this.remove()"><b class="by"></b></div><div class="sent"></div>` +
         `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
         `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
@@ -411,7 +411,9 @@ window.Room = (() => {
         $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${p.wk || ctx.week} · ${String(pno(n)).padStart(2, '0')}`;
         // the sentence, with the words that were NOT heard in the child's best try marked, so they can see which part to practise
         const esc = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;'), ms = v.miss || [];
-        $('.sent').innerHTML = v.said ? `<span>${v.said.split(' ').map((w, wi) => ms.includes(wi) ? `<u class="miss">${esc(w)}</u>` : esc(w)).join(' ')}</span>` : '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
+        $('.sent').innerHTML = v.said ? `<span>${v.said.split(' ').map((w, wi) => ms.includes(wi) ? `<u class="miss">${esc(w)}</u>` : esc(w)).join(' ')}</span>` +
+          // ... and, when it was not all right, what was actually heard (user, 24 Nov: the transcript belongs in the book too)
+          (v.heard && (ms.length || (v.stars || 0) < 3) ? `<small class="ys"><b>You said:</b> “${esc(v.heard)}”</small>` : '') : '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
         hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
         seenPg.add(n); if (seenPg.size >= P.length && !ok.classList.contains('on')) { ok.classList.add('on'); if (!a.classList.contains('reading')) { K().snd.win(); cheer(); } }
       };

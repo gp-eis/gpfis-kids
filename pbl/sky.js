@@ -46,7 +46,7 @@
   // SAVING NEVER LOSES A BUILT PLACE (24 Nov): another tab, or the demo filler, may have written the save after this page read it.
   // So each save first reads what is stored and keeps every built place and the higher star count from it.
   // A page opened by a direct book link (#book=1-1, the Hall of Fame) is only a visit: it does not write the airship save at all.
-  const VISIT = /book=\d+-\d/.test(location.hash);
+  const VISIT = /book=\d+/.test(location.hash);
   const save = () => { if (VISIT) return; try {
     const o = JSON.parse(localStorage.getItem(KEY) || '{}');
     if (o && o.v === 2) { for (const n in (o.built || {})) { const mine = S.built[n] = S.built[n] || []; for (const i of o.built[n]) if (!mine.includes(i)) mine.push(i); } if (o.stars > S.stars) S.stars = o.stars; }
@@ -551,7 +551,10 @@
   const hv = h.match(/hov=(\d)/); if (hv && pic) setTimeout(() => { alive(hv[1] - 1, 'hov'); pic.querySelector(`.spr[data-i="${hv[1] - 1}"]`).style.transform = 'translateY(-26px) scale(1.06)'; }, 900);
   const rr = h.match(/room=(\w*)/); if (rr && pic) setTimeout(() => { Room.open({ month: +((h.match(/isle=(\d+)/) || [])[1] || 1), week: +((h.match(/wk=(\d)/) || [])[1] || 1), done: () => {} }); if (rr[1]) setTimeout(() => { Room.play(rr[1]); }, 500); }, 800);
   const mbk = h.match(/mbook(?:=(.))?/); if (mbk && pic) setTimeout(() => { if (Room.month(cur.n, markBook) && mbk[1]) setTimeout(() => { const x = document.querySelector('.pdots i[data-w="' + mbk[1] + '"]'); if (x) x.click(); }, 500); }, 900);   // checking stills: #mbook opens the month's Speech Book, #mbook=2 at week 2
-  const bk = h.match(/book=(\d+)-(\d)/); if (bk && ISL[bk[1] - 1]) { const I = ISL[bk[1] - 1]; ship.x = I.x; ship.y = I.y - 120; document.body.classList.add('bookonly'); openIsle(I); setTimeout(() => { Room.open({ month: +bk[1], week: +bk[2], done: () => {} }); Room.play('book'); }, 0); }   // #book=1-1: straight into that week's Speech Book (Hall of Fame link)
+  // #book=1-1: straight into that week's Speech Book.  #book=1 (no week): the MONTH's Speech Book with the weeks finished so far,
+  // even if that is only one (Hall of Fame island, user 24 Nov); with no week finished the island simply shows.
+  const bk = h.match(/book=(\d+)(?:-(\d))?/); if (bk && ISL[bk[1] - 1]) { const I = ISL[bk[1] - 1]; ship.x = I.x; ship.y = I.y - 120; document.body.classList.add('bookonly'); openIsle(I);
+    setTimeout(() => { if (bk[2]) { Room.open({ month: +bk[1], week: +bk[2], done: () => {} }); Room.play('book'); } else if (!Room.month(+bk[1], markBook)) document.body.classList.remove('bookonly'); }, 0); }
   const gi = h.match(/in=(\d)/); if (gi && pic) setTimeout(() => plot(gi[1] - 1, pic.querySelectorAll('.plot')[gi[1] - 1]), 1200);
   const gs = h.match(/stand=(\d)/); if (gs && pic) setTimeout(() => crewTo(gs[1] - 1), 900);
   const zm = h.match(/zoom=([\d.]+)/); if (zm) z = zt = Math.max(.42, Math.min(1, +zm[1]));
