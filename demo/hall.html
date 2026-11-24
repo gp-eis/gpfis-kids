@@ -102,9 +102,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#f2e2c4;font-family:Fr
 <button class="btn" id="back" aria-label="Back to the street"><svg viewBox="0 0 100 100"><path d="M62 18 L28 50 L62 82" fill="none" stroke="#b8860b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button class="btn" id="snd" aria-label="Sound"><svg viewBox="0 0 100 100"><path d="M16 38 L34 38 L58 16 L58 84 L34 62 L16 62 Z" fill="#2b2d3a"/><path d="M70 32 Q82 50 70 68 M80 22 Q98 50 80 78" stroke="#2b2d3a" stroke-width="8" fill="none" stroke-linecap="round"/></svg></button>
 </div>
-<script>(function(){var V="mwuu5cop";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuu5cop"></script>
-<script src="../kit/voice.js?v=mwuu5cop"></script>
-<script src="../kit/turn.js?v=mwuu5cop"></script>
+<script>(function(){var V="mwuuerwi";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuuerwi"></script>
+<script src="../kit/voice.js?v=mwuuerwi"></script>
+<script src="../kit/turn.js?v=mwuuerwi"></script>
 <script>
 /* ---------- 24 months per programme (final 목차, worksheets/contents/*-24-months.md) ---------- */
 const N = 24;
@@ -124,7 +124,7 @@ function monthBook(prog, m) {   // -> { link, weeks: how many of the 4 weeks are
   if (prog === 'pbl') { const P = JS('spbl.pages')[m] || {}; weeks = [1, 2, 3, 4].filter(w => ((P[w] || {}).book || {}).ok).length; link = '../pbl/index.html?back=' + HERE + VQ + '#book=' + m; }
   if (prog === 'lgr') { const B = JS('lgr.speakbooks'), said = Object.keys(JS('lgr.said'));   // a week is in the month book as soon as Speak kept a line for it (the Readers chat's rule): week 1 = the a- readings, 2 = b-, 3 = c-, 4 = d-
     weeks = m === 1 ? [1, 2, 3, 4].filter(w => B['w' + w] || said.some(k => k.startsWith('abcd'[w - 1] + '-'))).length : 0; link = '../lgr/speakbook/index.html?month=' + m + '&back=' + HERE + VQ; }   // Readers saves number 1 only so far
-  if (prog === 'fm') { const B = JS('fm.world.sample').book || {}; weeks = [0, 1, 2, 3].filter(k => B[m + '-' + k]).length; link = '../play.html?v=mwuu5cop&u=fm/index.html' + (STAMP ? '?v=' + STAMP : '') + '#book=' + m + '&back=' + HERE; }
+  if (prog === 'fm') { const B = JS('fm.world.sample').book || {}; weeks = [0, 1, 2, 3].filter(k => B[m + '-' + k]).length; link = '../fm/' + 'index.html' + (STAMP ? '?v=' + STAMP : '') + '#book=' + m + '&back=' + HERE; }   // written in two pieces on purpose: the live build turns the whole text '../play.html?v=mwuuerwi&u=fm/index.html' into the door's phone-frame address, which would lose the #book part
   return weeks ? { link, weeks } : null; }
 const WKS = b => b ? '<u class="wk4">' + [1, 2, 3, 4].map(w => '<s class="' + (w <= b.weeks ? 'on' : '') + '"></s>').join('') + '</u><em class="wkn">' + b.weeks + ' of 4</em>' : '';
 /* what the Hall shows (24 Nov 2026, user: "the rest of the island should be closed"): the child's REAL progress on this device.
@@ -323,5 +323,5 @@ world.classList.add('nozoomanim'); fit();
 const zm = location.hash.match(/zoom=([a-z]+)/); if (zm) zoomTo(zm[1]);   // for checking pictures: open already zoomed
 setTimeout(() => world.classList.remove('nozoomanim'), 300);
 </script>
-<script src="hall-fun.js?v=mwuu5cop"></script>
+<script src="hall-fun.js?v=mwuuerwi"></script>
 </html>

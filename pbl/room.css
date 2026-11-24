@@ -428,5 +428,5 @@ body.bookonly #act { animation: none; } body.bookonly #inside > :not(#act) { vis
 #act h2 .of4 b { font-size: 22px; margin-left: 6px; font-weight: 700; white-space: nowrap; }
 /* the Speech Book page: what was actually heard, under the sentence */
 .bk .sent { align-content: center; row-gap: 10px; }
-.bk .sent .ys { display: block; font: 700 22px Fredoka, sans-serif; color: #b02e14; background: #ffe9e3; border-radius: 14px; padding: 5px 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bk .sent .ys { display: block; font: 700 20px/1.15 Fredoka, sans-serif; color: #b02e14; background: #ffe9e3; border-radius: 14px; padding: 5px 12px; max-width: 100%; box-sizing: border-box; }
 .bk .sent .ys b { color: #6a7190; font-weight: 600; margin-right: 6px; }

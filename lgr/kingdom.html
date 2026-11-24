@@ -160,6 +160,15 @@ body.soft{background:#fff3e2}body.soft #bg{opacity:.34;filter:blur(3px) saturate
 #cab #hg{right:104px}#cab #hpn{right:6px}
 #cab .hb{position:absolute;right:16px;bottom:292px;max-width:240px;background:#fff;border:3px solid #f0ab19;border-radius:20px;padding:8px 18px;font:700 20px/1.2 "Fredoka";text-align:center;opacity:0;scale:.8;transition:opacity .25s,scale .25s cubic-bezier(.2,1.6,.4,1);transform-origin:80% 100%}
 #cab .hb.on{opacity:1;scale:1}
+/* the cabin on a phone */
+#cab.small .tl small{font-size:23px}#cab.small .tl .pg{font-size:24px;padding:3px 14px}#cab.small .tl.bk b{font-size:25px}#cab.small .hb{font-size:25px;max-width:290px}
+#cab.small .sbar{right:auto;left:158px;top:22px}   /* beside the back button: on a phone the report and sound buttons take the right corner */
+#cab.port .sbar{right:auto;left:50%;translate:-50% 0;top:118px;padding:6px 24px;gap:14px}#cab.port .sl{width:44px;height:44px}
+#cab.port .tl b{font-size:36px}#cab.port .tl small{font-size:23px}#cab.port .tl.big b{font-size:44px}#cab.port .tl.bk b{font-size:27px}#cab.port .tl .pg{font-size:25px;padding:3px 16px}
+#cab.port .tl.big{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;justify-content:center;align-content:center;column-gap:30px;row-gap:4px}
+#cab.port .tl.big img{grid-row:1 / 3;max-width:230px;max-height:200px}#cab.port .tl.big b{align-self:end}#cab.port .tl.big small{align-self:start;text-align:left}
+#cab.port .hp{bottom:8px;height:180px}#cab.port #hg{right:auto;left:150px}#cab.port #hpn{right:auto;left:236px}
+#cab.port .hb{right:auto;left:350px;bottom:70px;font-size:26px;max-width:330px;transform-origin:0 50%}
 #cab .won{position:absolute;inset:-600px -1200px;display:grid;place-items:center;background:radial-gradient(circle,rgba(255,240,180,.0),rgba(60,14,10,.0));pointer-events:none;z-index:5}
 #cab .won img{width:300px;opacity:0;scale:.2;filter:drop-shadow(0 0 40px #ffe36a) drop-shadow(0 16px 14px rgba(0,0,0,.4));transition:opacity .3s,scale .6s cubic-bezier(.2,1.6,.4,1)}
 #cab .won.on{background:radial-gradient(circle,rgba(255,240,180,.75),rgba(60,14,10,.55))}#cab .won.on img{opacity:1;scale:1}
@@ -172,6 +181,8 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
 .round svg{width:34px;height:34px}
 #title{margin:0 auto;background:linear-gradient(#f6d39a,#e0a660 60%,#cf8f48);border-radius:18px;padding:4px 30px 6px;font:800 30px/1.05 "Baloo 2";color:#4a2508;text-align:center;box-shadow:inset 0 2px 0 rgba(255,240,210,.6),0 5px 0 #9a5c26,0 10px 14px rgba(30,8,4,.45)}
 #title small{display:block;font:600 15px "Fredoka","Noto Sans KR";opacity:.85}
+@media (max-width:520px){#hud{padding:8px 8px;gap:6px}#hud .round{width:46px;height:46px}#hud .round svg{width:24px;height:24px}#title{font-size:18px;padding:3px 12px 4px;border-radius:12px}#title small{font-size:11px}}
+@media (max-height:520px) and (orientation:landscape){#hud{padding:8px 10px}#hud .round{width:48px;height:48px}#hud .round svg{width:26px;height:26px}#title{font-size:20px;padding:2px 20px 4px}#title small{font-size:11px}}
 #toast{position:fixed;left:50%;bottom:26px;translate:-50% 0;background:#fff;border-radius:999px;padding:10px 28px;font:700 24px "Fredoka";color:#2a2350;box-shadow:0 6px 0 rgba(0,0,0,.25);z-index:30;opacity:0;transition:opacity .25s,translate .25s;pointer-events:none;text-align:center}
 #toast small{display:block;font:500 14px "Noto Sans KR";color:#5b6185}
 #toast.on{opacity:1;translate:-50% -8px}
@@ -189,7 +200,7 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
 <button id="mbk" aria-label="My Speaking Book"><img src="art/pages/1/cover.webp" alt=""><b>My Speaking Book</b><span class="dots"><i></i><i></i><i></i><i></i></span></button>
 <div id="toast"></div><div id="flash"></div>
 <div id="player" hidden><div class="box"><button class="round x" id="closeV" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#4a2508" stroke-width="4" stroke-linecap="round"/></svg></button><div id="vbody" style="width:100%;height:100%;display:grid;place-items:center"></div></div></div>
-<script>(function(){var V="mwuu5cop";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuu5cop"></script><script src="../kit/voice.js?v=mwuu5cop"></script><script src="../kit/track.js?v=mwuu5cop"></script><script src="../kit/vctl.js?v=mwuu5cop"></script><script src="vendor/say.js?v=mwuu5cop"></script><script src="vendor/myvoice.js?v=mwuu5cop"></script>
+<script>(function(){var V="mwuuerwi";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuuerwi"></script><script src="../kit/voice.js?v=mwuuerwi"></script><script src="../kit/track.js?v=mwuuerwi"></script><script src="../kit/vctl.js?v=mwuuerwi"></script><script src="vendor/say.js?v=mwuuerwi"></script><script src="vendor/myvoice.js?v=mwuuerwi"></script>
 <script>
 (function () {
   'use strict';
@@ -445,7 +456,12 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
   // Penny bottom-right, the week's four stars in a bar at the top. Everything lives in #cab, a 1280 x 720 stage scaled to
   // the window (not in the scrolling world). The old painted-toys cabin is kingdom.html.bak-painted-cabin.
   const TILE = { watch: [70, 150, 400, 440], abc: [520, 110, 250, 250], sheet: [800, 110, 250, 250], dictation: [520, 400, 250, 250], book: [800, 400, 250, 250] };
-  const fitCab = () => { const c = $('#cab'); if (c) c.style.transform = 'scale(' + Math.min(innerWidth / 1280, innerHeight / 720) + ') translate(-50%,-50%)'; };
+  /* ON A PHONE (25 Nov 2026): held upright the tiles are stacked on a tall 720 x 1280 stage (Watch across the top, the other four in
+     two rows, Gerry and Penny under them); held sideways the same 1280 x 720 picture is kept and only its small words are made bigger. */
+  const TILEP = { watch: [60, 252, 600, 244], abc: [60, 520, 290, 272], sheet: [370, 520, 290, 272], dictation: [60, 818, 290, 272], book: [370, 818, 290, 272] };
+  const fitCab = () => { const c = $('#cab'); if (!c) return; const k = Math.min(innerWidth / 1280, innerHeight / 720), port = k < .7 && innerHeight > innerWidth, SW = port ? 720 : 1280, SH = port ? 1280 : 720;
+    c.className = port ? 'port' : k < .7 ? 'small' : ''; c.style.width = SW + 'px'; c.style.height = SH + 'px'; c.style.transform = 'scale(' + Math.min(innerWidth / SW, innerHeight / SH) + ') translate(-50%,-50%)';
+    c.querySelectorAll('.tl').forEach(b => { const p = (port ? TILEP : TILE)[b.dataset.id]; b.style.left = p[0] + 'px'; b.style.top = p[1] + 'px'; b.style.width = p[2] + 'px'; b.style.height = p[3] + 'px'; }); };
   addEventListener('resize', fitCab);
   function burst(el, n = 16, power = 130) { const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
     for (let i = 0; i < n; i++) { const p = document.createElement('i'); p.className = 'cspark'; p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.background = ['#ffe36a', '#fff', '#ff6f91', '#ffb347'][i % 4]; document.body.appendChild(p);
@@ -459,7 +475,7 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
       TOYS.map(([id, en, ko], i) => '<button class="tl' + (id === 'watch' ? ' big' : '') + '" data-id="' + id + '" style="left:' + TILE[id][0] + 'px;top:' + TILE[id][1] + 'px;width:' + TILE[id][2] + 'px;height:' + TILE[id][3] + 'px;--k:' + i + '"><img src="art/tiles/' + id + '.png" alt=""><b>' + en + '</b><small>' + ko + '</small>' + (P[id] ? '<span class="tk">' + STAR + '</span>' : '') + '</button>').join('') +
       '<button class="tl bk shut" data-id="book" style="left:' + TILE.book[0] + 'px;top:' + TILE.book[1] + 'px;width:' + TILE.book[2] + 'px;height:' + TILE.book[3] + 'px;--k:4"><img src="art/tiles/book.png" alt=""><b>My Speaking Book</b><small>나의 스피킹 북</small></button>' +
       '<img class="hp" id="hg" src="' + ART + 'gerry/stand.webp" alt="Gerry"><img class="hp" id="hpn" src="' + ART + 'penny/stand.webp" alt="Penny"><span class="hb" id="hbub"></span>';
-    const tiles = {}; cab.querySelectorAll('.tl').forEach(b => { tiles[b.dataset.id] = b; }); const sbook = tiles.book;
+    const tiles = {}; cab.querySelectorAll('.tl').forEach(b => { tiles[b.dataset.id] = b; }); const sbook = tiles.book; fitCab();
     // A STAR MEANS THE QUEST IS COMPLETE (user, 24 Nov 2026): ABC, Speak and Grammar give their star only when all six of the
     // week's readings are finished there (before: after the first one). The tile shows how far the child is: "4 / 6".
     const NEED = 6, STORE = { abc: 'lgr.pages', sheet: 'lgr.sheets', dictation: 'lgr.dictations' };
@@ -543,4 +559,4 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
   }
   addEventListener('hashchange', route); route();
 })();
-</script><script src="../ext/home.js?v=mwuu5cop" data-home="../demo/street.html"></script></body></html>
+</script><script src="vendor/rotate.js?v=mwuuerwi" data-base=""></script><script src="../ext/home.js?v=mwuuerwi" data-home="../demo/street.html"></script></body></html>

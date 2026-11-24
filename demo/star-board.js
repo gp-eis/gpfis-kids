@@ -80,9 +80,9 @@
     return R; };
   const total = () => { fresh(); return sum(Object.keys(DAYS)).stars; };
 
-  /* ---------- look 2 (try with &look=lesson): no calendar. Four rows = the month's four LESSON weeks; each week has three
+  /* ---------- THE BOARD: no calendar. Four rows = the month's four LESSON weeks; each week has three
      stars to win, one per programme, gold when every activity of that week is finished; pips show how far each one is ---------- */
-  const LESSON = /[?&]look=lesson/.test(location.search);
+  const LESSON = !/[?&]look=date/.test(location.search);   // 25 Nov: the board is the four lesson weeks (user: "why do we still have the five??"); the old date rows stay behind &look=date
   function sampleL() { const D = {}; const put = (w, i, g, n, o) => { const dt = new Date(Y, M, Math.min(last, (w - 1) * 7 + 2 + (i % 3) * 2)), k = T.dayKey(dt), d = D[k] = D[k] || {}, S = d[g] = d[g] || { o: 1, a: {} }; S.a[n] = Object.assign({ w }, o); };
     for (let w = 1; w <= 3; w++) for (const g of T.PROGS) actsL(g, w, 1).forEach((a, i, all) => { const dn = w === 1 || (w === 2 ? !(g === 'lgr' && i === all.length - 1) : i < Math.ceil(all.length / 2) && g !== 'fm'); if (dn) put(w, i, g, a[0], { p: 1 + (i % 3 === 0), d: 1, s: 1 + (i % 2) }); });
     return D; }
@@ -141,5 +141,5 @@
   if (chip) { show(); for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'mousedown']) chip.addEventListener(ev, e => e.stopPropagation()); chip.addEventListener('click', e => { e.stopPropagation(); open(); }); }
   addEventListener('pageshow', show); document.addEventListener('visibilitychange', () => document.hidden || show());
   window.StarBoard = { open, close, week: w => (LESSON ? weekL : week)(w) };
-  if (/[?&]board=(open|sample)/.test(location.search)) setTimeout(() => { open(); const m = /[?&]bweek=([0-9])/.exec(location.search); if (m && WEEKS[m[1] - 1]) week(m[1] - 1); }, 600);   // for trying it out
+  if (/[?&]board=(open|sample)/.test(location.search)) setTimeout(() => { open(); const m = /[?&]bweek=([0-9])/.exec(location.search); if (m && LESSON && m[1] >= 1 && m[1] <= 4) weekL(+m[1]); else if (m && WEEKS[m[1] - 1]) week(m[1] - 1); }, 600);   // for trying it out
 })();

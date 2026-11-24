@@ -1,0 +1,22 @@
+/* Turn-your-phone screen (rotate.js): only on touch screens held upright; hidden everywhere else. */
+#pbl-rotate { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  #pbl-rotate { display: grid; place-items: center; position: fixed; inset: 0; z-index: 2147483000; padding: 24px; box-sizing: border-box;
+    background: radial-gradient(120% 80% at 50% 25%, #6cc4f5, #1e9be0 55%, #1272bd); color: #fff; text-align: center; font-family: Fredoka, 'Noto Sans KR', sans-serif; }
+  body { overflow: hidden !important; }
+  /* the wide stage is taken out while this screen shows: left in, it makes the phone treat the page as very wide and this screen ends up tiny and off to one side */
+  #stage { display: none !important; }
+}
+#pbl-rotate .rt-box { display: grid; justify-items: center; gap: 10px; width: 100%; max-width: 320px; }
+#pbl-rotate .rt-crew { display: flex; align-items: flex-end; justify-content: center; }
+#pbl-rotate .rt-crew img { height: 20vh; max-height: 160px; margin: 0 -16px; filter: drop-shadow(0 10px 12px rgba(0, 40, 90, .35)); animation: rtHop 1.6s ease-in-out infinite; }
+#pbl-rotate .rt-crew img + img { animation-delay: -.6s; }
+#pbl-rotate .rt-phone { width: 58px; height: 96px; border: 5px solid #ffc533; border-radius: 14px; position: relative; animation: rtTurn 2.4s ease-in-out infinite; margin: 8px 0; background: rgba(255, 255, 255, .18); }
+#pbl-rotate .rt-phone span { position: absolute; left: 50%; bottom: 6px; width: 12px; height: 4px; margin-left: -6px; border-radius: 2px; background: #ffc533; }
+#pbl-rotate .rt-en { margin: 0; font-weight: 700; font-size: 24px; line-height: 1.2; text-shadow: 0 3px 0 rgba(0, 40, 90, .25); }
+#pbl-rotate .rt-ko { margin: 0; font-family: 'Noto Sans KR', sans-serif; font-weight: 700; font-size: 19px; color: #fff3c4; }
+#pbl-rotate .rt-go { margin-top: 12px; max-width: 100%; font: 700 17px Fredoka, 'Noto Sans KR', sans-serif; color: #fff; background: #e8492e; border: 0; border-radius: 999px; padding: 14px 24px; box-shadow: 0 6px 0 #a52d17; }
+#pbl-rotate .rt-tip { margin: 8px 0 0; font-size: 14px; line-height: 1.5; opacity: .92; font-weight: 600; }
+@keyframes rtTurn { 0%, 20% { transform: rotate(0); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+@keyframes rtHop { 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { #pbl-rotate .rt-phone, #pbl-rotate .rt-crew img { animation: none; } }

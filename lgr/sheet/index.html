@@ -115,13 +115,46 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
 body.reading #help,body.reading #bubble{display:none}
 body:not(.reading) #wrap{padding-left:250px}
 @media (max-width:860px){.two{grid-template-columns:1fr;max-height:none;overflow:auto}body:not(.reading) #wrap{padding-left:22px}#help,#bubble{display:none}.grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- A PHONE (25 Nov 2026: the user asked for the screens to be readable on a phone; before this the microphone
+   fell off the bottom of the screen). The reading and the question panel are made compact so BOTH fit without scrolling:
+   side by side on a phone held sideways, one above the other on a phone held upright. Nothing is under 11 px. ---------- */
+@media (max-height:520px) and (orientation:landscape), (max-width:520px) and (orientation:portrait){
+  #top{padding:6px 10px;gap:8px}.round{width:44px;height:44px;font-size:20px;box-shadow:0 4px 0 #b98a52,0 6px 8px rgba(0,0,0,.4)}
+  #title{font-size:17px;padding:2px 14px 3px;border-radius:12px;white-space:nowrap;max-width:calc(100vw - 150px);overflow:hidden}#title small{font-size:11px;overflow:hidden;text-overflow:ellipsis}
+  #dots i{width:12px;height:12px;border-width:2px}
+  #wrap{inset:58px 0 0 0;padding:0 8px 8px}
+  body:not(.reading) #wrap{padding-left:8px}#help,#bubble{display:none}
+  .two{gap:8px;height:100%;max-height:none;overflow:visible;width:100%}
+  .page{padding:6px 10px 6px 22px;border-radius:16px;box-shadow:0 5px 0 #e6cfa4}.page::before{width:9px}
+  .page h2{font-size:17px;margin:0}.page .pic{width:54px;top:3px;right:8px;opacity:.9}
+  .lines{margin-top:0}.ln{font-size:13.5px;line-height:1.15;padding:1px 6px 1px 2px;gap:6px;border-radius:9px}.ln .no{font-size:10px;width:17px;height:17px}
+  .ln .w{margin-right:.22em}.ln.now{transform:scale(1.03);box-shadow:0 0 0 3px #ffc93c}.ln.now::after{font-size:1em;left:-2px}
+  .side{padding:6px 10px 6px;border-radius:16px;box-shadow:0 5px 0 #e6cfa4}
+  .tag{font-size:11px;padding:2px 12px;margin-bottom:3px}.count{margin:1px 0 3px;gap:4px}.count i{width:10px;height:10px}
+  .qn{font-size:11px}.q{font-size:18px;min-height:0;margin:1px 0 2px}#fb{font-size:12.5px;min-height:1.2em}#heard{font-size:12.5px;min-height:1.2em;margin-top:0}
+  #tst{min-height:20px;font-size:18px}
+  .talkrow{gap:12px;margin-top:2px;align-items:center}#mate{height:min(26vh,96px)}
+  #mic{width:66px;font-size:30px;margin-bottom:0;box-shadow:0 5px 0 #9c1f2c,0 8px 10px rgba(0,0,0,.3)}
+  .mini{gap:5px;margin-bottom:0}.mini button{width:36px;height:36px;font-size:16px;box-shadow:0 3px 0 #e2c9b0}
+  #card{padding:14px 16px;border-radius:20px}.stars{font-size:40px}.big{font-size:17px;padding:6px 20px}
+  .shelf h1{font-size:24px;margin-bottom:8px}.covers{gap:10px 12px}.bk{height:clamp(84px,30vh,150px);border-radius:16px}.bk b{font-size:16px;left:12px;top:8px}
+}
+@media (max-height:520px) and (orientation:landscape){
+  .two{grid-template-columns:1.15fr .85fr}
+}
+@media (max-width:520px) and (orientation:portrait){
+  .two{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .page{padding-top:8px}.page h2{margin-bottom:5px}.ln{padding:2px 6px 2px 2px}#mate{height:110px}#mic{width:78px;font-size:34px}.mini{flex-direction:row}
+  .covers{grid-template-columns:repeat(2,1fr)}
+}
 </style></head><body>
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwuu5cop";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwuu5cop"></script><script src="../book/data/set-a.js?v=mwuu5cop"></script><script src="../book/scene.js?v=mwuu5cop"></script><script src="../vendor/talk.js?v=mwuu5cop"></script>
+<script>(function(){var V="mwuuerwi";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwuuerwi"></script><script src="../book/data/set-a.js?v=mwuuerwi"></script><script src="../book/scene.js?v=mwuuerwi"></script><script src="../vendor/talk.js?v=mwuuerwi"></script>
 <!-- recorded voices: the shared GPFIS kit (the online build fixes these two paths), then our adapter -->
-<script src="../../voice/clips.js?v=mwuu5cop"></script><script src="../../kit/voice.js?v=mwuu5cop"></script><script src="../vendor/say.js?v=mwuu5cop"></script><script src="../vendor/myvoice.js?v=mwuu5cop"></script>
+<script src="../../voice/clips.js?v=mwuuerwi"></script><script src="../../kit/voice.js?v=mwuuerwi"></script><script src="../vendor/say.js?v=mwuuerwi"></script><script src="../vendor/myvoice.js?v=mwuuerwi"></script>
 <script>
 (function () {
   'use strict';
@@ -283,4 +316,4 @@ body:not(.reading) #wrap{padding-left:250px}
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwuu5cop" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../vendor/rotate.js?v=mwuuerwi" data-base="../"></script><script src="../../ext/home.js?v=mwuuerwi" data-home="../../demo/street.html"></script></body></html>

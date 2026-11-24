@@ -406,7 +406,7 @@ window.Room = (() => {
         $('.pg.l .sheet').innerHTML = !p.page ? '' : `<img class="pgimg" src="${p.page}" alt="">` + (p.spots || []).map(sp => {
           if (sp.draw) { const [x, y, w, h] = sp.draw; return v.draw ? `<img class="mine" src="${v.draw}" alt="" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;${sp.oval ? 'clip-path:ellipse(50% 50%);' : ''}${sp.rot ? `rotate:${sp.rot}deg;` : ''}">` : ''; }
           if (sp.text) { const tx = sp.text(v) || ''; return tx ? `<div class="ink" style="left:${sp.at[0]}px;top:${sp.at[1]}px;font-size:${sp.size}px;${sp.rot ? `rotate:${sp.rot}deg;` : ''}">${String(tx).replace(/</g, '&lt;')}</div>` : ''; }
-          if (sp.ring) { const [x, y, r] = sp.ring; return v.ok ? `<div class="ring" style="left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px"></div>` : ''; }
+          if (sp.ring) { const R0 = typeof sp.ring === 'function' ? sp.ring(v) : sp.ring; if (!R0) return ''; const [x, y, r] = R0; return v.ok ? `<div class="ring" style="left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px"></div>` : ''; }
           return ''; }).join('');
         $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${p.wk || ctx.week} · ${String(pno(n)).padStart(2, '0')}`;
         // the sentence, with the words that were NOT heard in the child's best try marked, so they can see which part to practise
@@ -571,11 +571,15 @@ window.Room = (() => {
           lines: ['Hello! I am Emma.', 'I am eight.', 'I like drawing.', 'I like soccer.', 'I am friendly.'], ask: 'How old is Emma? Pop the balloon!', opts: [6, 7, 8], ans: 8, line: () => 'Emma is eight.',
           page: 'art/pages/1/02.webp', pageCol: '#ffd23f', spots: [{ ring: [636, 902, 62] }] },   // worksheet week 1 · 02: the 8 is circled
         { id: 'frames', zone: [.272, .133, .168, .16], title: 'Sam and Lily', col: '#f6a58f', type: 'sort', sub: 'Sam likes music. Lily likes animals. Drag each thing to the right friend!', big: 'We are different!',
-          targets: [{ img: 'art/ws/sam.png', text: 'Sam likes music.' }, { img: 'art/ws/lily.png', text: 'Lily likes animals.' }], items: [['🎸', 0], ['🐶', 1], ['🥁', 0], ['🐱', 1], ['🎤', 0], ['🐰', 1]], line: () => 'We are different.' },
+          targets: [{ img: 'art/ws/sam.png', text: 'Sam likes music.' }, { img: 'art/ws/lily.png', text: 'Lily likes animals.' }], items: [['🎸', 0], ['🐶', 1], ['🥁', 0], ['🐱', 1], ['🎤', 0], ['🐰', 1]], line: () => 'We are different.',
+          page: 'art/pages/1/18.webp', pageCol: '#ffd23f', spots: [{ ring: [667, 965, 46] }] },   // BORROWED from worksheet week 3 · 18 (user, 25 Nov: keep the six activities for the demo): Lily's box is marked
         { id: 'board', zone: [.457, .207, .228, .218], title: 'Words about me', col: '#4fae62', type: 'mind', sub: 'Catch the words that are true for you. Two or more!', centre: 'ME',
-          words: [['😊', 'happy'], ['❤️', 'kind'], ['📏', 'tall'], ['📖', 'reading'], ['✏️', 'drawing'], ['🎵', 'singing']], say: w => `I am ${w}.`, line: v => `I am ${v.words.slice(0, 2).join(' and ')}.` },
+          words: [['😊', 'happy'], ['❤️', 'kind'], ['📏', 'tall'], ['📖', 'reading'], ['✏️', 'drawing'], ['🎵', 'singing']], say: w => `I am ${w}.`, line: v => `I am ${v.words.slice(0, 2).join(' and ')}.`,
+          page: 'art/pages/1/19.webp', pageCol: '#6fb1e4', spots: [{ ring: v => (v.words || []).includes('kind') ? [196, 455, 104] : null }, { text: v => (v.words || []).slice(0, 2).join(' and ') + '.', at: [262, 1136], size: 46 }] },   // BORROWED from week 3 · 19 "What am I like?": only "kind" is on both, so only it is circled; the words go on the line
         { id: 'shelf', zone: [.26, .335, .186, .255], title: 'What am I good at?', col: '#b9a5e6', type: 'toys', sub: 'Tap a toy to see its trick. Take the ones you are good at!', lead: 'I am good at',
-          items: [['✏️', 'drawing', 'scrib'], ['🎵', 'singing', 'sing'], ['👟', 'running', 'run'], ['📖', 'reading', 'flip'], ['🧱', 'building', 'stack'], ['❤️', 'helping', 'beat']], say: w => `I am good at ${w}.`, line: v => `I am good at ${v.good[0] || '…'}.` },
+          items: [['✏️', 'drawing', 'scrib'], ['🎵', 'singing', 'sing'], ['👟', 'running', 'run'], ['📖', 'reading', 'flip'], ['🧱', 'building', 'stack'], ['❤️', 'helping', 'beat']], say: w => `I am good at ${w}.`, line: v => `I am good at ${v.good[0] || '…'}.`,
+          page: 'art/pages/1/20.webp', pageCol: '#b9a5e6', spots: [{ ring: v => ({ drawing: [196, 522, 104], singing: [452, 522, 104], running: [709, 522, 104], reading: [196, 870, 104], building: [452, 870, 104] })[(v.good || [])[0]] || null },
+            { text: v => (v.good || [])[0] ? v.good[0] + '.' : '', at: [585, 1136], size: 46 }] },   // BORROWED from week 3 · 20: the first thing they chose is circled and written
         { id: 'easel', zone: [.676, .266, .102, .35], title: 'This is me!', col: '#e8492e', type: 'paint', sub: 'Paint yourself. Add stamps! Then pick what you like.', lead: 'I like',
           likes: [['✏️', 'drawing'], ['⚽', 'soccer'], ['🎵', 'music'], ['🐶', 'animals'], ['📖', 'books'], ['🧱', 'blocks']], say: w => `I like ${w}.`, line: v => `I like ${v.like}.`,
           page: 'art/pages/1/08.webp', pageCol: '#f277a8', spots: [{ draw: [196, 318, 512, 610], rot: -3 }, { text: v => v.like ? `I like ${v.like}.` : '', at: [300, 958], size: 40, rot: -3 }] },   // worksheet week 1 · 08: the drawing goes in the photo, their words under it
