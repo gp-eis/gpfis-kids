@@ -5,7 +5,7 @@
     background: radial-gradient(120% 80% at 50% 25%, #6cc4f5, #1e9be0 55%, #1272bd); color: #fff; text-align: center; font-family: Fredoka, 'Noto Sans KR', sans-serif; }
   body { overflow: hidden !important; }
   /* the wide stage is taken out while this screen shows: left in, it makes the phone treat the page as very wide and this screen ends up tiny and off to one side */
-  #stage { display: none !important; }
+  body:has(#pbl-rotate) #stage { display: none !important; }
 }
 #pbl-rotate .rt-box { display: grid; justify-items: center; gap: 10px; width: 100%; max-width: 320px; }
 #pbl-rotate .rt-crew { display: flex; align-items: flex-end; justify-content: center; }

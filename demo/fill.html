@@ -24,11 +24,11 @@ body.auto .card > *:not(#wait) { display: none; } #wait { display: none; font-si
   <div id="log"></div>
   <div id="wait"><i></i><i></i><i></i></div>
 </div></main>
-<script>(function(){var V="mwuuerwi";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>window.GPDemoFill = {}; window.GPDemoClear = {};</script>
-<script src="../kit/track.js?v=mwuuerwi"></script>
-<script src="../pbl/demo-fill.js?v=mwuuerwi" onerror="this.dataset.missing=1"></script>
-<script src="../lgr/demo-fill.js?v=mwuuerwi" onerror="this.dataset.missing=1"></script>
-<script src="../fm/demo-fill.js?v=mwuuerwi" onerror="this.dataset.missing=1"></script>
+<script>(function(){var V="mwuukl4c";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>window.GPDemoFill = {}; window.GPDemoClear = {};</script>
+<script src="../kit/track.js?v=mwuukl4c"></script>
+<script src="../pbl/demo-fill.js?v=mwuukl4c" onerror="this.dataset.missing=1"></script>
+<script src="../lgr/demo-fill.js?v=mwuukl4c" onerror="this.dataset.missing=1"></script>
+<script src="../fm/demo-fill.js?v=mwuukl4c" onerror="this.dataset.missing=1"></script>
 <script>
 const log = document.getElementById('log'), say = t => { log.textContent += t + '\n'; }, NAME = { pbl: 'Start PBL', lgr: "Let's Go Readers", fm: 'Fresh Math' };
 /* which demo this is: the upload's stamp (the live build adds ?v=... to the filler scripts). A device filled by an OLDER upload is
@@ -59,7 +59,11 @@ const Q = new URLSearchParams(location.search), go = Q.get('go'); if (go === 'fi
    (to= a path inside this site, e.g. pbl/index.html; default Story Street). No buttons are shown. */
 if (go === 'sample') { document.body.classList.add('auto'); const to = Q.get('to') || '', safe = /^[a-z0-9][a-z0-9_.\/-]*[.]html$/i.test(to) && !to.includes('..') && !to.includes('//');
   const on = () => { location.replace(safe ? '../' + to : 'street.html'); };
-  let has = false; try { has = localStorage.getItem('gpfis.demo') === DEMO_V; } catch (e) {}
-  if (has) on(); else Promise.race([fillAll(), new Promise(r => setTimeout(r, 25000))]).then(on, on); }
+  let has = false; /* "has" = filled by THIS upload and the finished week is really still there (Start PBL chat, 25 Nov: a device whose save was
+     lost or emptied since must be filled again, not just let in) */
+  const J = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') || {}; } catch (e) { return {}; } };
+  const whole = () => !!((((J('spbl.pages')[1] || {})[1] || {}).book || {}).ok) && ((J('spbl.airship').built || {})[1] || []).length > 0 && !!J('lgr.speakbooks').w1 && !!(J('fm.world.sample').book || {})['1-0'];
+  try { has = localStorage.getItem('gpfis.demo') === DEMO_V && whole(); } catch (e) {}
+  if (has) on(); else Promise.race([fillAll(), new Promise(r => setTimeout(r, 40000))]).then(() => { try { localStorage.setItem('gpfis.demochk', new Date().toISOString() + ' ' + (whole() ? 'whole' : 'NOT WHOLE') + ' ' + (localStorage.getItem('spbl.airship') || 'no airship')); } catch (e) {} }).then(on, on); }   // gpfis.demochk: what was there right after the fill, for finding out who empties it later
 window.GPDemo = { fillAll, clearAll };
 </script>

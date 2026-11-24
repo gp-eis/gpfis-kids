@@ -574,11 +574,15 @@
     /* on a phone (a short screen) the four cards side by side are too small to read (user, 25 Nov 2026: "Yes, phone layout"):
        one week's card at a time, large, with the totals and Week 1-4 buttons beside it */
     const week = w => { box.querySelectorAll('.mwk').forEach((e, i) => e.classList.toggle('cur', i === w)); box.querySelectorAll('.mtab').forEach((e, i) => e.classList.toggle('on', i === w)); };
-    box.classList.toggle('ph', innerHeight < 520); week(Math.max(0, rows.map(r => r.done > 0 || r.days.length > 0).lastIndexOf(true)));
+    // inside the site's phone frame (gpfis-site/kit/play.html) the page is laid out laptop-size and shrunk, so ask the frame for the
+    // phone's true size while the log is open; it answers with a resize, and the frame gets its shrunk layout back when the log closes
+    const real = on => { try { if (parent !== window && parent.GPFrame) parent.GPFrame.real(on); } catch (e) {} };
+    const size = () => { if (c.firstElementChild !== box) return removeEventListener('resize', size); box.classList.toggle('ph', innerHeight < 520); };
+    addEventListener('resize', size); real(true); size(); week(Math.max(0, rows.map(r => r.done > 0 || r.days.length > 0).lastIndexOf(true)));
     VDB.keys().then(ks => { if (c.firstElementChild !== box) return; for (const r of rows) r.mine = r.clips.filter(k => ks.includes(k));
       box.querySelector('.msum div:nth-child(4) b').textContent = ks.length; box.querySelectorAll('.lhear').forEach(b => { b.disabled = !rows[+b.dataset.w].mine.length; }); });
     const stop = () => { tok++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.lhear.on').forEach(b => b.classList.remove('on')); };
-    c.onclick = async e => { if (e.target.closest('.dback')) { stop(); c.hidden = true; c.onclick = null; c.innerHTML = ''; return; }
+    c.onclick = async e => { if (e.target.closest('.dback')) { stop(); removeEventListener('resize', size); c.hidden = true; c.onclick = null; c.innerHTML = ''; real(false); return; }
       const tb = e.target.closest('.mtab'); if (tb) { stop(); snd.pop(); return week(+tb.dataset.w); }
       const h = e.target.closest('.lhear'); if (!h || h.disabled) return; if (h.classList.contains('on')) return stop(); stop(); const my = tok; h.classList.add('on');
       for (const k of rows[+h.dataset.w].mine) { const blob = await VDB.get(k); if (my !== tok) return; if (!blob) continue; const u = URL.createObjectURL(blob); audio = new Audio(u);

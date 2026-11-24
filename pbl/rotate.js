@@ -22,5 +22,9 @@
     const go = el.querySelector('.rt-go');
     if (go) go.addEventListener('click', () => { if (document.fullscreenElement) return; d.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation.lock('landscape')).catch(() => {}); });
   }
-  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+  // On the GPFIS site the shared phone frame (kit/play.html, brought in by ext/home.js) already turns an upright phone sideways BY ITSELF
+  // (user, 25 Nov: "it would automatically be sideways"), so this screen is not shown there. It is only the fallback for a Start PBL
+  // page opened on its own, without that frame.
+  const start = () => { if (window.GPFrame || (window.parent !== window) || document.querySelector('script[src*="ext/home.js"]')) return; build(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

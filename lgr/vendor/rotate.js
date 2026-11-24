@@ -7,6 +7,9 @@
    be turned by a web page: they get a tip about the rotation lock. Brings its own styles. */
 (function () {
   const me = document.currentScript, base = (me && me.dataset.base) || '';
+  // inside the GPFIS phone frame (gpfis-site/kit/play.html) the site's round Story Street button sits over the bottom-left corner:
+  // pages keep that corner clear when <html> has the class gpframe
+  try { if (parent !== window) document.documentElement.classList.add('gpframe'); } catch (e) { document.documentElement.classList.add('gpframe'); }
   const st = document.createElement('style'); st.textContent = `
 #lgr-rotate{display:none}
 @media (orientation:portrait) and (pointer:coarse){
