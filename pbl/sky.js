@@ -43,12 +43,20 @@
   if (/[?&]reset/.test(location.search)) { localStorage.removeItem(KEY); localStorage.removeItem('spbl.pages'); }
   let S = { v: 2, stars: 0, built: {}, x: 600, y: 900 };
   try { const o = JSON.parse(localStorage.getItem(KEY) || '{}'); if (o.v === 2) Object.assign(S, o); } catch (e) {}
+  // THE ISLANDS HEAL THEMSELVES (25 Nov): a place is built when its week's Speech Book is finished, and that is also written in the
+  // pages save (spbl.pages, room.js). If the airship save has lost a built place (an old copy of this page left open in another tab
+  // wrote its empty save over it: seen on the live site), it is put back from the pages save, with its five stars.
+  const heal = () => { try { const P = JSON.parse(localStorage.getItem('spbl.pages') || '{}'); let n = 0;
+    for (const m in P) for (const w in P[m]) if (P[m][w] && P[m][w].book && P[m][w].book.ok && +w >= 1 && +w <= 4) { const b = S.built[m] = S.built[m] || []; if (!b.includes(w - 1)) { b.push(w - 1); b.sort(); } n++; }
+    if (S.stars < n * 5) S.stars = n * 5; } catch (e) {} };
+  heal();
   // SAVING NEVER LOSES A BUILT PLACE (24 Nov): another tab, or the demo filler, may have written the save after this page read it.
   // So each save first reads what is stored and keeps every built place and the higher star count from it.
   // A page opened by a direct book link (#book=1-1, the Hall of Fame) is only a visit: it does not write the airship save at all.
   const VISIT = /book=\d+/.test(location.hash);
   const save = () => { if (VISIT) return; try {
     const o = JSON.parse(localStorage.getItem(KEY) || '{}');
+    heal();
     if (o && o.v === 2) { for (const n in (o.built || {})) { const mine = S.built[n] = S.built[n] || []; for (const i of o.built[n]) if (!mine.includes(i)) mine.push(i); } if (o.stars > S.stars) S.stars = o.stars; }
     localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const built = n => S.built[n] || [], done = n => built(n).length >= 4, open = n => n === 1 || done(n - 1);

@@ -16,7 +16,7 @@ html,body{margin:0;height:100%;background:#101536;overflow:hidden;overscroll-beh
 #f{position:fixed;left:0;top:0;border:0;transform-origin:0 0;background:#101536}
 </style>
 <iframe id="f" allow="microphone; autoplay; fullscreen" allowfullscreen></iframe>
-<script>(function(){var V="mwuukl4c";try{fetch("./version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
+<script>(function(){var V="mwuuql9r";try{fetch("./version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
 const q = new URLSearchParams(location.search), f = document.getElementById('f');
 let u = q.get('u') || 'pbl/index.html';
 /* only our own programme pages: the PAGE part (before ? or #) must be a plain path inside pbl/, lgr/ or fm/; what follows it
@@ -41,8 +41,12 @@ function fit() {
     transform: (up ? `translate(${w}px,0) rotate(90deg) ` : '') + (k < 1 ? `scale(${k})` : '') });
 }
 addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
-window.GPFrame = { real(on) { on = !!on; if (on !== REAL) { REAL = on; fit(); } }, get isReal() { return REAL; } };
-f.addEventListener('load', () => { let want = false; try { want = !!f.contentWindow.GP_REAL; } catch (e) {} if (want !== REAL) { REAL = want; fit(); } });
+/* ASKED = what the page now in the frame last asked for with real(). A page may call real(true) WHILE it loads (Readers' cabin,
+   25 Nov): the load handler below must not undo that, so it uses the page's own call first and GP_REAL only when there was none.
+   It is forgotten when that page goes away, so the next page starts shrunk-to-fit again. */
+let ASKED = null;
+window.GPFrame = { real(on) { on = !!on; ASKED = on; if (on !== REAL) { REAL = on; fit(); } }, get isReal() { return REAL; } };
+f.addEventListener('load', () => { let want = false; try { want = ASKED !== null ? ASKED : !!f.contentWindow.GP_REAL; f.contentWindow.addEventListener('pagehide', () => { ASKED = null; }); } catch (e) {} if (want !== REAL) { REAL = want; fit(); } });
 const v = q.get('v'), cut = u.indexOf('#'), page = cut < 0 ? u : u.slice(0, cut), hash = cut < 0 ? '' : u.slice(cut); f.src = (v ? page + (page.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(v) : page) + hash;   // v = this upload's stamp: the phone fetches the newest programme page
 /* Android: the first touch inside the programme goes full screen and locks sideways */
 let asked = false;
