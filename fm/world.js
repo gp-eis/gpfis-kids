@@ -207,14 +207,25 @@
   /* "Press and say" stand-in: waits until the child has really finished. The microphone is only used on this device to
      see how loud it is and to keep the child's own voice for My Discussion Book (kept in this browser only, never sent
      anywhere): it ends after the child has spoken and then been quiet for 1.5 s, or when the button is tapped again.
-     No microphone: tap again when finished. It does not check the words. Resolves with the recording (a Blob) or null. */
-  function listen(b) {
+     No microphone: tap again when finished. The WORDS are heard with the browser's own speech recognition (the same way the
+     kids' site's shared speaking kit and Start PBL do; in Chrome that recognition runs on Google's servers), and the turn
+     scores them with the shared kit's Talk.score / Talk.stars. Resolves { clip: the recording (a Blob) or null, heard: [text] }. */
+  function listen(b, onWords) {
     return new Promise(async done => { let over = false, iv = 0, stream = null, ctx = null; const lab = b.querySelector('.l');
-      let rec = null; const chunks = [];
+      let rec = null, sr = null, finalT = '', liveT = ''; const chunks = [], alts = [];
+      const fake = window.Talk && Talk.fake;   // test hook of the shared kit: ?say=text answers every listen with that text
       const end = () => { if (over) return; over = true; clearInterval(iv); b.onclick = null; b.style.removeProperty('--lv');
-        const fin = clip => { if (stream) stream.getTracks().forEach(t => t.stop()); if (ctx) ctx.close().catch(() => {}); done(clip); };
-        if (rec && rec.state !== 'inactive') { rec.onstop = () => fin(chunks.length ? new Blob(chunks, { type: rec.mimeType }) : null); rec.stop(); } else fin(null); };
+        const fin = clip => { if (stream) stream.getTracks().forEach(t => t.stop()); if (ctx) ctx.close().catch(() => {});
+          const said = (finalT + ' ' + liveT).trim(), heard = fake ? [fake] : [...new Set([said, ...alts].filter(Boolean))]; done({ clip, heard }); };
+        const wrap = () => { if (rec && rec.state !== 'inactive') { rec.onstop = () => fin(chunks.length ? new Blob(chunks, { type: rec.mimeType }) : null); rec.stop(); } else fin(null); };
+        if (sr) { let w = false; const go = () => { if (!w) { w = true; wrap(); } }; sr.onend = go; try { sr.stop(); } catch (e) {} setTimeout(go, 900); } else wrap(); };   // give the last words a moment to arrive
       b.classList.add('on'); lab.innerHTML = 'I am listening…<small>말해요! 다 말하면 눌러요</small>'; snd.pop(); setTimeout(() => { if (!over) b.onclick = end; }, 700);
+      if (fake) { if (onWords) onWords(fake); setTimeout(end, 1200); return; }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) { try { sr = new SR(); sr.lang = 'en-US'; sr.continuous = true; sr.interimResults = true; sr.maxAlternatives = 3;
+        sr.onresult = e => { finalT = ''; liveT = ''; for (const r of e.results) { if (r.isFinal) { finalT += r[0].transcript + ' '; for (let i = 1; i < r.length; i++) alts.push(r[i].transcript); } else liveT += r[0].transcript + ' '; }
+          if (onWords) onWords((finalT + liveT).trim()); };
+        sr.onerror = () => {}; sr.start(); } catch (e) { sr = null; } }
       try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); if (over) { stream.getTracks().forEach(t => t.stop()); return; }
         if (window.MediaRecorder) { try { rec = new MediaRecorder(stream); rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; rec.start(); } catch (e) { rec = null; } }
         ctx = new (window.AudioContext || window.webkitAudioContext)(); const an = ctx.createAnalyser(); an.fftSize = 512; ctx.createMediaStreamSource(stream).connect(an);
@@ -239,6 +250,38 @@
       else if (V) V.say(en, { who: 'gerry' }).then(end);
       gerry.t = setTimeout(end, Math.max(1500, en.length * 85)); });   // also the way on when sound is off
   }
+  /* ---------- the worksheet pages of a week, online ----------
+     WEEKS['<planet>-<stop>'] = the week's 8 worksheet pages, in the book's order. For each page:
+       t      its title on the worksheet
+       says   (its sentence has the page's TRACED LINE as its main point, plus a short reason: user, 24 Nov 2026)
+              the Discussion that belongs to the page: [Gerry asks (en, ko), the sentence to say (<b> = the key words), ko, alien?]
+              taken from the page's own Think questions and facts
+       ans    how the child's answers look ON the printed page in My Discussion Book: SVG in the page picture's own
+              905 x 1280 units (U() turns the worksheet's 595-wide drawing units into those), from the saved answers d
+     The activities themselves (what the child taps) are in ACTS below, one per page, in the same order. */
+  const U = v => +(v * 1.521).toFixed(1), INKB = '#2f6fdb', REDV = '#e23939';
+  const WEEKS = { '1-0': [
+    { t: 'A Tiny Dot', act: 'Draw dots. Name them A, B, C, D.', says: [['What does a point show? Say it!', '점은 무엇을 나타낼까요? 말해 봐요!', 'A point <b>shows a place</b>. Maths can start with one tiny dot.', '점은 자리를 나타내요. 수학은 작은 점 하나에서 시작해요.']],
+      ans: d => (d.d || []).map((box, i) => box.map(([nx, ny], k) => { const x = U(66 + i * 120 + 14 + nx * 72), y = U(506 + ny * 86); return `<circle cx="${x}" cy="${y}" r="9" fill="${REDV}"/><text x="${x + 13}" y="${y - 7}" font-size="26" fill="${INKB}">${'ABCD'[k]}</text>`; }).join('')).join('') },
+    { t: 'Many Dots, Many Places', act: 'Put 6 dots in each shape.', says: [['The dots are the same. Why did the shape change? Say it!', '점은 같은데 왜 모양이 바뀌었을까요? 말해 봐요!', 'Dots can make patterns when they <b>move to new places</b>.', '점들이 새 자리로 움직이면 무늬를 만들 수 있어요.']],
+      ans: d => FORMS.map((F, i) => F.map(([x, y]) => `<circle cx="${U(66 + i * 160 + 75 + x * .55)}" cy="${U(552 + y * .55)}" r="8" fill="${REDV}"/>`).join('')).join('') },
+    { t: 'The Circle Is Born', act: 'Count the spaces. Then draw 3 more radii.', says: [['What is in the middle of a circle? Say it!', '동그라미의 한가운데에는 무엇이 있을까요? 말해 봐요!', 'A circle has a <b>center</b>, and every radius is the same length.', '동그라미에는 중심이 있고, 반지름은 모두 길이가 같아요.']],
+      ans: d => [[160, 470], [88, 542], [160, 614]].map(([x, y]) => `<line x1="${U(160)}" y1="${U(542)}" x2="${U(x)}" y2="${U(y)}" stroke="${REDV}" stroke-width="7" stroke-linecap="round"/>`).join('') + `<text x="${U(438)}" y="${U(524)}" font-size="42" text-anchor="middle" fill="${INKB}">3</text>` },
+    { t: 'A Circle Has No Vertices', act: 'Colour the vertices red. Count how many.', says: [['Why does a circle have no vertices? Press the button and say it!', '동그라미는 왜 꼭짓점이 없을까요? 버튼을 누르고 말해요!', 'A circle has no vertices because it is <b>round all around</b>.', '동그라미는 둥글어서 꼭짓점이 없어요.'],
+        ['Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertices.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.', true, 'The alien says: “A circle has no points!” Is that right?']],   // the book shows what was really asked, so the 'No!' answers it
+      ans: d => [[164, 751], [221, 851], [107, 851], [497, 756], [599, 756], [599, 858], [497, 858]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="24" fill="${REDV}"/>`).join('') + [[164, '3'], [356, '0'], [548, '4'], [740, '0']].map(([x, t]) => `<text x="${x}" y="919" font-size="46" text-anchor="middle" fill="${INKB}">${t}</text>`).join('') },
+    { t: 'Circle or Oval?', act: 'Is it a circle or an oval?', says: [['Is an egg a circle? Why not? Say it!', '달걀은 동그라미일까요? 왜 아닐까요? 말해 봐요!', 'An egg is an oval because it is <b>round and long</b>.', '달걀은 둥글고 길어서 타원이에요.']],
+      ans: d => COV.map(([n, k], i) => `<line x1="${U(92 + i * 82)}" y1="${U(534)}" x2="${U(k === 'circle' ? 176 : 418)}" y2="${U(570)}" stroke="${INKB}" stroke-width="5" stroke-linecap="round"/>`).join('') },
+    { t: 'Circles Around Us', act: 'Find 5 round things.', says: [['Why is a wheel round? Say it!', '바퀴는 왜 둥글까요? 말해 봐요!', 'The wheel is round, so it can <b>roll</b>.', '바퀴는 둥글어서 굴러갈 수 있어요.']],
+      ans: d => (d.p || []).map((n, i) => `<image href="art/obj/${n}.png" x="${U(110 + i * 96 - 30)}" y="${U(530 - 30)}" width="${U(60)}" height="${U(60)}"/>`).join('') },
+    { t: 'The Round World', act: 'Find the rule. Then count the circles in the town.', says: [['What would you build with circles? Say it!', '동그라미로 무엇을 만들고 싶나요? 말해 봐요!', 'I can draw a circle to build a <b>round town</b>.', '나는 동그라미를 그려서 둥근 마을을 만들 수 있어요.']],
+      ans: d => [495, 519].map(x => `<circle cx="${U(x)}" cy="${U(507)}" r="${U(10)}" fill="#f277a8"/>`).join('') + [[358, '3'], [488, '4']].map(([x, t]) => `<text x="${U(x)}" y="${U(589)}" font-size="40" text-anchor="middle" fill="${INKB}">${t}</text>`).join('') },
+    { t: 'My Circle Gallery', act: 'Make 3 circles for your gallery.', says: [['Why is every shape special? Say it!', '모든 도형은 왜 특별할까요? 말해 봐요!', 'Every shape is special because each one is <b>different</b>.', '모든 도형은 저마다 달라서 특별해요.']],
+      ans: d => (d.c || []).map((col, i) => `<circle cx="${U(136 + i * 156)}" cy="${U(510)}" r="${U(34)}" fill="${col}"/>`).join('') }] };
+  // shared by the activities and by the book: where six dots go for "a straight line", "a round shape", "a star"; and which thing is a circle or an oval
+  const FORMS = [[-80, -48, -16, 16, 48, 80].map(x => [x, 0]), [0, 1, 2, 3, 4, 5].map(k => [62 * Math.cos((k * 60 - 90) * Math.PI / 180), 62 * Math.sin((k * 60 - 90) * Math.PI / 180)]),
+    [[0, 0]].concat([0, 1, 2, 3, 4].map(k => [70 * Math.cos((k * 72 - 90) * Math.PI / 180), 70 * Math.sin((k * 72 - 90) * Math.PI / 180)]))];
+  const COV = [['plate', 'circle'], ['egg', 'oval'], ['coin', 'circle'], ['mirror', 'oval'], ['clock', 'circle'], ['balloon', 'oval']];
   const track = (what, week) => { try { if (window.GPTrack) GPTrack.play('fm', what, { week }); } catch (e) {} };   // 'video' | 'game' | 'talk', for the star board and the reports
   const ACTS = {
     '1-0': () => new Promise(finish => {
@@ -247,51 +290,175 @@
         { n: 'circle', col: '#7fd4ff', v: [], d: '<circle cx="150" cy="150" r="104"/>' },
         { n: 'square', col: '#8be28a', v: [[52, 52], [248, 52], [248, 248], [52, 248]], d: '<rect x="52" y="52" width="196" height="196"/>' },
         { n: 'oval', col: '#c9a2ff', v: [], d: '<ellipse cx="150" cy="150" rx="128" ry="78"/>' }];
-      const NUM = ['One!', 'Two!', 'Three!', 'Four!'], NUMK = ['하나!', '둘!', '셋!', '넷!']; let alive = true, cur = -1, got = 0, lock = true;
-      c.innerHTML = `<div class="play"><button class="x" aria-label="Close">×</button><button class="pill ws">Worksheet page<small>Week 1 · 04</small></button>
-        <div class="shelf">${SH.map((q, i) => `<span class="slot" data-i="${i}"><svg viewBox="0 0 300 300"><g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="16" stroke-linejoin="round">${q.d}</g></svg><b></b></span>`).join('')}</div>
+      const NUM = ['One!', 'Two!', 'Three!', 'Four!'], NUMK = ['하나!', '둘!', '셋!', '넷!']; let alive = true, cur = -1, got = 0, lock = true, pgi = 0, onTap = null, done4 = null, talked = false;
+      const WK = WEEKS['1-0'], PD = () => { S.pgd = S.pgd || {}; return S.pgd['1-0'] = S.pgd['1-0'] || {}; };   // PD()[page] = that page's saved answers
+      c.innerHTML = `<div class="play"><button class="pill dback wkback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button><div class="ptitle"><h2></h2><p></p></div><button class="pill ws">Worksheet page<small class="wsn">Week 1 · 01</small></button>
+        <div class="pgs">${WK.map((_, i) => `<i data-i="${i}">${i + 1}</i>`).join('')}</div>
+        <div class="shelf" hidden>${SH.map((q, i) => `<span class="slot" data-i="${i}"><svg viewBox="0 0 300 300"><g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="16" stroke-linejoin="round">${q.d}</g></svg><b></b></span>`).join('')}</div>
         <img id="gy" src="art/gerry/wave.webp" alt=""><div id="gsay"></div><div class="arena"></div></div>`;
       c.hidden = false; snd.pop(); const A = c.querySelector('.arena');
+      let mode = 'hub', run = 0; const allDone = () => WK.every((_, i) => PD()[i]), quiet = () => { if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); };
+      const head = (h, p2, back, backKo) => { c.querySelector('.ptitle h2').textContent = h; c.querySelector('.ptitle p').textContent = p2 || ''; c.querySelector('.wkback .l').innerHTML = `${back}<small>${backKo}</small>`; };
       const out = ok => { alive = false; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); c.hidden = true; c.onclick = null; c.innerHTML = ''; finish(ok); };
 
       /* 1 the lesson video */
-      const video = async () => {
+      const video = async () => { mode = 'video'; run++; onTap = null; pgi = -1; c.querySelector('.shelf').hidden = true; head('Week 1 · The World of Circles', 'Watch the lesson video.', 'Week 1', '1주로');
         // the week's lesson video (forest-math/video/week1-circles, copied to world/video/): big play button, tap the picture to pause
-        A.innerHTML = `<div class="tv"><div class="scr vid"><video src="video/fm01-week1-circles.mp4" poster="video/fm01-week1-circles.jpg" playsinline preload="metadata"></video><button class="playb" aria-label="Play"></button></div><button class="go next">Start the activity<small>활동 하러 가요</small></button></div>`;
-        const v = A.querySelector('video'), pb = A.querySelector('.playb');
-        let seen = false; v.onplay = () => { if (!seen) { seen = true; track('video', 1); } pb.hidden = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp'; };   // Gerry is quiet while the video talks
-        v.onpause = () => { pb.hidden = false; }; v.onended = () => { pb.hidden = false; A.querySelector('.next').classList.add('ready'); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; };
-        await gerry("Hi! I'm Gerry! First, let's watch the video.", '안녕! 나는 게리야! 먼저 영상을 봐요.', 'point'); };
+        A.innerHTML = `<div class="tv"><div class="scr vid"><video src="video/fm01-week1-circles.mp4" poster="video/fm01-week1-circles.jpg" playsinline preload="metadata"></video><button class="playb" aria-label="Play"></button></div></div>`;
+        const v = A.querySelector('video'), pb = A.querySelector('.playb'); if (window.VCtl) VCtl.attach(A.querySelector('.scr.vid'));   // full screen + a time bar to switch on (vctl.js)
+        let seen = false; v.onplay = () => { if (!seen) { seen = true; track('video', 1); track('w1video', 1); S.vid = S.vid || {}; S.vid['1-0'] = 1; save(); } pb.hidden = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp'; };   // Gerry is quiet while the video talks
+        v.onpause = () => { pb.hidden = false; }; v.onended = () => { pb.hidden = false; if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; if (mode === 'video') setTimeout(() => { if (alive && mode === 'video') hub(); }, 900); };   // back to the week screen by itself
+        v.play().catch(() => {}); };
+      /* the week screen: what is next (one card), Video, one big START, and My book: finished pages can be played again from the numbers */
+      const hub = async cheer => { if (!alive) return; mode = 'hub'; run++; onTap = null; pgi = -1; quiet(); c.querySelector('.shelf').hidden = true;
+        const i = startPage(), done = allDone(), P = WK[i]; head('Week 1 · The World of Circles', '', 'Planet', '행성으로'); c.querySelector('.wsn').textContent = `Week 1 · ${String(i + 1).padStart(2, '0')}`;
+        c.querySelectorAll('.pgs i').forEach((d, k) => { d.classList.remove('on'); d.classList.toggle('ok', !!PD()[k]); d.classList.toggle('can', !!PD()[k] || k === i); });
+        A.innerHTML = `<div class="hub"><div class="hcard"><span class="hk">${done ? 'All 8 pages done!' : `Page ${i + 1} of 8`}</span><h2>${done ? 'Week 1 is finished!' : P.t}</h2><p>${done ? 'Open your Discussion Book, or play a page again.' : P.act}</p></div>
+          <div class="hbtn"><button class="hb hvideo"><img src="art/ic-video.png" alt=""><b>Video</b></button><button class="go hstart${done ? ' again' : ''}"><span class="l">${done ? 'PLAY AGAIN' : 'START'}<small>${done ? 'from page 1' : `Page ${i + 1} of 8`}</small></span></button><button class="hb hbook${done ? '' : ' locked'}"><img src="art/book.png" alt=""><b>My book</b></button></div></div>`;
+        if (cheer) { burst(W / 2, 360, 80, 15); gerry('Great talking! You get a star!', '말하기 최고! 별을 받아요!', 'cheer'); }
+        else if (!(S.vid || {})['1-0'] && !Object.keys(PD()).length) gerry("Hi! I'm Gerry! First, let's watch the video.", '안녕! 나는 게리야! 먼저 영상을 봐요.', 'point');
+        else gerry(done ? 'You finished the week! Open your book.' : 'Press START!', done ? '이번 주를 다 했어요! 책을 열어 봐요.' : 'START를 눌러요!', 'point'); };
       /* 2 the game: catch the vertices of each shape as it flies in */
-      const next = async () => { if (!alive) return; cur++; got = 0; lock = true;
-        if (cur >= SH.length) return speak();
+      const next = async () => { if (!alive || pgi !== 3) return; cur++; got = 0; lock = true;
+        if (cur >= SH.length) { c.querySelector('.shelf').hidden = true; return done4({}); }
         const q = SH[cur];
         A.innerHTML = `<div class="ship"><svg viewBox="0 0 300 300" class="shape"><g class="outl" fill="${q.col}" stroke="#fff" stroke-width="14" stroke-linejoin="round">${q.d}</g>${q.v.map(([x, y], j) => `<circle class="vx" data-j="${j}" cx="${x}" cy="${y}" r="40"/>`).join('')}</svg><b class="count">0</b></div>
           <button class="zero"><b>0</b><span>No vertices!<small>꼭짓점이 없어요</small></span></button>`;
-        snd.whoosh(); await gerry(`Here comes the ${q.n}! ${q.v.length ? 'Tap its vertices!' : 'Does it have vertices?'}`, q.v.length ? '꼭짓점을 눌러요!' : '꼭짓점이 있을까요?', q.v.length ? 'point' : 'think'); lock = false; };
+        snd.whoosh(); if (cur > 0) await gerry(`Here comes the ${q.n}! ${q.v.length ? 'Tap its vertices!' : 'Does it have vertices?'}`, q.v.length ? '꼭짓점을 눌러요!' : '꼭짓점이 있을까요?', q.v.length ? 'point' : 'think'); else await wait(900); lock = false; };
       const solved = async () => { const q = SH[cur], sl = c.querySelector(`.slot[data-i="${cur}"]`); lock = true; snd.win(); burst((W * 1.01 + 490) / 2, 400, 60, 14);
         const line = q.v.length ? gerry(q.v.length === 3 ? 'Three vertices! Great job!' : 'Four vertices! Wow!', q.v.length === 3 ? '꼭짓점이 세 개! 잘했어요!' : '꼭짓점이 네 개! 우와!', 'cheer')
           : gerry(q.n === 'circle' ? 'Yes! A circle has no vertices!' : 'Right! An oval has no vertices!', '맞아요! 꼭짓점이 없어요!', 'cheer');
-        await wait(700); if (!alive) return; A.querySelector('.ship').classList.add('away'); await line; if (!alive) return;
+        await wait(700); if (!alive || pgi !== 3) return; A.querySelector('.ship').classList.add('away'); await line; if (!alive || pgi !== 3) return;
         sl.classList.add('full'); sl.querySelector('g').setAttribute('fill', q.col); sl.querySelector('g').setAttribute('stroke', '#fff'); sl.querySelector('b').textContent = q.v.length; snd.ding(cur); await wait(350); next(); };
       /* 3 the speaking that belongs to this page: say the reason, then answer an opposite idea */
       const turn = (key, alien, en, ko, frame, frameKo) => new Promise(async done => {
+        const plain = frame.replace(/<[^>]+>/g, ''), bold = (/<b>(.*?)<\/b>/.exec(frame) || [])[1] || '', bw = bold.split(' ').filter(Boolean);
+        const WD = plain.split(' '), b0 = bw.length ? WD.findIndex((_, i) => bw.every((x, j) => (WD[i + j] || '').replace(/[.,!?]/g, '') === x.replace(/[.,!?]/g, ''))) : -1;
         A.innerHTML = `<div class="talkp">${alien ? '<div class="claim"><img src="art/alien.png" alt=""><span>“A circle has no points!”<small>“동그라미에는 점이 없어!”</small></span></div>' : ''}
-          <div class="frame"><span>Say it:</span>${frame}<small>${frameKo}</small></div><button class="go say"><span class="mic"></span><span class="l">Press and say<small>누르고 말해요</small></span></button></div>`;
-        A.querySelector('.say').onclick = async e => { const b = e.currentTarget; if (b.classList.contains('on')) return; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
-          const clip = await listen(b); if (clip) VDB.put(key, clip); if (!alive) return; snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
+          <div class="frame"><span>Say it:</span><p class="line">${WD.map((w, i) => `<span class="w${b0 >= 0 && i >= b0 && i < b0 + bw.length ? ' key' : ''}">${w}</span>`).join(' ')}</p><small>${frameKo}</small></div>
+          <div class="heardl"><i class="sst"><b></b><b></b><b></b></i><em></em></div>
+          <div class="sbtn"><button class="go say"><span class="mic"></span><span class="l">Press and say<small>누르고 말해요</small></span></button><button class="pill saidit" hidden><span class="l">I said it!<small>말했어요</small></span></button><button class="go nextt" hidden><span class="l">Next<small>다음</small></span></button></div></div>`;
+        const sayB = A.querySelector('.say'), heardE = A.querySelector('.heardl em'), nextB = A.querySelector('.nextt'), manual = A.querySelector('.saidit'), T = window.Talk;
+        let tries = 0, best = 0, bestScore = -1, busyL = false, closed = false;
+        const stars = n => { best = Math.max(best, n); A.querySelectorAll('.sst b').forEach((x, i) => { x.classList.toggle('on', i < best); if (i < n) { x.classList.remove('pop'); void x.offsetWidth; x.classList.add('pop'); } }); };
+        const reset = () => { sayB.classList.remove('on'); sayB.querySelector('.l').innerHTML = tries ? 'Say it again<small>다시 말해요</small>' : 'Press and say<small>누르고 말해요</small>'; };
+        const finishT = () => { if (closed) return; closed = true; S.say = S.say || {}; S.say[key] = Math.max(best, S.say[key] || 0); save(); snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
+        nextB.onclick = finishT; manual.onclick = () => { stars(2); gerry('Great speaking!', '말하기 최고!', 'cheer'); finishT(); };
+        sayB.addEventListener('click', async () => { if (busyL || closed) return; busyL = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';   // nothing talks over the child
+          heardE.textContent = ''; const r = await listen(sayB, w => { heardE.textContent = w; }); busyL = false; if (!alive || closed || !A.contains(sayB)) return; tries++; reset();
+          if (!r.heard.length || !T) {   // nothing heard (no microphone, too quiet, or a browser that cannot hear words): never leave the child stuck
+            if (r.clip) VDB.put(key, r.clip); manual.hidden = false; heardE.textContent = "I couldn't hear the words.";
+            return gerry(tries >= 2 ? 'Say it out loud, then press "I said it!"' : "I couldn't hear you. Press the microphone and say it loudly!", tries >= 2 ? '크게 말하고 "말했어요"를 눌러요.' : '잘 안 들렸어요. 마이크를 누르고 크게 말해요!', 'think'); }
+          const sc = T.score(plain, r.heard), st = T.stars(sc); heardE.textContent = '“' + r.heard[0] + '”';
+          A.querySelectorAll('.line .w').forEach(w => { const Wd = T.words(w.textContent)[0] || '', hit = r.heard.some(h => T.words(h).some(x => x === Wd || (x.length > 3 && x.slice(0, 3) === Wd.slice(0, 3)))); w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit); });
+          if (r.clip && sc >= bestScore) { bestScore = sc; VDB.put(key, r.clip); }   // the best try is the one kept for the book
+          stars(st); snd.ding(st);
+          if (st === 3) { await gerry(sc >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!', sc >= 95 ? '완벽해요! 정말 잘했어요!' : '말하기 최고!', 'cheer'); return finishT(); }
+          nextB.hidden = !(st === 2 || tries >= 3);
+          if (tries >= 3) return gerry("Good try! Let's say it together.", '잘했어요! 같이 말해 봐요.', 'point');
+          gerry(st === 2 ? 'Nice! Try once more for three stars!' : 'Good try! Say it again.', st === 2 ? '좋아요! 별 세 개에 한 번 더 도전!' : '잘했어요! 다시 말해 봐요.', 'point'); });
         await gerry(en, ko, alien ? 'think' : 'point'); });
-      const speak = async () => { track('talk', 1);
-        await turn('1-0-a', false, 'Why does a circle have no vertices? Press the button and say it!', '동그라미는 왜 꼭짓점이 없을까요? 버튼을 누르고 말해요!', 'A circle has no vertices because it is <b>round all around</b>.', '동그라미는 둥글어서 꼭짓점이 없어요.'); if (!alive) return;
-        await turn('1-0-b', true, 'Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertices.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.'); if (!alive) return;
-        A.innerHTML = ''; burst(W / 2, 360, 80, 15); await gerry('Great talking! You get a star!', '말하기 최고! 별을 받아요!', 'cheer'); await wait(500); if (alive) out(true); };
+      /* 4 the week = its 8 worksheet pages, one after another: each page's activity, then its Discussion.
+           Progress is kept page by page, so a child who stops comes back to the next page. */
+      const clamp = v => Math.max(0, Math.min(1, v)), SP = (svg, e) => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x, q.y]; };
+      const cx0 = () => (W * 1.01 + 490) / 2, good = (e, n = 12) => { const at = pt(e); burst(at[0], at[1], n, 6); };
+      const R = [
+        /* 01 A Tiny Dot: "Draw dots. Name them A, B, C, D." */
+        ok => new Promise(res => { const need = [1, 2, 3, 4], put = need.map(() => []);
+          A.innerHTML = `<svg class="pga" viewBox="0 0 760 470">${need.map((n, i) => `<g class="bx" data-i="${i}"><rect x="${10 + i * 190}" y="30" width="170" height="350" rx="26"/><text x="${95 + i * 190}" y="76" text-anchor="middle" font-size="27">${n} ${n > 1 ? 'dots' : 'dot'}</text><g class="ds"></g></g>`).join('')}</svg>`;
+          const svg = A.querySelector('svg');
+          onTap = e => { const g = e.target.closest('.bx'); if (!g) return; const i = +g.dataset.i, [x, y] = SP(svg, e), bx = 10 + i * 190; if (put[i].length >= need[i]) { snd.nope(); return; }
+            const nx = clamp((x - bx - 26) / 104), ny = clamp((y - 112) / 240), k = put[i].length, X = bx + 26 + nx * 104, Y = 112 + ny * 240; put[i].push([+nx.toFixed(3), +ny.toFixed(3)]);
+            g.querySelector('.ds').insertAdjacentHTML('beforeend', `<g class="dd"><circle cx="${X}" cy="${Y}" r="12" fill="${REDV}"/><text x="${X + 16}" y="${Y - 9}" font-size="26" fill="#2b2d3a">${'ABCD'[k]}</text></g>`); snd.ding(k); good(e);
+            if (put[i].length === need[i]) g.classList.add('ok');
+            if (put.every((p, j) => p.length === need[j])) { onTap = null; snd.win(); res({ d: put }); } }; }),
+        /* 02 Many Dots: "Put 6 dots in each shape." a straight line, a round shape, a star */
+        ok => new Promise(res => { const NM = ['a straight line', 'a round shape', 'a star'], put = [0, 0, 0]; let made = 0;
+          A.innerHTML = `<svg class="pga" viewBox="0 0 760 470">${NM.map((n, i) => `<g class="bx" data-i="${i}"><rect x="${i * 260}" y="30" width="240" height="350" rx="26"/><text x="${i * 260 + 120}" y="76" text-anchor="middle" font-size="25">${n}</text><g class="ds"></g></g>`).join('')}</svg>`;
+          const svg = A.querySelector('svg');
+          onTap = e => { const g = e.target.closest('.bx'); if (!g) return; const i = +g.dataset.i, [x, y] = SP(svg, e); if (put[i] >= 6) { snd.nope(); return; }
+            const X = Math.max(i * 260 + 22, Math.min(i * 260 + 218, x)), Y = Math.max(110, Math.min(358, y)); put[i]++;
+            g.querySelector('.ds').insertAdjacentHTML('beforeend', `<circle class="mv" r="13" fill="${REDV}" style="transform:translate(${X}px,${Y}px)"/>`); snd.ding(put[i]); good(e, 8);
+            if (put[i] === 6) { g.classList.add('ok'); setTimeout(() => { if (!ok()) return; snd.whoosh(); g.querySelectorAll('.mv').forEach((d, k) => { d.style.transform = `translate(${i * 260 + 120 + FORMS[i][k][0]}px,${228 + FORMS[i][k][1]}px)`; });
+              if (++made === 3) { onTap = null; setTimeout(() => { if (ok()) { snd.win(); res({}); } }, 1300); } }, 350); } }; }),
+        /* 03 The Circle Is Born: "Count the spaces. Then draw 3 more radii." */
+        ok => new Promise(res => { const cx = 250, cy = 225; let step = 0, n = 0;
+          let g = ''; for (let r = 0; r < 7; r++) for (let q = 0; q < 7; q++) g += `<circle cx="${cx - 180 + q * 60}" cy="${cy - 180 + r * 60}" r="5" fill="#c9ccd6"/>`;
+          A.innerHTML = `<svg class="pga" viewBox="0 0 760 470"><rect class="pan" x="0" y="0" width="760" height="450" rx="30"/>${g}<circle cx="${cx}" cy="${cy}" r="180" fill="none" stroke="#2b2d3a" stroke-width="7"/>
+            <g class="rs"></g><line x1="${cx}" y1="${cy}" x2="${cx + 180}" y2="${cy}" stroke="${REDV}" stroke-width="9" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="11" fill="#2b2d3a"/>
+            <g class="ask"><text x="610" y="62" text-anchor="middle" font-size="26">How many</text><text x="610" y="94" text-anchor="middle" font-size="26">spaces?</text>${[2, 3, 4].map((v, i) => `<g class="nb" data-n="${v}"><circle cx="610" cy="${166 + i * 100}" r="42"/><text x="610" y="${182 + i * 100}" text-anchor="middle" font-size="46">${v}</text></g>`).join('')}</g>
+            <g class="rp">${[[cx, cy - 180], [cx - 180, cy], [cx, cy + 180]].map(([x, y], k) => `<circle class="rpt" data-k="${k}" data-x="${x}" data-y="${y}" cx="${x}" cy="${y}" r="24"/>`).join('')}</g></svg>`;
+          const svg = A.querySelector('svg');
+          onTap = e => { const nb = e.target.closest('.nb'), rp = e.target.closest('.rpt');
+            if (step === 0 && nb) { if (+nb.dataset.n !== 3) { nb.classList.remove('no'); void nb.getBBox(); nb.classList.add('no'); snd.nope(); return gerry('Count the spaces again!', '칸을 다시 세어 봐요!', 'think'); }
+              step = 1; nb.classList.add('ok'); svg.classList.add('step1'); snd.win(); good(e); return gerry('Yes! Three spaces. Now tap the circle to draw three more radii!', '맞아요! 세 칸. 이제 동그라미를 눌러 반지름을 세 개 더 그려요!', 'point'); }
+            if (step === 1 && rp && !rp.classList.contains('on')) { rp.classList.add('on'); n++; svg.querySelector('.rs').insertAdjacentHTML('beforeend', `<line class="grow" x1="${cx}" y1="${cy}" x2="${rp.dataset.x}" y2="${rp.dataset.y}" stroke="${REDV}" stroke-width="9" stroke-linecap="round" pathLength="1"/>`); snd.ding(n); good(e);
+              if (n === 3) { onTap = null; setTimeout(() => { if (ok()) { snd.win(); res({}); } }, 700); } } }; }),
+        /* 04 A Circle Has No Vertices: "Colour the vertices red. Write how many." (catch the vertices of each shape) */
+        ok => new Promise(res => { done4 = res; cur = -1; c.querySelector('.shelf').hidden = false; next(); }),
+        /* 05 Circle or Oval?: "Draw a line to circle or oval." */
+        ok => new Promise(res => { let k = 0; const n = { circle: 0, oval: 0 };
+          A.innerHTML = `<div class="cob"><div class="itb"><img class="cit" src="art/obj/${COV[0][0]}.png" alt=""></div><div class="bins">${['circle', 'oval'].map(b => `<button class="bin" data-k="${b}"><svg viewBox="0 0 120 80"><ellipse cx="60" cy="40" rx="${b === 'circle' ? 32 : 52}" ry="32" fill="${b === 'circle' ? '#e3342f' : '#f277a8'}"/></svg><span>${b}</span><b>0</b></button>`).join('')}</div></div>`;
+          onTap = e => { const bin = e.target.closest('.bin'), it = A.querySelector('.cit'); if (!bin || !it || it.classList.contains('go')) return;
+            if (bin.dataset.k !== COV[k][1]) { it.classList.remove('no'); void it.offsetWidth; it.classList.add('no'); snd.nope(); return gerry(COV[k][1] === 'oval' ? 'Look again! It is round and long.' : 'Look again! It is the same across every way.', COV[k][1] === 'oval' ? '다시 봐요! 둥글고 길어요.' : '다시 봐요! 어느 쪽으로 재도 같아요.', 'think'); }
+            it.classList.add('go', bin.dataset.k === 'circle' ? 'gl' : 'gr'); bin.querySelector('b').textContent = ++n[bin.dataset.k]; bin.classList.remove('hit'); void bin.offsetWidth; bin.classList.add('hit'); snd.ding(k); good(e);
+            setTimeout(() => { if (!ok()) return; if (++k >= COV.length) { onTap = null; snd.win(); return res({}); } const ib = A.querySelector('.itb'); if (ib) ib.innerHTML = `<img class="cit" src="art/obj/${COV[k][0]}.png" alt="">`; }, 520); }; }),
+        /* 06 Circles Around Us: "Find 5 round things. Draw them." */
+        ok => new Promise(res => { const ALL = ['clock', 'book', 'wheel', 'door', 'coin', 'window', 'plate', 'phone', 'table', 'tv', 'button', 'donut'], ROUND = ['clock', 'wheel', 'coin', 'plate', 'table', 'button', 'donut'], got5 = [];
+          A.innerHTML = `<div class="find"><div class="fgrid">${ALL.map((n, i) => `<button class="fi" data-n="${n}" style="animation-delay:${-i * .31}s"><img src="art/obj/${n}.png" alt=""></button>`).join('')}</div><div class="tray5">${[0, 1, 2, 3, 4].map(i => `<i data-i="${i}"></i>`).join('')}</div></div>`;
+          onTap = e => { const b = e.target.closest('.fi'); if (!b || b.classList.contains('got')) return; const n = b.dataset.n;
+            if (!ROUND.includes(n)) { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); snd.nope(); return gerry('That is not round. Look for round things!', '그건 둥글지 않아요. 둥근 것을 찾아요!', 'think'); }
+            b.classList.add('got'); A.querySelector(`.tray5 i[data-i="${got5.length}"]`).innerHTML = `<img src="art/obj/${n}.png" alt="">`; got5.push(n); snd.ding(got5.length); good(e);
+            if (got5.length === 5) { onTap = null; setTimeout(() => { if (ok()) { snd.win(); res({ p: got5 }); } }, 500); } }; }),
+        /* 07 The Round World: "Find the rule. Draw the next 2 circles." then "How many big circles in the town? small?" */
+        ok => new Promise(res => { const PAT = [1, 0, 0, 1, 0, 0, 1], TOWN = [[150, 250, 62, '#4da863', 1], [370, 275, 74, '#6fb1e4', 1], [590, 250, 54, '#e3342f', 1], [262, 150, 20, '#e3b23c', 0], [480, 140, 20, '#e3b23c', 0], [690, 370, 20, '#e3b23c', 0], [60, 380, 20, '#e3b23c', 0]];
+          let filled = 0, want = 1, cnt = 0;
+          const phaseB = () => { A.innerHTML = `<svg class="pga" viewBox="0 0 760 470"><rect class="pan" x="0" y="0" width="760" height="450" rx="30"/>${TOWN.map(([x, y, r, col, big], i) => `<circle class="tc" data-i="${i}" cx="${x}" cy="${y}" r="${r}" fill="${col}"/>`).join('')}<g class="cnt2"><circle cx="700" cy="60" r="42" fill="#2b2d3a"/><text x="700" y="77" text-anchor="middle" font-size="48" fill="#fff">0</text></g></svg>`;
+            gerry('Now the round town. Tap the big circles!', '이제 둥근 마을이에요. 큰 동그라미를 눌러요!', 'point'); };
+          A.innerHTML = `<svg class="pga" viewBox="0 0 760 470"><rect class="pan" x="0" y="0" width="760" height="450" rx="30"/>${PAT.map((b, i) => `<circle cx="${62 + i * 76}" cy="150" r="${b ? 30 : 14}" fill="${b ? '#e3342f' : '#f277a8'}"/>`).join('')}
+            ${[7, 8].map(i => `<circle class="slot2" data-i="${i - 7}" cx="${62 + i * 76}" cy="150" r="30"/>`).join('')}<text x="380" y="262" text-anchor="middle" font-size="26">What comes next?</text>
+            ${[['big', 1, 250, 30], ['small', 0, 510, 14]].map(([t, b, x, r]) => `<g class="pb" data-b="${b}"><rect x="${x - 110}" y="296" width="220" height="110" rx="55"/><circle cx="${x - 52}" cy="351" r="${r}" fill="${b ? '#e3342f' : '#f277a8'}"/><text x="${x + 28}" y="362" text-anchor="middle" font-size="34">${t}</text></g>`).join('')}</svg>`;
+          onTap = e => { const pb = e.target.closest('.pb'), tc = e.target.closest('.tc'), svg = A.querySelector('svg');
+            if (pb) { if (+pb.dataset.b !== 0) { pb.classList.remove('no'); void pb.getBBox(); pb.classList.add('no'); snd.nope(); return gerry('Look at the rule: big, small, small!', '규칙을 봐요: 크다, 작다, 작다!', 'think'); }
+              const sl = svg.querySelector(`.slot2[data-i="${filled}"]`); sl.outerHTML = `<circle class="popc" cx="${sl.getAttribute('cx')}" cy="150" r="14" fill="#f277a8"/>`; filled++; snd.ding(filled); good(e);
+              if (filled === 2) { snd.win(); setTimeout(() => { if (ok()) phaseB(); }, 900); } return; }
+            if (tc && !tc.classList.contains('on')) { const T = TOWN[+tc.dataset.i]; if (T[4] !== want) { snd.nope(); return gerry(want ? 'That one is small. Tap the big circles!' : 'That one is big. Tap the small circles!', want ? '그건 작아요. 큰 동그라미를 눌러요!' : '그건 커요. 작은 동그라미를 눌러요!', 'think'); }
+              tc.classList.add('on'); cnt++; svg.querySelector('.cnt2 text').textContent = cnt; snd.ding(cnt); good(e);
+              if (want && cnt === 3) { want = 0; cnt = 0; setTimeout(() => { if (!ok()) return; svg.querySelector('.cnt2 text').textContent = 0; gerry('Three big circles! Now tap the small circles!', '큰 동그라미 세 개! 이제 작은 동그라미를 눌러요!', 'point'); }, 500); }
+              else if (!want && cnt === 4) { onTap = null; setTimeout(() => { if (ok()) { snd.win(); res({}); } }, 600); } } }; }),
+        /* 08 My Circle Gallery: "Draw 3 round things." (paint a circle for each frame) */
+        ok => new Promise(res => { const COLS = ['#e3342f', '#ffcc00', '#2f6fdb', '#4da863', '#f277a8', '#8b5cf6'], picked = [];
+          A.innerHTML = `<div class="gal"><div class="frames">${[0, 1, 2].map(i => `<i class="fr" data-i="${i}"></i>`).join('')}</div><div class="pal2">${COLS.map(col => `<button class="sw" data-c="${col}" style="background:${col}"></button>`).join('')}</div></div>`;
+          onTap = e => { const sw = e.target.closest('.sw'); if (!sw || picked.length >= 3) return; const fr = A.querySelector(`.fr[data-i="${picked.length}"]`); fr.innerHTML = `<b style="background:${sw.dataset.c}"></b>`; fr.classList.add('ok'); picked.push(sw.dataset.c); snd.ding(picked.length); good(e, 16);
+            if (picked.length === 3) { onTap = null; setTimeout(() => { if (ok()) { snd.win(); res({ c: picked }); } }, 700); } }; })];
+      // what Gerry says when a page opens and when its activity is done
+      const INTRO = [['Tap in each box to draw the dots!', '상자마다 눌러서 점을 그려요!'], ['Tap six times in each box. Watch the dots move!', '상자마다 여섯 번 눌러요. 점이 움직이는 걸 봐요!'], ['Look at the red radius. How many spaces is it?', '빨간 반지름을 봐요. 몇 칸일까요?'],
+        ["Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!'], ['Circle or oval? Tap the right box!', '동그라미일까요, 타원일까요? 맞는 상자를 눌러요!'], ['Find five round things!', '둥근 것 다섯 개를 찾아요!'],
+        ['Find the rule. What comes next?', '규칙을 찾아요. 다음은 무엇일까요?'], ['Make your circle gallery. Tap a colour!', '동그라미 갤러리를 만들어요. 색을 눌러요!']];
+      const DONE = [['Great! Every dot has a name!', '잘했어요! 점마다 이름이 있어요!'], ['Same dots, new shapes!', '같은 점인데 새 모양이에요!'], ['Four radii, all the same length!', '반지름 네 개, 모두 길이가 같아요!'], null,
+        ['You sorted them all!', '모두 나눴어요!'], ['Five round things! Circles are all around us!', '둥근 것 다섯 개! 동그라미는 어디에나 있어요!'], ['Three big and four small. Well counted!', '큰 것 세 개, 작은 것 네 개. 잘 셌어요!'], ['What a lovely gallery!', '정말 멋진 갤러리예요!']];
+      const startPage = () => { const D = PD(); for (let i = 0; i < WK.length; i++) if (!D[i]) return i; return 0; };   // the first page not done yet; all done = play the week again from page 1
+      const runPage = async i => { if (!alive) return; const my = ++run, ok = () => alive && my === run; mode = 'page'; quiet(); pgi = i; onTap = null; track(`w1p${i + 1}`, 1); A.innerHTML = ''; head(WK[i].t, WK[i].act, 'Week 1', '1주로'); c.querySelector('.wsn').textContent = `Week 1 · ${String(i + 1).padStart(2, '0')}`;
+        c.querySelectorAll('.pgs i').forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('ok', !!PD()[k] && k !== i); });
+        const P = WK[i], task = R[i](ok); gerry(INTRO[i][0], INTRO[i][1], 'point'); if (i === 3) { await wait(1600); if (ok()) gerry('Here comes the triangle! Tap its vertices!', '꼭짓점을 눌러요!', 'point'); }
+        const data = await task; if (!ok()) return; burst(cx0(), 380, 60, 14); if (DONE[i]) { await gerry(DONE[i][0], DONE[i][1], 'cheer'); if (!ok()) return; }
+        if (!talked) { talked = true; track('talk', 1); }
+        for (let k = 0; k < P.says.length; k++) { const [en, ko, fr, frKo, al] = P.says[k]; head(P.t, 'Discussion: say the sentence.', 'Week 1', '1주로'); await turn(`1-0-${i}-${'ab'[k]}`, !!al, en, ko, fr, frKo); if (!ok()) return; }
+        PD()[i] = data || {}; save();
+        if (i + 1 < WK.length && !WK.slice(i + 1).every((_, k) => PD()[i + 1 + k])) { A.innerHTML = ''; snd.whoosh(); await wait(400); if (ok()) runPage(i + 1); return; }   // straight on to the next page
+        hub(allDone()); };
 
       c.onclick = e => {
-        if (e.target.closest('.x')) return out(false);
-        if (e.target.closest('.ws')) { const im = document.createElement('div'); im.className = 'wsview'; im.innerHTML = '<img src="art/ws/fm01-w1-04.png" alt="">'; im.onclick = ev => { ev.stopPropagation(); im.remove(); }; c.appendChild(im); return; }
+        if (e.target.closest('.wkback')) { snd.pop(); const v = A.querySelector('video'); if (v) v.pause(); return mode === 'hub' ? out(allDone()) : hub(); }
+        if (e.target.closest('.hvideo')) { snd.pop(); return video(); }
+        if (e.target.closest('.hstart')) { snd.pop(); if (!talked) track('game', 1); return runPage(startPage()); }
+        const hbk = e.target.closest('.hbook'); if (hbk) { if (!allDone()) { hbk.classList.remove('shake'); void hbk.offsetWidth; hbk.classList.add('shake'); snd.nope(); return gerry('Finish the pages first. Then your book opens!', '먼저 쪽을 다 해요. 그러면 책이 열려요!', 'think'); }
+          out(true); return setTimeout(() => discussionBook(1, null, 0), 60); }   // week 1 starts on page 0 of the month's book
+        const pd = e.target.closest('.pgs i'); if (pd && mode === 'hub' && pd.classList.contains('can')) { snd.pop(); return runPage(+pd.dataset.i); }
+        if (e.target.closest('.ws')) { const im = document.createElement('div'); im.className = 'wsview'; im.innerHTML = `<img src="art/ws/1/${String((pgi < 0 ? startPage() : pgi) + 1).padStart(2, '0')}.webp" alt="">`; im.onclick = ev => { ev.stopPropagation(); im.remove(); }; c.appendChild(im); return; }
         if (e.target.closest('.playb')) { const v = A.querySelector('video'); if (v) v.play().catch(() => {}); return; }
         if (e.target.closest('.scr.vid video')) { const v = e.target; if (!v.paused) v.pause(); return; }
-        if (e.target.closest('.next')) { const v = A.querySelector('video'); if (v) v.pause(); snd.pop(); track('game', 1); gerry("Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!', 'cheer').then(next); A.innerHTML = ''; return; }
+        if (pgi !== 3) { if (onTap) onTap(e); return; }   // every page but 04 looks after its own taps
         if (lock || cur < 0 || cur >= SH.length) return; const q = SH[cur], at = pt(e), ship = A.querySelector('.ship');
         const vx = e.target.closest('.vx');
         if (vx) { if (vx.classList.contains('on')) return; vx.classList.add('on'); vx.setAttribute('r', 22); got++; const cn = A.querySelector('.count'); cn.textContent = got; cn.classList.remove('bump'); void cn.offsetWidth; cn.classList.add('bump'); snd.ding(got); burst(at[0], at[1], 18, 7);
@@ -301,7 +468,7 @@
           if (q.v.length) { ship.classList.add('nope'); snd.nope(); gerry('Vertices are where two sides meet. Try again!', '꼭짓점은 두 변이 만나는 곳이에요. 다시 해 봐요!', 'point'); }
           else { ship.classList.add('roll'); snd.boing(); gerry('Hee hee! It is round all around. No sides meet!', '히히! 둥글둥글해요. 만나는 변이 없어요!', 'think'); } }
       };
-      video();
+      hub();
     }),
   };
   /* ---------- My Discussion Book (boss, 24 Nov 2026: the same idea as Start PBL's My Speech Book) ----------
@@ -315,71 +482,94 @@
      Sample: month 1; only Week 1 · 04 has an online activity so far. */
   const VDB = (() => { let p; const db = () => p || (p = new Promise((res, rej) => { const r = indexedDB.open('fm-voice', 1); r.onupgradeneeded = () => r.result.createObjectStore('clips'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
     const tx = (mode, f) => db().then(d => new Promise((res, rej) => { const q = f(d.transaction('clips', mode).objectStore('clips')); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); })).catch(() => null);
-    return { put: (k, b) => tx('readwrite', st => st.put(b, k)), get: k => tx('readonly', st => st.get(k)) }; })();
+    return { put: (k, b) => tx('readwrite', st => st.put(b, k)), get: k => tx('readonly', st => st.get(k)), keys: () => tx('readonly', st => st.getAllKeys()).then(k => k || []) }; })();
   const BOOKS = { 1: { cover: 'art/ws/fm01-cover.jpg', n: 32, name: 'FRESH MATH 1 · Vertices',
-    weeks: [{ key: '1-0', t: 'The World of Circles', says: [{ clip: '1-0-a', a: 'A circle has no vertices because it is round all around.' }, { clip: '1-0-b', a: 'A circle has many points, but no vertices.' }] },
-      { key: '1-1', t: 'The World of Triangles', says: [] }, { key: '1-2', t: 'The World of Quadrilaterals', says: [] }, { key: '1-3', t: 'The World of Polygons', says: [] }],
-    ans: { 3: { key: '1-0', dots: [[164, 751], [221, 851], [107, 851], [497, 756], [599, 756], [599, 858], [497, 858]], nums: [[164, 903, '3'], [356, 903, '0'], [548, 903, '4'], [740, 903, '0']] } } } };
-  function discussionBook(month, after) {
+    weeks: [{ key: '1-0', t: 'The World of Circles' }, { key: '1-1', t: 'The World of Triangles' }, { key: '1-2', t: 'The World of Quadrilaterals' }, { key: '1-3', t: 'The World of Polygons' }] } };
+  // page i of a month's book: which week it belongs to, its worksheet page (WEEKS) and the child's saved answers for it
+  const bookPage = (BK, i) => { const wk = BK.weeks[Math.floor(i / 8)], P = (WEEKS[wk.key] || [])[i % 8], d = ((S.pgd || {})[wk.key] || {})[i % 8]; return { wk, P, d, id: wk.key + '-' + (i % 8) }; };
+  /* The book, laid out as Start PBL's My Speech Book (user, 24 Nov: "the book pages have to show the answers they did, but also
+     the recording, which should be on the next page to it, like pbl"): after the cover, every worksheet page is one spread:
+     LEFT the real worksheet page with the child's answers on it, RIGHT what they said on that page: the sentence, their
+     speaking stars and "Listen to me!" (their own voice). All the month's pages are there, week after week; a week's pages
+     open when that week's stop is done. */
+  function discussionBook(month, after, at) {
     const BK = BOOKS[month]; if (!BK) { toast('This month\'s Discussion Book is coming soon.', '이 달의 디스커션 북은 곧 나와요.'); if (after) after(); return; }
-    const c = $('#card'), SP = BK.n / 2, did = key => !!(S.book && S.book[key]), pg = i => `art/ws/${month}/${String(i + 1).padStart(2, '0')}.webp`;
-    let n = -1, audio = null, alive = true, token = 0; const urls = {};   // n = -1 is the cover; then spread n shows pages 2n and 2n + 1
+    const c = $('#card'), pg = i => `art/ws/${month}/${String(i + 1).padStart(2, '0')}.webp`;
+    let n = -1, audio = null, alive = true, token = 0; const urls = {};   // n = -1 is the cover; then n = the worksheet page, 0 .. BK.n - 1
     // the book grows week by week: a week's pages open when that week's stop is done
-    const OPEN = S.done >= month ? BK.weeks.length : S.done === month - 1 ? Math.min(BK.weeks.length, S.stop || 0) : 0, LAST = Math.max(0, OPEN * 4) - 1;
+    const OPEN = S.done >= month ? BK.weeks.length : S.done === month - 1 ? Math.min(BK.weeks.length, S.stop || 0) : 0, LAST = OPEN * 8 - 1;
     c.innerHTML = `<div class="dbk"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button><h2 class="dtitle">My Discussion Book</h2>
       <div class="dwk"><i data-w="-1" class="cv">Cover</i>${BK.weeks.map((_, w) => `<i data-w="${w}"${w < OPEN ? '' : ' class="shut"'}>Week ${w + 1}</i>`).join('')}</div>
-      <div class="dbook"><div class="dpg l"><img class="sheet" alt=""><div class="ans"></div></div><div class="dpg r"><div class="dcov"><img src="${BK.cover}" alt=""></div><img class="sheet" alt=""><div class="ans"></div></div></div>
+      <div class="dbook"><div class="dpg l"><img class="sheet" alt=""><div class="ans"></div></div><div class="dpg r"><div class="dcov"><img src="${BK.cover}" alt=""></div><div class="dsays"></div></div></div>
       <button class="dturn prev" aria-label="Back"></button><button class="dturn next" aria-label="Next"></button>
-      <div class="dvoice"></div><img id="gy" src="art/gerry/wave.webp" alt=""><div id="gsay"></div></div>`;
+      <div class="dvoice"><span class="pdots"></span><button class="go hearall"><span class="tri"></span>Hear my whole book</button></div><img id="gy" src="art/gerry/wave.webp" alt=""><div id="gsay"></div></div>`;
     c.hidden = false; const q = x => c.querySelector(x), bk = q('.dbook');
     const stop = () => { token++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.listen.on').forEach(b => b.classList.remove('on')); };
     const play = async (key, btn) => { stop(); const my = token; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
       const blob = await VDB.get(key); if (my !== token || !alive) return false; if (!blob) { if (btn) { btn.classList.remove('nope'); void btn.offsetWidth; btn.classList.add('nope'); } snd.nope(); return false; }
       urls[key] = urls[key] || URL.createObjectURL(blob); audio = new Audio(urls[key]); if (btn) btn.classList.add('on');
       return new Promise(res => { const fin = () => { if (btn) btn.classList.remove('on'); res(true); }; audio.onended = fin; audio.onerror = fin; audio.play().catch(fin); }); };
-    const answers = i => { const A = BK.ans[i]; return A && did(A.key) ? A.dots.map(([x, y], j) => `<i class="vd" style="left:${x / 9.05}%;top:${y / 12.8}%;animation-delay:${j * .07}s"></i>`).join('') + A.nums.map(([x, y, t], j) => `<b class="wn" style="left:${x / 9.05}%;top:${y / 12.8}%;animation-delay:${.5 + j * .1}s">${t}</b>`).join('') : ''; };
-    const show = async k => { stop(); n = Math.max(-1, Math.min(SP - 1, LAST, k)); const w = n < 0 ? -1 : Math.floor(n / 4); bk.classList.toggle('shut', n < 0); bk.classList.remove('flip'); void bk.offsetWidth; bk.classList.add('flip');
-      c.querySelectorAll('.dwk i').forEach(d => d.classList.toggle('on', +d.dataset.w === w)); q('.prev').disabled = n < 0; q('.next').disabled = n >= Math.min(SP - 1, LAST); snd.pop();
-      const V = q('.dvoice'), all = '<button class="go hearall"><span class="tri"></span>Hear my whole book</button>';
-      if (n < 0) { V.innerHTML = all; return; }
-      [q('.dpg.l'), q('.dpg.r')].forEach((P, j) => { P.querySelector('.sheet').src = pg(2 * n + j); P.querySelector('.ans').innerHTML = answers(2 * n + j); });
-      const W = BK.weeks[w], has = await Promise.all(W.says.map(sy => VDB.get(sy.clip).then(b => !!b))); if (!alive || Math.floor(n / 4) !== w) return;
-      V.innerHTML = `<b class="wkl">Week ${w + 1} · my voice</b>` + (did(W.key) && W.says.length ? W.says.map((sy, i) => `<button class="listen${has[i] ? '' : ' none'}" data-clip="${sy.clip}" title="${has[i] ? 'Listen to me!' : 'No voice yet'}"><b></b><em>${sy.a}</em></button>`).join('')
-        : `<span class="none">${W.says.length ? `Play week ${w + 1} to hear yourself here.` : `The talking for week ${w + 1} comes with its activities.`}</span>`); };
+    const show = async k => { stop(); n = Math.max(-1, Math.min(BK.n - 1, LAST, k)); const w = n < 0 ? -1 : Math.floor(n / 8); bk.classList.toggle('shut', n < 0); if (n < 0) q('.dpg.r').style.background = ''; bk.classList.remove('flip'); void bk.offsetWidth; bk.classList.add('flip');
+      if (w >= 0 && w !== show.w) track(`w${w + 1}book`, w + 1); show.w = w;
+      c.querySelectorAll('.dwk i').forEach(d => d.classList.toggle('on', +d.dataset.w === w)); q('.prev').disabled = n < 0; q('.next').disabled = n >= Math.min(BK.n - 1, LAST); snd.pop();
+      q('.pdots').innerHTML = n < 0 ? '' : [0, 1, 2, 3, 4, 5, 6, 7].map(i => `<i data-p="${w * 8 + i}" class="${w * 8 + i === n ? 'on' : ''}">${i + 1}</i>`).join('');
+      if (n < 0) return; const { P, d, id } = bookPage(BK, n), my = n;
+      const im = q('.dpg.l .sheet'), R = q('.dpg.r'); im.onload = () => { try { const cv = document.createElement('canvas'); cv.width = cv.height = 1; const x = cv.getContext('2d'); x.drawImage(im, 6, 6, 1, 1, 0, 0, 1, 1); const [r, g, b] = x.getImageData(0, 0, 1, 1).data;
+        R.style.background = `rgb(${r},${g},${b})`; R.classList.toggle('dark', r * .3 + g * .59 + b * .11 < 150); } catch (e) {} };
+      q('.dpg.l .sheet').src = pg(n); q('.dpg.l .ans').innerHTML = P && d ? `<svg viewBox="0 0 905 1280">${P.ans(d)}</svg>` : '';
+      const says = P && d ? P.says.map((sy, k) => ({ clip: id + '-' + 'ab'[k], a: sy[2], q: sy[5] || sy[0].replace(/\s*(Say it!|Press the button and say it!)$/, '') })) : [], has = await Promise.all(says.map(sy => VDB.get(sy.clip).then(b => !!b))); if (!alive || n !== my) return;
+      q('.dsays').innerHTML = `<small class="wk">Week ${w + 1} · ${String(n % 8 + 1).padStart(2, '0')}</small>` + (says.length ? says.map((sy, i) => `<div class="dsay${says.length > 1 ? ' two' : ''}"><span class="dqq"><b>Q</b>${sy.q}</span><p>${sy.a}</p>
+          <button class="listen${has[i] ? '' : ' none'}" data-clip="${sy.clip}"><b></b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36].map((h, j) => `<i style="height:${h * .5}px;--d:${j * -.09}s"></i>`).join('')}</span><em>${has[i] ? 'Listen!' : 'No voice yet'}</em></button>
+          <div class="dst">${[0, 1, 2].map(k => `<u class="${k < ((S.say || {})[sy.clip] || 0) ? 'on' : ''}"></u>`).join('')}</div></div>`).join('')
+        : `<div class="dsay empty"><p>${P ? `Play page ${n % 8 + 1} to fill this page!` : 'This page is coming soon.'}</p><small>${P ? `${n % 8 + 1}쪽을 하면 여기가 채워져요` : '이 쪽은 곧 나와요'}</small></div>`); };
     const out = () => { alive = false; stop(); Object.values(urls).forEach(u => URL.revokeObjectURL(u)); if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); c.hidden = true; c.onclick = null; c.innerHTML = ''; if (after) after(); };
     c.onclick = async e => { const t = e.target;
       if (t.closest('.dback')) return out();
       if (t.closest('.dcov') || t.closest('.next')) return show(n + 1);
       if (t.closest('.prev')) return show(n - 1);
+      const pd = t.closest('.pdots i'); if (pd) return show(+pd.dataset.p);
       const d = t.closest('.dwk i'); if (d) { if (d.classList.contains('shut')) { d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake'); snd.nope(); return toast(`Week ${+d.dataset.w + 1} opens here when you finish it.`, `${+d.dataset.w + 1}주를 하면 여기에 열려요.`); }
-        return show(+d.dataset.w < 0 ? -1 : +d.dataset.w * 4); }
+        return show(+d.dataset.w < 0 ? -1 : +d.dataset.w * 8); }
       const l = t.closest('.listen'); if (l) { if (l.classList.contains('on')) return stop(); return play(l.dataset.clip, l); }
-      if (t.closest('.hearall')) { let any = false;   // every week's voices in order, each on the page it belongs to
-        for (let w = 0; w < BK.weeks.length && alive; w++) { const W = BK.weeks[w]; if (!did(W.key) || !W.says.length) continue;
-          const at = Object.keys(BK.ans).map(Number).find(i => BK.ans[i].key === W.key); await show(at == null ? w * 4 : Math.floor(at / 2)); await wait(600);
-          for (const b of [...c.querySelectorAll('.dvoice .listen:not(.none)')]) { if (!alive || Math.floor(n / 4) !== w) return; any = (await play(b.dataset.clip, b)) || any; await wait(350); } }
-        if (!any && alive) { snd.nope(); toast('No voice in your book yet. Play a week first!', '아직 목소리가 없어요. 먼저 한 주를 해 봐요!'); } } };
-    show(-1); gerry('This is your Discussion Book! Turn the pages and hear yourself.', '디스커션 북이에요! 쪽을 넘기고 내 목소리를 들어 봐요.', 'point');
+      if (t.closest('.hearall')) { let any = false;   // every voice in order, each beside the page it belongs to
+        for (let k = 0; k <= LAST && alive; k++) { const { P, d } = bookPage(BK, k); if (!P || !d) continue; await show(k); await wait(600);
+          for (const b of [...c.querySelectorAll('.dsays .listen:not(.none)')]) { if (!alive || n !== k) return; any = (await play(b.dataset.clip, b)) || any; await wait(350); } }
+        if (!any && alive) { snd.nope(); toast('No voice in your book yet. Play a page first!', '아직 목소리가 없어요. 먼저 한 쪽을 해 봐요!'); } } };
+    show(at == null ? -1 : at); gerry('This is your Discussion Book! Turn the pages and hear yourself.', '디스커션 북이에요! 쪽을 넘기고 내 목소리를 들어 봐요.', 'point');
   }
-  /* ---------- My Mission Log: the month's report, one card a week (user chose option 1, 24 Nov 2026) ----------
+  /* ---------- My Mission Log: the month's report, one CARD a week (the look the user chose, 24 Nov 2026) ----------
      Boss: a monthly report with weekly progress: how many times opened, which parts were done and how often.
-     The three parts of a week are called Video, Activity and Discussion (user: Fresh Math does not call anything a game).
-     Numbers come from the kids' site's shared counter (GPTrack, kept on this device), so they match Story Street's star
-     board; what is finished comes from this world's own save. The counter still names the activity 'game' inside. */
-  function missionLog(month) {
+     She then asked for as much detail as Start PBL's log, but not its look ("i did not say to make the same style log").
+     Top: days played, pages finished, speaking stars, recordings saved. Each week's card: the days it was played and the
+     last one, the Video, each of the 8 pages and the Discussion Book with "x times played", the speaking stars out of the
+     most possible, and Hear = that week's own recordings one after another.
+     Times and days come from the kids' site's shared counter (GPTrack, on this device: names w<week>video, w<week>p<page>,
+     w<week>book); what is finished, the stars and the recordings come from this world's own save. No part is called a game. */
+  async function missionLog(month) {
     const BK = BOOKS[month]; if (!BK) return toast('This month\'s Mission Log is coming soon.', '이 달의 미션 기록은 곧 나와요.');
-    const c = $('#card'), D = window.GPTrack ? GPTrack.days() : {}, WK = BK.weeks, did = key => !!(S.book && S.book[key]), per = WK.map(() => ({ video: 0, game: 0, talk: 0 })); let opens = 0, days = 0;
-    for (const k in D) { const f = D[k].fm; if (!f) continue; days++; opens += f.o || 0;
-      for (const a of ['video', 'game', 'talk']) { const x = f.a && f.a[a]; if (x && x.p) per[Math.min(WK.length, Math.max(1, x.w || 1)) - 1][a] += x.p; } }
-    const PARTS = [['video', 'Video'], ['game', 'Activity'], ['talk', 'Discussion']], ready = w => !!ACTS[WK[w].key];
-    const stars = w => (per[w].video ? 1 : 0) + (did(WK[w].key) ? 2 : 0), weeksDone = WK.filter(w => did(w.key)).length, allStars = WK.reduce((n, _, w) => n + stars(w), 0);
+    const c = $('#card'), D = window.GPTrack ? GPTrack.days() : {}, WK = BK.weeks, MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const keys = await VDB.keys(), allDays = Object.keys(D).filter(k => D[k].fm).sort(); let audio = null, tok = 0;
+    const rows = WK.map((W, w) => { const P = WEEKS[W.key], pd = (S.pgd || {})[W.key] || {}, pre = 'w' + (w + 1), plays = {}, days = [];
+      for (const k of allDays) { const A = D[k].fm.a || {}; let any = false; for (const n in A) if (n.startsWith(pre) && A[n].p) { plays[n.slice(pre.length)] = (plays[n.slice(pre.length)] || 0) + A[n].p; any = true; } if (any) days.push(k); }
+      const clips = P ? P.flatMap((pg, i) => pg.says.map((_, k) => `${W.key}-${i}-${'ab'[k]}`)) : [], got = clips.reduce((n, k) => n + ((S.say || {})[k] || 0), 0), last = days[days.length - 1];
+      return { W, w, P, pd, plays, days, clips, got, max: clips.length * 3, mine: clips.filter(k => keys.includes(k)), done: P ? P.filter((_, i) => pd[i]).length : 0, last: last ? +last.slice(8) + ' ' + MON[+last.slice(5, 7) - 1] : '' }; });
+    const fin = rows.reduce((n, r) => n + r.done, 0), tot = WK.length * 8, stars = rows.reduce((n, r) => n + r.got, 0), x = n => n ? '× ' + n : '–';
     c.innerHTML = `<div class="mlog"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button>
       <h2 class="dtitle">My Mission Log<small>${BK.name} · 미션 기록</small></h2>
-      <div class="msum"><div><b>${opens}</b>times opened</div><div><b>${days}</b>days played</div><div><b>${S.stars}</b>stars</div><div><b>${weeksDone} of ${WK.length}</b>weeks done</div></div>
-      <div class="mweeks">${WK.map((W, w) => `<div class="mwk${ready(w) ? '' : ' soon'}" style="animation-delay:${.08 * w}s"><h3>Week ${w + 1}<em class="${did(W.key) ? 'ok' : ''}">${did(W.key) ? 'done' : ready(w) ? 'not yet' : 'coming soon'}</em></h3><div class="t">${W.t}</div>
-        ${PARTS.map(([id, lab]) => `<div class="mact${per[w][id] ? '' : ' z'}"><img src="art/ic-${id}.png" alt=""><span>${lab}</span><b>${per[w][id] ? '× ' + per[w][id] : '–'}</b></div>`).join('')}
-        <div class="mst">${[0, 1, 2].map(i => `<i class="${i < stars(w) ? 'on' : ''}"></i>`).join('')}</div></div>`).join('')}</div></div>`;
-    c.hidden = false; snd.pop(); c.onclick = e => { if (e.target.closest('.dback')) { c.hidden = true; c.onclick = null; c.innerHTML = ''; } };
+      <div class="msum"><div><b>${allDays.length}</b>days played</div><div><b>${fin} of ${tot}</b>pages finished</div><div><b>${stars}</b>speaking stars</div><div><b>${keys.length}</b>recordings saved</div></div>
+      <div class="mweeks">${rows.map(r => `<div class="mwk${r.P ? '' : ' soon'}" style="animation-delay:${.08 * r.w}s"><h3>Week ${r.w + 1}<em class="${r.done === 8 ? 'ok' : ''}">${r.done === 8 ? 'done' : r.P ? (r.done ? r.done + ' of 8' : 'not yet') : 'coming soon'}</em></h3><div class="t">${r.W.t}</div>
+        <div class="mdays"><span class="rk">${[0, 1, 2, 3, 4, 5, 6].map(i => `<img src="art/rocket.png" class="${i < r.days.length ? 'on' : ''}" alt="">`).join('')}</span><span>${r.days.length ? `<b>${r.days.length} ${r.days.length > 1 ? 'days' : 'day'}</b> · last ${r.last}` : 'no days yet'}</span></div>
+        <div class="mact${r.plays.video ? '' : ' z'}"><img src="art/ic-video.png" alt=""><span>Video</span><b>${x(r.plays.video)}</b></div>
+        <div class="mpg"><span class="ml"><img src="art/ic-game.png" alt="">Pages</span><div class="mgrid">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<span class="${r.pd[i] ? 'on' : r.plays['p' + (i + 1)] ? 'try' : ''}"><i>${i + 1}</i><em>${r.plays['p' + (i + 1)] ? '×' + r.plays['p' + (i + 1)] : ''}</em></span>`).join('')}</div></div>
+        <div class="mact${r.plays.book ? '' : ' z'}"><img src="art/book.png" alt=""><span>Discussion Book</span><b>${x(r.plays.book)}</b></div>
+        <div class="mfoot"><span class="mstar"><i></i><b>${r.got}</b><small>/ ${r.max || '–'}</small></span><button class="go lhear" data-w="${r.w}"${r.mine.length ? '' : ' disabled'}><span class="tri"></span>Hear</button></div></div>`).join('')}</div></div>`;
+    c.hidden = false; snd.pop();
+    const stop = () => { tok++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.lhear.on').forEach(b => b.classList.remove('on')); };
+    c.onclick = async e => { if (e.target.closest('.dback')) { stop(); c.hidden = true; c.onclick = null; c.innerHTML = ''; return; }
+      const h = e.target.closest('.lhear'); if (!h || h.disabled) return; if (h.classList.contains('on')) return stop(); stop(); const my = tok; h.classList.add('on');
+      for (const k of rows[+h.dataset.w].mine) { const blob = await VDB.get(k); if (my !== tok) return; if (!blob) continue; const u = URL.createObjectURL(blob); audio = new Audio(u);
+        await new Promise(r => { audio.onended = audio.onerror = r; audio.play().catch(r); }); URL.revokeObjectURL(u); if (my !== tok) return; await wait(300); }
+      if (my === tok) h.classList.remove('on'); };
   }
   /* My Planet: the child's own little planet. Stars buy decorations; the alien friends from finished missions live here. */
   const DECO = [['Crystals', '크리스탈', 5, -32], ['Space tree', '우주 나무', 8, 30], ['Dome house', '돔 하우스', 12, 0], ['Flag', '깃발', 5, 62], ['Slide', '미끄럼틀', 15, -64], ['Dish', '안테나', 10, 94]];   // name, ko, price, angle from the top

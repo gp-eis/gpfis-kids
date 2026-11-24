@@ -15,6 +15,7 @@
      times played, days played - the shared GPFIS counter, gpfis-site/kit/track.js (GPTrack.days()); counted from the
                                  day the counter was added, so earlier play shows its stars but "x0"
      lines in my voice         - vendor/myvoice.js (what Speak kept for My Speaking Book)
+     readings finished         - 'lgr.pages' (ABC), 'lgr.sheets' (Speak), 'lgr.dictations' (Grammar): ids start with the week's letter
    ?n=1 the number (Ruby · 1); ?back=URL for the arrow; ?sample=1 shows made-up numbers (to show the look). */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:"Fredoka","Noto Sans KR",sans-serif;color:#2b2d3a;user-select:none}
@@ -24,32 +25,42 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
 .round{position:fixed;left:16px;top:14px;z-index:9;width:62px;height:62px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center;font:800 28px "Baloo 2";text-decoration:none;color:#4a2508}
 .round:active{translate:0 4px;box-shadow:0 2px 0 #b98a52}
 #samp{position:fixed;right:16px;top:16px;z-index:9;background:#1f1b2e;color:#fff;border-radius:999px;padding:4px 16px;font:600 14px "Fredoka","Noto Sans KR"}#samp[hidden]{display:none}
-.sign{position:absolute;left:50%;top:22px;translate:-50% 0;background:linear-gradient(#f6d39a,#e0a660 60%,#cf8f48);border-radius:18px;padding:4px 40px 8px;font:800 38px/1.05 "Baloo 2";color:#4a2508;text-align:center;white-space:nowrap;box-shadow:inset 0 2px 0 rgba(255,240,210,.6),0 6px 0 #9a5c26,0 12px 16px rgba(30,8,4,.5)}
+.sign{position:absolute;left:50%;top:12px;translate:-50% 0;background:linear-gradient(#f6d39a,#e0a660 60%,#cf8f48);border-radius:18px;padding:4px 40px 8px;font:800 38px/1.05 "Baloo 2";color:#4a2508;text-align:center;white-space:nowrap;box-shadow:inset 0 2px 0 rgba(255,240,210,.6),0 6px 0 #9a5c26,0 12px 16px rgba(30,8,4,.5)}
 .sign small{display:block;font:600 16px "Fredoka","Noto Sans KR";opacity:.85}
-.row{position:absolute;left:44px;right:44px;top:132px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.wk{background:#fffdf6;border-radius:28px;box-shadow:0 8px 0 #e6cfa4,0 20px 26px rgba(0,0,0,.45);padding:14px 16px 16px;text-align:center;position:relative;cursor:pointer;animation:drop .55s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(var(--k) * .09s)}
+/* 24 Nov 2026 (night): more detail, as in Start PBL's logbook (user: "start pbl has more details regarding the report"):
+   days played with the last date, how many of the week's six readings are finished in each quest, the Speaking Book
+   with its lines and a Hear button, and "x of y" totals. */
+.row{position:absolute;left:36px;right:36px;top:112px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.wk{background:#fffdf6;border-radius:26px;box-shadow:0 8px 0 #e6cfa4,0 20px 26px rgba(0,0,0,.45);padding:12px 14px 12px;position:relative;cursor:pointer;animation:drop .55s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(var(--k) * .09s)}
 @keyframes drop{0%{opacity:0;transform:translateY(-40px) scale(.9)}}
 .wk.lock{background:#e9dccb;opacity:.78}
 .wk.boing{animation:boing .45s}@keyframes boing{30%{transform:scale(1.05,.94)}60%{transform:scale(.97,1.04)}}
-.wk h3{font:800 24px/1 "Baloo 2";color:var(--ink)}.wk h3 small{display:block;font:600 14px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:3px}
-.chest{height:104px;margin:6px auto 4px;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
-.wk:not(.lock) .chest{animation:bob 2.8s ease-in-out infinite;animation-delay:calc(var(--k) * -.6s)}@keyframes bob{50%{translate:0 -5px;rotate:1.5deg}}
-.days{display:flex;gap:5px;justify-content:center;margin:2px 0 10px}
-.days i{width:20px;height:20px;border-radius:50%;background:#efe3cf;font:700 11px/20px "Fredoka";font-style:normal;color:#a8977e}
+.hd{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center}
+.chest{height:78px;max-width:86px;object-fit:contain;margin:auto;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
+.wk:not(.lock) .chest{animation:bob 2.8s ease-in-out infinite;animation-delay:calc(var(--k) * -.6s)}@keyframes bob{50%{translate:0 -4px;rotate:1.5deg}}
+.wk h3{font:800 23px/1 "Baloo 2";color:var(--ink)}.wk h3 small{display:block;font:600 13px "Fredoka","Noto Sans KR";color:#7a6a58;margin-top:3px}
+.st{display:flex;gap:3px;margin-top:5px}.st svg{width:22px;height:22px}.st svg.off{filter:grayscale(1) opacity(.28)}
+.dy{display:flex;align-items:center;gap:8px;margin:8px 0 8px;padding:5px 8px;background:#f8efe0;border-radius:12px}
+.days{display:flex;gap:4px}
+.days i{width:19px;height:19px;border-radius:50%;background:#efe3cf;font:700 10px/19px "Fredoka";font-style:normal;color:#a8977e;text-align:center}
 .days i.on{background:#ffd23f;color:#7a4a00;box-shadow:0 0 0 2px #f0ab19}
-.q{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:5px 8px;border-radius:14px;text-align:left;font:700 18px "Fredoka"}
-.q+.q{margin-top:4px}.q img{height:40px;max-width:44px;object-fit:contain;margin:auto;display:block}
-.q.done{background:#fff1c9}.q b{font:800 16px "Baloo 2";color:#fff;background:var(--pill);border-radius:999px;padding:1px 11px}
-.q.zero{opacity:.45}.q.zero b{background:#b9aa96}.q.done.zero{opacity:1}
-.q s{text-decoration:none;color:#f0ab19;font-size:20px;margin-right:2px}
-.bot{position:absolute;left:44px;right:44px;bottom:26px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.big{background:linear-gradient(#ffe36a,#ffc93c);border-radius:22px;box-shadow:0 6px 0 #c9921a;padding:8px 10px;text-align:center;font:600 16px "Fredoka","Noto Sans KR";color:#4a2508;animation:drop .5s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(.4s + var(--k) * .08s)}
-.big b{display:block;font:800 40px/1 "Baloo 2"}
+.dy span{margin-left:auto;font:700 13px/1.15 "Fredoka","Noto Sans KR";color:#4a2508;text-align:right;white-space:nowrap}.dy span small{display:block;font:600 11px "Fredoka";color:#8a7d6c}
+.q{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:8px;padding:4px 8px;border-radius:13px;text-align:left;font:700 17px/1.1 "Fredoka"}
+.q+.q{margin-top:3px}.q img{height:36px;max-width:40px;object-fit:contain;margin:auto;display:block}
+.q small{display:block;font:600 12px "Fredoka","Noto Sans KR";color:#8a7d6c;margin-top:1px;white-space:nowrap}
+.q.done{background:#fff1c9}.q b{font:800 15px "Baloo 2";color:#fff;background:var(--pill);border-radius:999px;padding:1px 10px;white-space:nowrap}
+.q.zero img,.q.zero span{opacity:.45}.q.zero b{background:#b9aa96}.q.done.zero img,.q.done.zero span{opacity:1}
+.q s{text-decoration:none;color:#f0ab19;font-size:18px;margin-right:2px}
+.q .hear{border:0;cursor:pointer;font:800 15px "Baloo 2";color:#4a2508;background:linear-gradient(#ffe36a,#ffc93c);box-shadow:0 4px 0 #c9921a;border-radius:999px;padding:2px 12px;text-decoration:none;white-space:nowrap}
+.q .hear:active{translate:0 3px;box-shadow:0 1px 0 #c9921a}.q .hear.off{background:#d9cfc2;box-shadow:0 4px 0 #b9aa96;color:#8a7d6c;pointer-events:none}
+.bot{position:absolute;left:36px;right:36px;bottom:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.big{background:linear-gradient(#ffe36a,#ffc93c);border-radius:20px;box-shadow:0 6px 0 #c9921a;padding:5px 10px 6px;text-align:center;font:600 15px "Fredoka","Noto Sans KR";color:#4a2508;animation:drop .5s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(.4s + var(--k) * .08s)}
+.big b{font:800 36px/1 "Baloo 2"}.big em{font:700 18px "Baloo 2";font-style:normal;opacity:.75;margin-left:4px}.big span{display:block}
 .spark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:30}
 </style></head><body>
 <a class="round" id="back" aria-label="Back">←</a><span id="samp" hidden>Sample numbers · 예시</span>
 <div id="stage"></div>
-<script>(function(){var V="mwunk7b9";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwunk7b9"></script><script src="../vendor/myvoice.js?v=mwunk7b9"></script>
+<script>(function(){var V="mwuqjv9a";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwuqjv9a"></script><script src="../vendor/myvoice.js?v=mwuqjv9a"></script>
 <script>
 (async function () {
   'use strict';
@@ -67,36 +78,43 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
   fit(); addEventListener('resize', fit);
 
   const QUESTS = [['watch', 'Watch', '../tiles/watch'], ['abc', 'ABC', '../tiles/abc'], ['sheet', 'Speak', '../tiles/sheet'], ['dictation', 'Grammar', '../tiles/dictation']];   // the same tile pictures the GPFIS star board uses (app/art/tiles)
-  const LET = 'ABCD', DAY = 'MTWTFSS';
-  // ---- the numbers: W[w] = { open, built, days: [Mon..Sun 0/1], plays: [4], done: [4], lines }
-  const W = [1, 2, 3, 4].map(() => ({ open: false, built: false, days: [0, 0, 0, 0, 0, 0, 0], plays: [0, 0, 0, 0], done: [0, 0, 0, 0], lines: 0 })); let dayCount = 0;
-  if (Q.get('sample')) { $('#samp').hidden = false; dayCount = 9;
-    [[[1, 1, 0, 1, 1, 0, 1], [3, 5, 4, 2], [1, 1, 1, 1], 46, 1, 1], [[1, 0, 1, 1, 0, 0, 0], [2, 3, 1, 1], [1, 1, 1, 0], 18, 1, 0], [[0, 1, 0, 0, 0, 0, 0], [1, 1, 0, 0], [1, 0, 0, 0], 0, 1, 0], [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], 0, 0, 0]]
-      .forEach((s, i) => Object.assign(W[i], { days: s[0], plays: s[1], done: s[2], lines: s[3], open: !!s[4], built: !!s[5] }));
+  const LET = 'ABCD', DAY = 'MTWTFSS', MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], NREAD = 6;
+  const STAR = off => '<svg class="' + (off ? 'off' : '') + '" viewBox="0 0 100 100"><path d="M50 4 62 36 96 38 70 60 79 94 50 75 21 94 30 60 4 38 38 36Z" fill="' + T.pill + '" stroke="#ffd23f" stroke-width="7" stroke-linejoin="round"/></svg>';
+  // ---- the numbers: W[w] = { open, built, days: [Mon..Sun 0/1], nDays, last: 'YYYY-MM-DD', plays: [4], done: [4], read: [abc, speak, grammar readings finished], lines, bookPlays }
+  const W = [1, 2, 3, 4].map(() => ({ open: false, built: false, days: [0, 0, 0, 0, 0, 0, 0], nDays: 0, last: '', plays: [0, 0, 0, 0], done: [0, 0, 0, 0], read: [0, 0, 0], lines: 0, bookPlays: 0 })); let dayCount = 0;
+  if (Q.get('sample')) { $('#samp').hidden = false; dayCount = 7;
+    [[[1, 1, 0, 1, 1, 0, 0], 4, '2027-01-08', [3, 7, 8, 6], [1, 1, 1, 1], [6, 6, 6], 60, 2, 1, 1], [[1, 0, 1, 0, 0, 0, 0], 2, '2027-01-13', [2, 6, 3, 1], [1, 1, 0, 0], [6, 4, 2], 38, 1, 1, 0], [[0, 1, 0, 0, 0, 0, 0], 1, '2027-01-19', [1, 2, 0, 0], [1, 0, 0, 0], [2, 0, 0], 0, 0, 1, 0], [[0, 0, 0, 0, 0, 0, 0], 0, '', [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0], 0, 0, 0, 0]]
+      .forEach((x, i) => Object.assign(W[i], { days: x[0], nDays: x[1], last: x[2], plays: x[3], done: x[4], read: x[5], lines: x[6], bookPlays: x[7], open: !!x[8], built: !!x[9] }));
   } else {
-    let save = {}; try { save = JSON.parse(localStorage.getItem('lgr2') || '{}') || {}; } catch (e) {}
+    const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } };
+    const save = get('lgr2', {}), lists = [get('lgr.pages', []), get('lgr.sheets', []), get('lgr.dictations', [])];
     let cur = 5; for (let w = 1; w <= 4; w++) if (!(save.done || {})[w]) { cur = w; break; }
-    W.forEach((x, i) => { const P = save['w' + (i + 1)] || {}; x.open = i + 1 <= cur; x.built = !!(save.done || {})[i + 1]; x.done = QUESTS.map(q => P[q[0]] ? 1 : 0); });
+    W.forEach((x, i) => { const P = save['w' + (i + 1)] || {}; x.open = i + 1 <= cur; x.built = !!(save.done || {})[i + 1]; x.done = QUESTS.map(q => P[q[0]] ? 1 : 0);
+      x.read = lists.map(l => new Set(l.filter(id => String(id)[0] === LET[i].toLowerCase())).size); });
     const D = window.GPTrack ? GPTrack.days() : {};
-    for (const k in D) { const A = (D[k].lgr || {}).a || {}; let any = false;
-      QUESTS.forEach((q, qi) => { const a = A[q[0]]; if (!a || !a.p || !W[a.w - 1]) return; any = true; W[a.w - 1].plays[qi] += a.p; const [y, m, d] = k.split('-').map(Number); W[a.w - 1].days[(new Date(y, m - 1, d).getDay() + 6) % 7] = 1; });
+    for (const k of Object.keys(D).sort()) { const A = (D[k].lgr || {}).a || {}; let any = false; const seen = new Set();
+      for (const n in A) { const a = A[n], x = W[a.w - 1]; if (!a.p || !x) continue; const qi = QUESTS.findIndex(q => q[0] === n); if (qi >= 0) x.plays[qi] += a.p; else if (n === 'book') x.bookPlays += a.p; else continue;
+        any = true; if (!seen.has(a.w)) { seen.add(a.w); x.nDays++; x.last = k; const [y, m, d] = k.split('-').map(Number); x.days[(new Date(y, m - 1, d).getDay() + 6) % 7] = 1; } }
       if (any) dayCount++; }
     const keys = window.MyVoice ? await MyVoice.keys() : []; keys.forEach(id => { const i = 'abcd'.indexOf(String(id)[0]); if (i >= 0) W[i].lines++; });
   }
-  const sum = a => a.reduce((x, y) => x + y, 0);
-  const TOT = [[dayCount, 'days played · 놀이한 날'], [sum(W.map(w => sum(w.plays))), 'quests played · 퀘스트'], [sum(W.map(w => sum(w.done))), T.name.toLowerCase() + ' stars · 별'], [sum(W.map(w => w.lines)), 'lines in my voice · 내 목소리']];
+  const sum = a => a.reduce((x, y) => x + y, 0), when = k => { if (!k) return ''; const [y, m, d] = k.split('-').map(Number); return d + ' ' + MON[m - 1]; };
+  const TOT = [[dayCount, '', 'days played · 놀이한 날'], [sum(W.map(w => sum(w.done))), 16, 'quests finished · 끝낸 퀘스트'], [sum(W.map(w => sum(w.plays))), '', 'times played · 놀이 횟수'], [sum(W.map(w => w.lines)), 240, 'lines in my voice · 내 목소리']];
+  const SUB = (w, k) => k === 0 ? (w.done[0] ? 'watched · 봤어요' : 'not yet · 아직') : w.read[k - 1] + ' of ' + NREAD + ' readings';
+  const back = encodeURIComponent('../report/index.html' + location.search);
 
   stage.innerHTML = '<div class="sign">My ' + T.name + ' Report<small>' + T.name + ' · ' + num + ' · 나의 한 달</small></div><div class="row">' + W.map((w, i) =>
-    '<div class="wk' + (w.open ? '' : ' lock') + '" style="--k:' + i + '"><h3>Week ' + (i + 1) + ' · ' + LET[i] + LET[i].toLowerCase() + '<small>' + (w.open ? sum(w.done) + ' of 4 stars · 별 ' + sum(w.done) + '개' : 'Not open yet · 아직 닫혀 있어요') + '</small></h3>' +
-    '<img class="chest" alt="" src="' + ART + (w.built ? 't' + (i + 1) : w.open ? 'chest-open' : 'chest') + '.png">' +
-    '<div class="days">' + w.days.map((d, k) => '<i class="' + (d ? 'on' : '') + '">' + DAY[k] + '</i>').join('') + '</div>' +
-    QUESTS.map((q, k) => '<div class="q' + (w.done[k] ? ' done' : '') + (w.plays[k] ? '' : ' zero') + '"><img alt="" src="' + ART + q[2] + '.png"><span>' + (w.done[k] ? '<s>★</s>' : '') + q[1] + '</span><b>×' + w.plays[k] + '</b></div>').join('') + '</div>').join('') + '</div>' +
-    '<div class="bot">' + TOT.map((t, i) => '<div class="big" style="--k:' + i + '"><b data-n="' + t[0] + '">0</b>' + t[1] + '</div>').join('') + '</div>';
+    '<div class="wk' + (w.open ? '' : ' lock') + '" style="--k:' + i + '"><div class="hd"><img class="chest" alt="" src="' + ART + (w.built ? 't' + (i + 1) : w.open ? 'chest-open' : 'chest') + '.png">' +
+      '<div><h3>Week ' + (i + 1) + ' · ' + LET[i] + LET[i].toLowerCase() + '<small>' + (w.open ? sum(w.done) + ' of 4 stars · 별 ' + sum(w.done) + '개' : 'Not open yet · 아직') + '</small></h3><div class="st">' + w.done.map(d => STAR(!d)).join('') + '</div></div></div>' +
+    '<div class="dy"><div class="days">' + w.days.map((d, k) => '<i class="' + (d ? 'on' : '') + '">' + DAY[k] + '</i>').join('') + '</div><span>' + w.nDays + (w.nDays === 1 ? ' day' : ' days') + '<small>' + (w.last ? 'last: ' + when(w.last) : '—') + '</small></span></div>' +
+    QUESTS.map((q, k) => '<div class="q' + (w.done[k] ? ' done' : '') + (w.plays[k] ? '' : ' zero') + '"><img alt="" src="' + ART + q[2] + '.png"><span>' + (w.done[k] ? '<s>★</s>' : '') + q[1] + '<small>' + SUB(w, k) + '</small></span><b>×' + w.plays[k] + '</b></div>').join('') +
+    '<div class="q' + (w.lines ? ' done' : ' zero') + '"><img alt="" src="' + ART + '../tiles/book.png"><span>Speaking Book<small>' + w.lines + ' of 60 lines' + (w.bookPlays ? ' · ×' + w.bookPlays : '') + '</small></span><a class="hear' + (w.lines ? '' : ' off') + '" href="../speakbook/index.html?w=' + (i + 1) + '&back=' + back + '">▶ Hear</a></div></div>').join('') + '</div>' +
+    '<div class="bot">' + TOT.map((t, i) => '<div class="big" style="--k:' + i + '"><b data-n="' + t[0] + '">0</b>' + (t[1] ? '<em>of ' + t[1] + '</em>' : '') + '<span>' + t[2] + '</span></div>').join('') + '</div>';
 
   // the totals count up; a tapped card bounces and throws sparks
   document.querySelectorAll('.big b').forEach(b => { const n = +b.dataset.n, t0 = performance.now() + 500; const tick = t => { const f = Math.max(0, Math.min(1, (t - t0) / 900)); b.textContent = Math.round(n * (1 - Math.pow(1 - f, 3))); if (f < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); setTimeout(() => { b.textContent = n; }, 1800); });
-  document.querySelectorAll('.wk').forEach(c => c.onclick = () => { c.style.animationDelay = '0s'; c.classList.remove('boing'); void c.offsetWidth; c.classList.add('boing'); if (c.classList.contains('lock')) return;
+  document.querySelectorAll('.wk').forEach(c => c.onclick = e => { if (e.target.closest('.hear')) return; c.style.animationDelay = '0s'; c.classList.remove('boing'); void c.offsetWidth; c.classList.add('boing'); if (c.classList.contains('lock')) return;
     const r = c.querySelector('.chest').getBoundingClientRect(); for (let i = 0; i < 14; i++) { const s = document.createElement('i'); s.className = 'spark'; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px'; s.style.background = ['#ffe36a', '#fff', T.pill, '#ffb347'][i % 4]; document.body.appendChild(s);
       const a = Math.random() * 6.283, d = 60 + Math.random() * 90; s.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 40) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => s.remove(); } });
 })();
-</script><script src="../../ext/home.js?v=mwunk7b9" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwuqjv9a" data-home="../../demo/street.html"></script></body></html>

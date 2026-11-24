@@ -528,9 +528,12 @@ window.Room = (() => {
     let v = box.querySelector('.vpop'); if (v) v.remove();
     v = document.createElement('div'); v.className = 'vpop';
     v.innerHTML = `<div class="vbox"><button class="vx" title="Close">✕</button>` +
-      (R.video ? `<video src="${R.video}" controls playsinline preload="metadata"></video>` : `<div class="vnone"><b>▶</b><p>The week's video plays here.<br><small>not made yet · 영상 준비 중</small></p></div>`) + `</div>`;
+      (R.video ? `<video src="${R.video}"${window.VCtl ? '' : ' controls'} playsinline preload="metadata"></video>` : `<div class="vnone"><b>▶</b><p>The week's video plays here.<br><small>not made yet · 영상 준비 중</small></p></div>`) + `</div>`;
     box.appendChild(v); void v.offsetWidth; v.classList.add('on');
     const vid = v.querySelector('video'); if (vid) { Crew.mute(true); vid.play().catch(() => {}); }
+    // the shared GPFIS video controls (gpfis-site/kit/vctl.js, user 24 Nov): a clock button shows or hides the time bar, a corners button is full screen.
+    // With them the browser's own controls are off, so a tap on the picture is play / pause. Without the file (this computer) the browser's controls stay.
+    if (vid && window.VCtl) { window.VCtl.attach(v.querySelector('.vbox')); vid.addEventListener('click', () => { if (vid.paused) vid.play().catch(() => {}); else vid.pause(); }); }
     const shut = () => { if (!v.isConnected) return; if (vid) { try { vid.pause(); } catch (e) {} Crew.mute(false); } v.remove(); if (!D._tv) { D._tv = 1; save(); K().snd.win(); } paint(); };
     v.querySelector('.vx').addEventListener('click', shut);
     v.addEventListener('click', e => { if (e.target === v) shut(); });

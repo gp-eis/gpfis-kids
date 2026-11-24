@@ -413,3 +413,5 @@ body.inroom #title { margin-left: 232px; }
 .pdots i.wt { color: var(--ink); } .pdots i.wt.on { color: #fff; }
 .pdots i.wt[data-w="1"].on { background: #e8492e; } .pdots i.wt[data-w="2"].on { background: #ff9f1c; } .pdots i.wt[data-w="3"].on { background: #2fb86a; } .pdots i.wt[data-w="4"].on { background: #2f7fd6; }
 .pdots i.wt.lock { background: #dfe3ec; color: #aab1c4; box-shadow: none; }
+/* the shared video buttons (kit/vctl.js) sit clear of the red close button at the corner */
+.vbox .vc-tools { right: 58px; top: 12px; }

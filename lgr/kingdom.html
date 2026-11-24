@@ -134,6 +134,37 @@ body.incave #mbk{display:block}
 #mbk .dots i{width:15px;height:15px;border-radius:50%;background:#d9cfc2;box-shadow:0 0 0 2px #fff}#mbk .dots i.on{background:#ffd23f}
 #mbk.shut img{filter:grayscale(.7) brightness(.8)}
 #mbk.wob{animation:mwob .5s}@keyframes mwob{25%{rotate:-4deg}50%{rotate:10deg}75%{rotate:0deg}}
+/* THE WEEK'S CABIN as five tiles on a faded backdrop (user's sketch, 24 Nov 2026) */
+body.soft{background:#fff3e2}body.soft #bg{opacity:.34;filter:blur(3px) saturate(.9)}body.soft #dim,body.soft #glow{display:none}
+#cab{position:fixed;left:50%;top:50%;width:1280px;height:720px;transform-origin:0 0;z-index:15;font-family:"Fredoka","Noto Sans KR",sans-serif}
+#cab .tl{position:absolute;border:0;background:#fff;border-radius:34px;box-shadow:0 10px 0 #e6cfa4,0 22px 26px rgba(90,30,10,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font:inherit;padding:0;
+  animation:tlin .55s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(var(--k) * .08s);transition:translate .15s,rotate .15s}
+@keyframes tlin{0%{opacity:0;transform:translateY(30px) scale(.85)}}
+#cab .tl:hover{translate:0 -6px;rotate:-1deg}#cab .tl:active{translate:0 6px;box-shadow:0 4px 0 #e6cfa4,0 10px 14px rgba(90,30,10,.28)}
+#cab .tl.sq{animation:tlsq .45s}@keyframes tlsq{30%{transform:scale(1.07,.92)}60%{transform:scale(.96,1.05)}}
+#cab .tl img{max-width:74%;max-height:60%;object-fit:contain;filter:drop-shadow(0 8px 8px rgba(0,0,0,.25));pointer-events:none;animation:tlbob 3s ease-in-out infinite;animation-delay:calc(var(--k) * -.6s)}
+@keyframes tlbob{50%{translate:0 -6px;rotate:1.5deg}}
+#cab .tl b{font:800 30px/1 "Baloo 2";color:#4a2508}#cab .tl small{font:600 16px "Noto Sans KR";color:#8a7d6c}
+#cab .tl.big b{font-size:44px}#cab .tl.big small{font-size:20px}
+#cab .tl.bk b{font-size:23px}
+#cab .tl .tk{position:absolute;right:-12px;top:-14px;width:64px;height:64px;rotate:10deg;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));animation:pop .4s cubic-bezier(.2,1.6,.4,1)}#cab .tk svg{width:100%;height:100%}
+#cab .tl .pg{position:absolute;right:12px;top:12px;background:#efe6da;color:#8a7d6c;border-radius:999px;padding:2px 12px;font:800 17px/1.2 "Baloo 2";font-style:normal}
+#cab .tl .pg.some{background:#ffd23f;color:#5a3a00}
+#cab .tl.next{box-shadow:0 0 0 7px #ffd23f,0 10px 0 #e6cfa4,0 22px 26px rgba(90,30,10,.28)}
+#cab .tl.next::before{content:"";position:absolute;left:50%;top:-46px;margin-left:-18px;border:18px solid transparent;border-top:26px solid #ffc93c;border-bottom:0;filter:drop-shadow(0 4px 2px rgba(0,0,0,.25));animation:bob .8s ease-in-out infinite}
+#cab .tl.shut{background:#efe6da}#cab .tl.shut img{filter:grayscale(.8) opacity(.6);animation:none}#cab .tl.shut b{color:#a8977e}
+#cab .sbar{position:absolute;right:206px;top:18px;background:#fff;border-radius:999px;padding:5px 18px;display:flex;gap:8px;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+#cab .sl{width:36px;height:36px;display:block;filter:grayscale(1) opacity(.28);transition:filter .3s}#cab .sl svg{width:100%;height:100%;display:block}
+#cab .sl.on{filter:none}#cab .sl.in{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+#cab .hp{position:absolute;bottom:46px;height:236px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.3));pointer-events:none;animation:tlin .6s .3s backwards}
+#cab #hg{right:104px}#cab #hpn{right:6px}
+#cab .hb{position:absolute;right:16px;bottom:292px;max-width:240px;background:#fff;border:3px solid #f0ab19;border-radius:20px;padding:8px 18px;font:700 20px/1.2 "Fredoka";text-align:center;opacity:0;scale:.8;transition:opacity .25s,scale .25s cubic-bezier(.2,1.6,.4,1);transform-origin:80% 100%}
+#cab .hb.on{opacity:1;scale:1}
+#cab .won{position:absolute;inset:-600px -1200px;display:grid;place-items:center;background:radial-gradient(circle,rgba(255,240,180,.0),rgba(60,14,10,.0));pointer-events:none;z-index:5}
+#cab .won img{width:300px;opacity:0;scale:.2;filter:drop-shadow(0 0 40px #ffe36a) drop-shadow(0 16px 14px rgba(0,0,0,.4));transition:opacity .3s,scale .6s cubic-bezier(.2,1.6,.4,1)}
+#cab .won.on{background:radial-gradient(circle,rgba(255,240,180,.75),rgba(60,14,10,.55))}#cab .won.on img{opacity:1;scale:1}
+.cfly{position:fixed;width:84px;height:84px;pointer-events:none;z-index:60}.cfly svg{width:100%;height:100%}
+.cspark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:60}
 body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the front map has no land yet */
 .round{width:66px;height:66px;border-radius:50%;border:0;background:linear-gradient(#fff,#ffe9c9);box-shadow:0 6px 0 #b98a52,0 10px 14px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center}
 .round[hidden]{display:none}
@@ -149,7 +180,8 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
 #player .box{position:relative;width:min(86vw,150vh);aspect-ratio:16/9;background:#000;border-radius:26px;border:8px solid #ffd23f;overflow:hidden;display:grid;place-items:center}
 #player video{width:100%;height:100%}
 #player p{color:#fff;font:700 34px "Fredoka";text-align:center}
-#player .x{position:absolute;right:12px;top:12px;z-index:2}
+#player .x{position:absolute;left:12px;top:12px;z-index:5}   /* on the left: the shared video buttons (time bar, full screen) sit top right */
+#player video{cursor:pointer}
 </style></head><body>
 <div id="view"><div id="world"><img id="bg" alt=""><div id="glow"></div><div id="dim"></div></div></div>
 <div id="hud"><button class="round" id="back" aria-label="Back" hidden><svg viewBox="0 0 24 24"><path d="M14 4 6 12l8 8" fill="none" stroke="#4a2508" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -157,7 +189,7 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
 <button id="mbk" aria-label="My Speaking Book"><img src="art/pages/1/cover.webp" alt=""><b>My Speaking Book</b><span class="dots"><i></i><i></i><i></i><i></i></span></button>
 <div id="toast"></div><div id="flash"></div>
 <div id="player" hidden><div class="box"><button class="round x" id="closeV" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#4a2508" stroke-width="4" stroke-linecap="round"/></svg></button><div id="vbody" style="width:100%;height:100%;display:grid;place-items:center"></div></div></div>
-<script>(function(){var V="mwunk7b9";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwunk7b9"></script><script src="../kit/voice.js?v=mwunk7b9"></script><script src="../kit/track.js?v=mwunk7b9"></script><script src="vendor/say.js?v=mwunk7b9"></script><script src="vendor/myvoice.js?v=mwunk7b9"></script>
+<script>(function(){var V="mwuqjv9a";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuqjv9a"></script><script src="../kit/voice.js?v=mwuqjv9a"></script><script src="../kit/track.js?v=mwuqjv9a"></script><script src="../kit/vctl.js?v=mwuqjv9a"></script><script src="vendor/say.js?v=mwuqjv9a"></script><script src="vendor/myvoice.js?v=mwuqjv9a"></script>
 <script>
 (function () {
   'use strict';
@@ -255,7 +287,7 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
     return o;
   }
   let pen, ger, busy = false;
-  function clear() { document.body.classList.remove('incave'); [...world.children].forEach(c => { if (!['bg', 'glow', 'dim'].includes(c.id)) c.remove(); }); }
+  function clear() { document.body.classList.remove('incave', 'soft'); { const c = $('#cab'); if (c) c.remove(); } [...world.children].forEach(c => { if (!['bg', 'glow', 'dim'].includes(c.id)) c.remove(); }); }
   const both = (px, py, gap = 110) => Promise.all([pen.go(px, py), wait(160).then(() => ger.go(px - gap, py - 12))]);
 
   // ================= THE FRONT MAP: one world, four gem lands, the golden railway =================
@@ -408,86 +440,97 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
   }
 
   // ================= 2. INSIDE THE CHEST: THE RUBY CABIN =================
+  // 24 Nov 2026 (night), user's own sketch ("Option 1"): like Start PBL's room, the painted cabin is only a faded backdrop
+  // and FIVE big tiles sit on top: Watch large on the left, then ABC, Speak / Grammar, My Speaking Book in a block, Gerry and
+  // Penny bottom-right, the week's four stars in a bar at the top. Everything lives in #cab, a 1280 x 720 stage scaled to
+  // the window (not in the scrolling world). The old painted-toys cabin is kingdom.html.bak-painted-cabin.
+  const TILE = { watch: [70, 150, 400, 440], abc: [520, 110, 250, 250], sheet: [800, 110, 250, 250], dictation: [520, 400, 250, 250], book: [800, 400, 250, 250] };
+  const fitCab = () => { const c = $('#cab'); if (c) c.style.transform = 'scale(' + Math.min(innerWidth / 1280, innerHeight / 720) + ') translate(-50%,-50%)'; };
+  addEventListener('resize', fitCab);
+  function burst(el, n = 16, power = 130) { const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    for (let i = 0; i < n; i++) { const p = document.createElement('i'); p.className = 'cspark'; p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.background = ['#ffe36a', '#fff', '#ff6f91', '#ffb347'][i % 4]; document.body.appendChild(p);
+      const a = Math.random() * 6.283, d = power * (.4 + Math.random() * .8); p.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 50) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 500, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => p.remove(); } }
   async function cabin(w, arrive) {
-    clear(); busy = true; dfn = near; anchor = .62; WW = 1672; WH = 941; fit(); bg.src = ART + 'cabin.jpg'; $('#back').hidden = false;
+    clear(); busy = true; dfn = near; anchor = .62; WW = 1672; WH = 941; fit(); bg.src = ART + 'cabin.jpg'; $('#back').hidden = false; document.body.classList.add('soft');
     $('#title').innerHTML = WEEKS[w][0] + '<small>Ruby · 1 · Week ' + w + '</small>';
-    const P = parts(w), toys = {}, order = TOYS.map(t => t[0]);
-    const next = () => order.find(p => !parts(w)[p]);
-    TOYS.forEach(([id, en, ko, x, y, wd]) => { const b = toys[id] = thing('toy-' + (id === 'sheet' ? 'speak' : id), x, y, wd, '', '<span class="sign">' + en + '<small>' + ko + '</small></span>' + (P[id] ? '<span class="tick">' + STAR + '</span>' : '')); b.id2 = id; if (id === 'sheet') b.querySelector('.in').style.marginLeft = (wd * .158) + 'px'; });   // the microphone leans right: its BASE, not its middle, goes on the middle of the stand
-    // My Speaking Book (24 Nov 2026): NOT a quest and no star. A keepsake that opens once Speak has kept one of this week's lines (app/speakbook).
-    const BOOKAT = [1000, 676, 190];
-    const sbook = thing('toy-book', BOOKAT[0], BOOKAT[1], BOOKAT[2], 'sbook', '<span class="sign">My Speaking Book<small>나의 스피킹 북</small></span>');
+    const P = parts(w), order = TOYS.map(t => t[0]), next = () => order.find(p => !parts(w)[p]);
+    const cab = document.createElement('div'); cab.id = 'cab'; document.body.appendChild(cab); fitCab();
+    cab.innerHTML = '<div class="sbar">' + order.map((id, i) => '<span class="sl' + (P[id] ? ' on' : '') + '" data-slot="' + i + '">' + STAR + '</span>').join('') + '</div>' +
+      TOYS.map(([id, en, ko], i) => '<button class="tl' + (id === 'watch' ? ' big' : '') + '" data-id="' + id + '" style="left:' + TILE[id][0] + 'px;top:' + TILE[id][1] + 'px;width:' + TILE[id][2] + 'px;height:' + TILE[id][3] + 'px;--k:' + i + '"><img src="art/tiles/' + id + '.png" alt=""><b>' + en + '</b><small>' + ko + '</small>' + (P[id] ? '<span class="tk">' + STAR + '</span>' : '') + '</button>').join('') +
+      '<button class="tl bk shut" data-id="book" style="left:' + TILE.book[0] + 'px;top:' + TILE.book[1] + 'px;width:' + TILE.book[2] + 'px;height:' + TILE.book[3] + 'px;--k:4"><img src="art/tiles/book.png" alt=""><b>My Speaking Book</b><small>나의 스피킹 북</small></button>' +
+      '<img class="hp" id="hg" src="' + ART + 'gerry/stand.webp" alt="Gerry"><img class="hp" id="hpn" src="' + ART + 'penny/stand.webp" alt="Penny"><span class="hb" id="hbub"></span>';
+    const tiles = {}; cab.querySelectorAll('.tl').forEach(b => { tiles[b.dataset.id] = b; }); const sbook = tiles.book;
+    // A STAR MEANS THE QUEST IS COMPLETE (user, 24 Nov 2026): ABC, Speak and Grammar give their star only when all six of the
+    // week's readings are finished there (before: after the first one). The tile shows how far the child is: "4 / 6".
+    const NEED = 6, STORE = { abc: 'lgr.pages', sheet: 'lgr.sheets', dictation: 'lgr.dictations' };
+    const howMany = id => { let got = []; try { got = JSON.parse(localStorage.getItem(STORE[id]) || '[]'); } catch (e) {} return Math.min(NEED, new Set(got.filter(x => String(x)[0] === 'abcd'[w - 1])).size); };
+    const progress = () => Object.keys(STORE).forEach(id => { const b = tiles[id]; let p = b.querySelector('.pg'); if (parts(w)[id]) { if (p) p.remove(); return; } if (!p) { p = document.createElement('i'); p.className = 'pg'; b.appendChild(p); } const n = howMany(id); p.textContent = n + ' / ' + NEED; p.classList.toggle('some', n > 0); });
+    progress();
+    const backFrom = (id, name, ko) => { const n = howMany(id); if (parts(w)[id]) return; if (n >= NEED) return give(id);
+      toast(n ? n + ' of ' + NEED + ' ' + name + ' done. ' + (NEED - n) + ' more for the star!' : 'Finish all ' + NEED + ' ' + name + ' to get the star!', ko + ' ' + n + ' / ' + NEED); };
+    const pose = (g, p) => { const a = $('#hg'), b = $('#hpn'); if (a) a.src = ART + 'gerry/' + g + '.webp'; if (b) b.src = ART + 'penny/' + (p || g) + '.webp'; };
+    // a line: the recorded voice, the words in a bubble over the helpers, and the speaker's talking pose
+    const tell = (who, text) => { const bub = $('#hbub'); if (bub) { bub.textContent = text; bub.classList.add('on'); clearTimeout(tell.t); tell.t = setTimeout(() => { bub.classList.remove('on'); if ($('#hg')) pose('stand'); }, 3600); } pose(who === 'gerry' ? 'talk' : 'stand', who === 'penny' ? 'talk' : 'stand'); return say(who, text); };
     const voiced = () => (window.MyVoice ? MyVoice.keys() : Promise.resolve([])).then(k => k.some(id => id[0] === 'abcd'[w - 1]));
     voiced().then(ok => sbook.classList.toggle('shut', !ok));
-    sbook.onclick = async () => { if (busy) return; snd.pop(); clearTimeout(nudgeT);
-      if (!(await voiced())) { again(sbook, 'shake'); return toast('Do Speak first. Then your book opens!', '말하기를 먼저 해요'); }
-      busy = true; again(sbook, 'squash'); sparks(sbook.x, sbook.y - 60, 14, 120); if (window.GPTrack) GPTrack.play('lgr', 'book', { week: w }); await wait(350);
+    const mark = () => { cab.querySelectorAll('.tl.next').forEach(t => t.classList.remove('next')); const n = next(); if (n) tiles[n].classList.add('next'); };
+    const bounce = b => { b.classList.remove('sq'); void b.offsetWidth; b.classList.add('sq'); };
+    sbook.onclick = async () => { if (busy) return; snd.pop(); clearTimeout(nudgeT); bounce(sbook);
+      if (!(await voiced())) { snd.nope(); return toast('Do Speak first. Then your book opens!', '말하기를 먼저 해요'); }
+      busy = true; burst(sbook); if (window.GPTrack) GPTrack.play('lgr', 'book', { week: w }); await wait(350);
       flash(() => { location.href = 'speakbook/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); };
-    const mark = () => { world.querySelectorAll('.mk').forEach(m => m.remove()); const n = next(); if (n) toys[n].insertAdjacentHTML('beforeend', '<i class="mk"></i>'); };
-    // the workbench: one ruby star for each finished toy
-    order.forEach((id, i) => { if (P[id]) world.insertAdjacentHTML('beforeend', '<div class="slot" data-slot="' + i + '" style="left:' + SLOTS[i][0] + 'px;top:' + SLOTS[i][1] + 'px">' + STAR + '</div>'); });
-    pen = person('penny', 300); ger = person('gerry', 314);
-    const home = [900, 800], stand = b => [b.x + (b.x < 836 ? 1 : -1) * (b.w * .5 + 95), Math.max(b.y + 170, 770)];
-    async function give(id) {                          // a finished toy sends a ruby star to the workbench
-      const b = toys[id], i = order.indexOf(id); setPart(w, id); b.insertAdjacentHTML('beforeend', '<span class="tick">' + STAR + '</span>'); again(b, 'squash'); snd.ding(); sparks(b.x, b.y - b.w * .6, 18, 150);
-      const f = document.createElement('div'); f.className = 'fly'; f.innerHTML = STAR; f.style.left = b.x + 'px'; f.style.top = (b.y - b.w * .6) + 'px'; world.appendChild(f);
-      const dx = SLOTS[i][0] - b.x, dy = SLOTS[i][1] - (b.y - b.w * .6);
-      await Promise.race([f.animate([{ transform: 'translate(0,0) scale(.3) rotate(0)' }, { transform: 'translate(' + dx * .5 + 'px,' + (dy - 160) + 'px) scale(1.6) rotate(200deg)', offset: .55 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1) rotate(360deg)' }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' }).finished, wait(1200)]);
-      f.remove(); world.insertAdjacentHTML('beforeend', '<div class="slot in" data-slot="' + i + '" style="left:' + SLOTS[i][0] + 'px;top:' + SLOTS[i][1] + 'px">' + STAR + '</div>'); snd.pop(); sparks(SLOTS[i][0], SLOTS[i][1], 12, 90);
-      mark(); const got = order.filter(p => parts(w)[p]).length;
-      if (got === 1) say('penny', 'You got a ruby star!'); else if (got === 2) say('penny', 'Two stars! Keep going!'); else if (got === 3) say('gerry', 'Three stars! One more!');
+    async function give(id) {                          // a finished quest sends its ruby star up to the star bar
+      const b = tiles[id], i = order.indexOf(id), slot = cab.querySelector('.sl[data-slot="' + i + '"]'); setPart(w, id);
+      b.insertAdjacentHTML('beforeend', '<span class="tk">' + STAR + '</span>'); bounce(b); snd.ding(); burst(b, 18, 150);
+      const r0 = b.getBoundingClientRect(), r1 = slot.getBoundingClientRect(), f = document.createElement('div'); f.className = 'cfly'; f.innerHTML = STAR; f.style.left = (r0.left + r0.width / 2) + 'px'; f.style.top = (r0.top + r0.height / 2) + 'px'; document.body.appendChild(f);
+      const dx = r1.left + r1.width / 2 - (r0.left + r0.width / 2), dy = r1.top + r1.height / 2 - (r0.top + r0.height / 2);
+      await Promise.race([f.animate([{ transform: 'translate(-50%,-50%) scale(.4) rotate(0)' }, { transform: 'translate(calc(-50% + ' + dx * .5 + 'px),calc(-50% + ' + (dy * .5 - 120) + 'px)) scale(1.8) rotate(200deg)', offset: .55 }, { transform: 'translate(calc(-50% + ' + dx + 'px),calc(-50% + ' + dy + 'px)) scale(.62) rotate(360deg)' }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' }).finished, wait(1200)]);
+      f.remove(); slot.classList.add('on', 'in'); snd.pop(); burst(slot, 12, 90); pose('cheer');
+      mark(); progress(); const got = order.filter(p => parts(w)[p]).length;
+      if (got === 1) tell('penny', 'You got a ruby star!'); else if (got === 2) tell('penny', 'Two stars! Keep going!'); else if (got === 3) tell('gerry', 'Three stars! One more!');
       if (!next()) { await wait(500); finish(); }
     }
-    async function finish() {                          // four stars become the week's treasure, then back out through the chest
-      busy = true; await both(900, 720); snd.whoosh();
-      const stars = [...world.querySelectorAll('.slot')];
-      await Promise.all(stars.map(s => Promise.race([s.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(' + (864 - parseFloat(s.style.left)) + 'px,' + (300 - parseFloat(s.style.top)) + 'px) scale(.4) rotate(360deg)' }], { duration: 700, easing: 'ease-in', fill: 'forwards' }).finished, wait(900)])));
-      stars.forEach(s => s.remove()); sparks(864, 300, 40, 260); snd.big();
-      const t = thing('t' + w, 864, 470, 210, 'noshadow pop'); t.style.zIndex = 900; toast('You made the ' + WEEKS[w][1] + '!', '보물 완성!'); pen.pose(5); ger.pose(5); say('gerry', 'Four stars! Look at your treasure!');
-      await wait(1900); setDone(w); await pen.dive(864, 120); await ger.dive(864, 120);
-      flash(() => { sessionStorage.setItem('lgr2.arrive', 'built' + w); location.hash = '#/cave'; });
+    async function finish() {                          // four stars become the week's treasure, then back out to the cave
+      busy = true; snd.whoosh(); pose('cheer');
+      cab.insertAdjacentHTML('beforeend', '<div class="won"><img src="' + ART + 't' + w + '.png" alt=""></div>'); const won = cab.querySelector('.won'), wr = won.getBoundingClientRect();
+      await Promise.all([...cab.querySelectorAll('.sl')].map(sl => { const r = sl.getBoundingClientRect(); return Promise.race([sl.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(' + (wr.left + wr.width / 2 - r.left - r.width / 2) + 'px,' + (wr.top + wr.height / 2 - r.top - r.height / 2) + 'px) scale(.5) rotate(360deg)', opacity: .2 }], { duration: 700, easing: 'ease-in', fill: 'forwards' }).finished, wait(900)]); }));
+      won.classList.add('on'); burst(won, 40, 260); snd.big(); toast('You made the ' + WEEKS[w][1] + '!', '보물 완성!'); tell('gerry', 'Four stars! Look at your treasure!');
+      await wait(2300); setDone(w); flash(() => { sessionStorage.setItem('lgr2.arrive', 'built' + w); location.hash = '#/cave'; });
     }
-    Object.values(toys).forEach(b => b.onclick = async () => {
-      if (busy) return; busy = true; snd.pop(); const id = b.id2, [sx, sy] = stand(b); clearTimeout(nudgeT);
-      say(...{ watch: ['gerry', "Let's watch!"], abc: ['penny', "Let's read!"], sheet: ['penny', "Let's speak!"], dictation: ['gerry', "Let's make sentences!"] }[id]);
-      await both(sx, sy, b.x < 836 ? -105 : 105); again(b, 'squash'); snd.boing(); await wait(380); busy = false;
-      if (parts(w)[id]) sparks(b.x, b.y - b.w * .6, 10, 100);
+    order.forEach(id => { const b = tiles[id]; b.onclick = async () => {
+      if (busy) return; busy = true; snd.pop(); clearTimeout(nudgeT); bounce(b); pose('point');
+      tell(...{ watch: ['gerry', "Let's watch!"], abc: ['penny', "Let's read!"], sheet: ['penny', "Let's speak!"], dictation: ['gerry', "Let's make sentences!"] }[id]);
+      snd.boing(); await wait(520); busy = false;
+      if (parts(w)[id]) burst(b, 10, 100);
       if (window.GPTrack) GPTrack.play('lgr', id, { week: w });   // the shared GPFIS counter: how many times each quest was opened (kept on this device)
-      if (id === 'watch') return play('videos/A-1-w' + w + '-essay.mp4', () => { if (!parts(w).watch) give('watch'); });
+      if (id === 'watch') return play('videos/A-1-w' + w + '-essay.mp4', seen => { if (parts(w).watch) return; if (seen) give('watch'); else toast('Watch to the end to get the star!', '끝까지 보면 별을 받아요'); });   // a star means complete: the video has to be watched (to 90%)
       if (id === 'abc') { sessionStorage.setItem('lgr2.abc', w); return flash(() => { location.href = 'book/index.html?set=a&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
-      // Sheet and Dictation are not made yet: in this sample they give their star straight away so the whole trip can be tried
-      // Sheet = the question part of the printed worksheet, online, with the speaking step (app/sheet)
       if (id === 'sheet') { sessionStorage.setItem('lgr2.sheet', w); return flash(() => { location.href = 'sheet/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
-      // Dictation = hear it from the horn, build it with tiles, then write it by hand (app/dictation)
       if (id === 'dictation') { sessionStorage.setItem('lgr2.dict', w); return flash(() => { location.href = 'dictation/index.html?w=' + w + '&back=' + encodeURIComponent('../kingdom.html#/w/' + w); }); }
-      toast(TOYS.find(t => t[0] === id)[1] + ': coming soon!', '샘플: 별만 받아요'); if (!parts(w)[id]) { await wait(500); give(id); }
-    });
-    $('#back').onclick = async () => { if (busy) return; busy = true; snd.pop(); await pen.dive(864, 120); await ger.dive(864, 120); flash(() => { sessionStorage.setItem('lgr2.arrive', ''); location.hash = '#/cave'; }); };
-    // arriving: they drop in from above, out of the light
-    pen.put(home[0], home[1]); ger.put(home[0] - 125, home[1] - 12); pen.el.classList.add('gone'); ger.el.classList.add('gone');
-    await wait(350); await pen.land(864, 120); await ger.land(864, 120); mark(); busy = false;
+    }; });
+    $('#back').onclick = () => { if (busy) return; busy = true; snd.pop(); flash(() => { sessionStorage.setItem('lgr2.arrive', ''); location.hash = '#/cave'; }); };
+    await wait(700); mark(); busy = false;
     // a hello only when they arrive from the cave (not on the way back from an activity), then one reminder if nothing happens
     if (!['lgr2.dict', 'lgr2.sheet', 'lgr2.abc'].some(k => sessionStorage.getItem(k) == w) && next()) {
-      if (order.some(p => parts(w)[p])) say('gerry', 'What is next?'); else say('penny', 'Four quests. Pick one!');
-      clearTimeout(nudgeT); nudgeT = setTimeout(() => { if (!busy && $('#player').hidden && location.hash === '#/w/' + w) say('penny', 'Tap a quest!'); }, 20000); }
-    // back from a reading book: Alphabet Reading counts once a book has been read
-    // back from the online worksheet: the Sheet star comes once one of this week's worksheets is finished
-    // back from Dictation: its star comes once one of this week's dictations is finished
-    if (sessionStorage.getItem('lgr2.dict') == w) { sessionStorage.removeItem('lgr2.dict'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.dictations') || '[]'); } catch (e) {}
-      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).dictation) give('dictation'); else if (!parts(w).dictation) toast('Finish one reading to get the star!', '문장 만들기를 하나 끝내요'); }
-    if (sessionStorage.getItem('lgr2.sheet') == w) { voiced().then(ok => { if (ok) { sbook.classList.remove('shut'); again(sbook, 'squash'); sparks(sbook.x, sbook.y - 60, 16, 130); say('penny', 'Your Speaking Book is ready!'); } });
-      sessionStorage.removeItem('lgr2.sheet'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.sheets') || '[]'); } catch (e) {}
-      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).sheet) give('sheet'); else if (!parts(w).sheet) toast('Finish one Speak reading to get the star!', '말하기를 하나 끝내요'); }
-    if (sessionStorage.getItem('lgr2.abc') == w) { sessionStorage.removeItem('lgr2.abc'); let n = 0; try { n = JSON.parse(localStorage.getItem('lgr.pages') || '[]').length; } catch (e) {}
-      if (n > 0 && !parts(w).abc) give('abc'); else if (!n) toast('Read one book to get the star!', '책을 한 권 읽어요'); }
+      if (order.some(p => parts(w)[p])) tell('gerry', 'What is next?'); else tell('penny', 'Four quests. Pick one!');
+      clearTimeout(nudgeT); nudgeT = setTimeout(() => { if (!busy && $('#player').hidden && location.hash === '#/w/' + w) tell('penny', 'Tap a quest!'); }, 20000); }
+    // back from a quest: its star comes once one of this week's readings has been finished there
+    if (sessionStorage.getItem('lgr2.dict') == w) { sessionStorage.removeItem('lgr2.dict'); backFrom('dictation', 'Grammar readings', '문법'); }
+    if (sessionStorage.getItem('lgr2.sheet') == w) { voiced().then(ok => { if (ok) { sbook.classList.remove('shut'); bounce(sbook); burst(sbook, 16, 130); tell('penny', 'Your Speaking Book is ready!'); } });
+      sessionStorage.removeItem('lgr2.sheet'); backFrom('sheet', 'Speak readings', '말하기'); }
+    if (sessionStorage.getItem('lgr2.abc') == w) { sessionStorage.removeItem('lgr2.abc'); backFrom('abc', 'ABC books', '읽기'); }
     else if (!next() && !weekDone(w)) finish();
   }
 
   // ---- video: the real file when it is there ----
-  let afterV = null;
-  function play(src, after) { afterV = after; $('#vbody').innerHTML = ''; $('#player').hidden = false;
-    fetch(src, { method: 'HEAD' }).then(r => r.ok && /video/.test(r.headers.get('content-type') || '')).catch(() => false).then(ok => { $('#vbody').innerHTML = ok ? '<video controls autoplay playsinline src="' + src + '"></video>' : '<p>Daily Essay video<br>coming soon!</p>'; }); }
-  $('#closeV').onclick = () => { $('#player').hidden = true; $('#vbody').innerHTML = ''; snd.pop(); const a = afterV; afterV = null; if (a) a(); };
+  let afterV = null, seenV = true;   // seenV: the video was watched to (nearly) its end; a week with no video file yet counts as seen
+  function play(src, after) { afterV = after; seenV = true; $('#vbody').innerHTML = ''; $('#player').hidden = false;
+    fetch(src, { method: 'HEAD' }).then(r => r.ok && /video/.test(r.headers.get('content-type') || '')).catch(() => false).then(ok => { $('#vbody').innerHTML = ok ? '<video autoplay playsinline src="' + src + '"></video>' : '<p>Daily Essay video<br>coming soon!</p>';
+      // the shared GPFIS video controls (kit/vctl.js; user 24 Nov: every video can go full screen and show its time bar): a clock button
+      // for the time bar, a corners button for full screen. Without the kit the browser's own controls are used. A tap on the picture pauses or plays.
+      const v = $('#vbody video'); if (!v) return; seenV = false; const near = () => { if (v.ended || (v.duration && v.currentTime >= v.duration * .9)) seenV = true; }; v.addEventListener('timeupdate', near); v.addEventListener('ended', near); v.onclick = () => { if (v.paused) v.play().catch(() => {}); else v.pause(); };
+      if (window.VCtl) VCtl.attach($('#vbody')); else v.controls = true; }); }
+  $('#closeV').onclick = () => { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); $('#player').hidden = true; $('#vbody').innerHTML = ''; snd.pop(); const a = afterV; afterV = null; if (a) a(seenV); };
 
   function route() { clearTimeout(nudgeT);
     document.body.classList.remove('front');
@@ -500,4 +543,4 @@ body.front #rep{display:none}   /* My Report (app/report): inside Ruby only; the
   }
   addEventListener('hashchange', route); route();
 })();
-</script><script src="../ext/home.js?v=mwunk7b9" data-home="../demo/street.html"></script></body></html>
+</script><script src="../ext/home.js?v=mwuqjv9a" data-home="../demo/street.html"></script></body></html>
