@@ -143,7 +143,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   <div id="title"></div><button class="round" id="snd" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#4a2508"/><path id="sw" d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14" fill="none" stroke="#4a2508" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>
 <div id="toast"></div><div id="flash"></div>
 <div id="player" hidden><div class="box"><button class="round x" id="closeV" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#4a2508" stroke-width="4" stroke-linecap="round"/></svg></button><div id="vbody" style="width:100%;height:100%;display:grid;place-items:center"></div></div></div>
-<script>(function(){var V="mwtbusdc";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
+<script>(function(){var V="mwu5ds19";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
 (function () {
   'use strict';
   const $ = s => document.querySelector(s), world = $('#world'), bg = $('#bg'), ART = 'art/kingdom/', Q = new URLSearchParams(location.search);
@@ -159,7 +159,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   const current = () => { for (let w = 1; w <= 4; w++) if (!weekDone(w)) return w; return 5; };
   // the boss's four missions and items for Ruby 1 (content/boss-gemstone-adventure.md)
   const WEEKS = [null, ['The Lost Ruby', 'Explorer Badge'], ['The Secret Map', 'Ruby Map'], ['The Hidden Cave', 'Explorer Torch'], ['The Ruby Treasure', 'Ruby Pendant']];
-  const TOYS = [['watch', 'Watch', '보기', 190, 592, 250], ['abc', 'ABC', '읽기', 495, 545, 205], ['sheet', 'Sheet', '워크시트', 1206, 572, 180], ['dictation', 'Dictation', '받아쓰기', 1478, 592, 235]];
+  const TOYS = [['watch', 'Watch', '보기', 190, 592, 250], ['abc', 'ABC', '읽기', 495, 545, 205], ['sheet', 'Speak', '말하기', 1207, 556, 168], ['dictation', 'Dictation', '받아쓰기', 1478, 592, 235]];
   const SLOTS = [[722, 383], [817, 383], [912, 383], [1005, 383]];
   const PLOTS = [[427, 548], [755, 506], [1060, 464], [1372, 464]];
 
@@ -383,7 +383,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     $('#title').innerHTML = WEEKS[w][0] + '<small>Ruby · 1 · Week ' + w + '</small>';
     const P = parts(w), toys = {}, order = TOYS.map(t => t[0]);
     const next = () => order.find(p => !parts(w)[p]);
-    TOYS.forEach(([id, en, ko, x, y, wd]) => { const b = toys[id] = thing('toy-' + id, x, y, wd, '', '<span class="sign">' + en + '<small>' + ko + '</small></span>' + (P[id] ? '<span class="tick">' + STAR + '</span>' : '')); b.id2 = id; });
+    TOYS.forEach(([id, en, ko, x, y, wd]) => { const b = toys[id] = thing('toy-' + (id === 'sheet' ? 'speak' : id), x, y, wd, '', '<span class="sign">' + en + '<small>' + ko + '</small></span>' + (P[id] ? '<span class="tick">' + STAR + '</span>' : '')); b.id2 = id; if (id === 'sheet') b.querySelector('.in').style.marginLeft = (wd * .158) + 'px'; });   // the microphone leans right: its BASE, not its middle, goes on the middle of the stand
     const mark = () => { world.querySelectorAll('.mk').forEach(m => m.remove()); const n = next(); if (n) toys[n].insertAdjacentHTML('beforeend', '<i class="mk"></i>'); };
     // the workbench: one ruby star for each finished toy
     order.forEach((id, i) => { if (P[id]) world.insertAdjacentHTML('beforeend', '<div class="slot" data-slot="' + i + '" style="left:' + SLOTS[i][0] + 'px;top:' + SLOTS[i][1] + 'px">' + STAR + '</div>'); });
@@ -429,7 +429,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     if (sessionStorage.getItem('lgr2.dict') == w) { sessionStorage.removeItem('lgr2.dict'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.dictations') || '[]'); } catch (e) {}
       if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).dictation) give('dictation'); else if (!parts(w).dictation) toast('Finish one dictation to get the star!', '받아쓰기를 하나 끝내요'); }
     if (sessionStorage.getItem('lgr2.sheet') == w) { sessionStorage.removeItem('lgr2.sheet'); let got = []; try { got = JSON.parse(localStorage.getItem('lgr.sheets') || '[]'); } catch (e) {}
-      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).sheet) give('sheet'); else if (!parts(w).sheet) toast('Finish one worksheet to get the star!', '워크시트를 하나 끝내요'); }
+      if (got.some(id => id[0] === 'abcd'[w - 1]) && !parts(w).sheet) give('sheet'); else if (!parts(w).sheet) toast('Finish one Speak reading to get the star!', '말하기를 하나 끝내요'); }
     if (sessionStorage.getItem('lgr2.abc') == w) { sessionStorage.removeItem('lgr2.abc'); let n = 0; try { n = JSON.parse(localStorage.getItem('lgr.pages') || '[]').length; } catch (e) {}
       if (n > 0 && !parts(w).abc) give('abc'); else if (!n) toast('Read one book to get the star!', '책을 한 권 읽어요'); }
     else if (!next() && !weekDone(w)) finish();
@@ -452,4 +452,4 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   }
   addEventListener('hashchange', route); route();
 })();
-</script><script src="../ext/home.js?v=mwtbusdc" data-home="../demo/street.html"></script></body></html>
+</script><script src="../ext/home.js?v=mwu5ds19" data-home="../demo/street.html"></script></body></html>

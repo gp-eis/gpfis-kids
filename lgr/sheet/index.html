@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Let's Go Readers · Sheet</title>
+<title>Let's Go Readers · Speak</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&family=Noto+Sans+KR:wght@500;700&display=swap">
 <style>
 /* THE SHEET ACTIVITY: the question part of the printed worksheet, online. Rebuilt 21 Nov 2026 to the boss's picture:
@@ -117,7 +117,7 @@ body:not(.reading) #wrap{padding-left:250px}
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwtbusdc";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwtbusdc"></script><script src="../book/data/set-a.js?v=mwtbusdc"></script><script src="../book/scene.js?v=mwtbusdc"></script><script src="../vendor/talk.js?v=mwtbusdc"></script>
+<script>(function(){var V="mwu5ds19";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwu5ds19"></script><script src="../book/data/set-a.js?v=mwu5ds19"></script><script src="../book/scene.js?v=mwu5ds19"></script><script src="../vendor/talk.js?v=mwu5ds19"></script>
 <script>
 (function () {
   'use strict';
@@ -140,18 +140,18 @@ body:not(.reading) #wrap{padding-left:250px}
   // ---------- the week's readings ----------
   if (!R) {
     const list = ALL.filter(r => r.L === WEEK[wk]), got = done();
-    $('#back').href = BACK; $('#title').innerHTML = 'Worksheet<small>Ruby · 1 · Week ' + wk + ' · letter ' + WEEK[wk].toUpperCase() + '</small>';
+    $('#back').href = BACK; $('#title').innerHTML = 'Speak<small>Ruby · 1 · Week ' + wk + ' · letter ' + WEEK[wk].toUpperCase() + '</small>';
     // the same covers as the ABC book list (user, 21 Nov): coloured card, "My Airplane", its picture, a star when done
     const books = window.LGR_SET.books, cover = r => { const b = books.find(x => x.id === r.id), [my, ...rest] = r.title.split(' ');
       const inner = '<b>' + my + ' <span>' + rest.join(' ') + '</span></b>' + (b ? icon(b.img, b.img === 'apple' || b.img === 'arrow' ? 150 : 210) : '<em>' + r.L.toUpperCase() + r.L + '</em>') + (got.includes(r.id) ? '<i>⭐</i>' : '');
       return r.q10 ? '<a class="bk" style="background:' + (b ? b.color : '#e9d9bf') + '" href="?r=' + r.id + '&w=' + wk + '&back=' + encodeURIComponent(BACK) + '">' + inner + '</a>' : '<span class="bk" style="background:#cdbfae;opacity:.5">' + inner + '</span>'; };
     document.body.classList.add('reading'); mateEl = $('#help');
-    wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Worksheets <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(cover).join('') + '</div></div>';
+    wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Speaking <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(cover).join('') + '</div></div>';
     Talk.say('Pick a reading!'); return;
   }
 
   $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
-  $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · worksheet</small>';
+  $('#title').innerHTML = R.title + '<small>Ruby · 1 · Week ' + wk + ' · speak · 말하기</small>';
   const STEPS = [reading, circle, firstLetter, namingDoing, finish]; let at = 0;
   $('#dots').innerHTML = STEPS.slice(0, -1).map(() => '<i></i>').join('');
   const go = () => { [...$('#dots').children].forEach((d, i) => d.classList.toggle('on', i < at)); STEPS[at](); };
@@ -252,10 +252,10 @@ body:not(.reading) #wrap{padding-left:250px}
   function finish() {
     const got = done(); if (!got.includes(R.id)) { got.push(R.id); try { localStorage.setItem('lgr.sheets', JSON.stringify(got)); } catch (e) {} }
     [...$('#dots').children].forEach(d => d.classList.add('on'));
-    fresh('<div class="stars">★★★</div><div class="ask">You did the worksheet!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" style="text-decoration:none" href="' + BACK + '">Back to the cabin</a><a class="big" style="text-decoration:none;background:#fff;box-shadow:0 6px 0 #e2c9b0" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
-    pose('cheer'); tell('You did the worksheet! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
+    fresh('<div class="stars">★★★</div><div class="ask">You did it!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" style="text-decoration:none" href="' + BACK + '">Back to the cabin</a><a class="big" style="text-decoration:none;background:#fff;box-shadow:0 6px 0 #e2c9b0" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
+    pose('cheer'); tell('You did it! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
   }
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwtbusdc" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwu5ds19" data-home="../../demo/street.html"></script></body></html>
