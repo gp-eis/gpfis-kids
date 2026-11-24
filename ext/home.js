@@ -10,7 +10,7 @@
      turns them sideways on an upright phone. A page opened directly is moved into the frame once. */
   const touchy = matchMedia('(pointer: coarse)').matches || ((navigator.maxTouchPoints || 0) > 0 && Math.min(screen.width, screen.height) < 900);
   if (!framed && touchy && !/[?&]noframe/.test(location.search)) {
-    const root = me.src.replace(/ext\/home\.js.*$/, ''), here = location.href.split('#')[0];
+    const root = me.src.replace(/ext\/home\.js.*$/, ''), here = location.href;   // with its # part: a link such as pbl/index.html#book=1-1 (the Hall of Fame's books) must still open the book inside the frame
     if (here.startsWith(root)) { location.replace(root + 'play.html?u=' + encodeURIComponent(here.slice(root.length)) ); return; }
   }
   const leave = () => { try { window.top.location.href = home; } catch (e) { location.href = home; } };

@@ -330,7 +330,11 @@
           : gerry(q.n === 'circle' ? 'Yes! A circle has no vertices!' : 'Right! An oval has no vertices!', '맞아요! 꼭짓점이 없어요!', 'cheer');
         await wait(700); if (!alive || pgi !== 3) return; A.querySelector('.ship').classList.add('away'); await line; if (!alive || pgi !== 3) return;
         sl.classList.add('full'); sl.querySelector('g').setAttribute('fill', q.col); sl.querySelector('g').setAttribute('stroke', '#fff'); sl.querySelector('b').textContent = q.v.length; snd.ding(cur); await wait(350); next(); };
-      /* 3 the speaking that belongs to this page: say the reason, then answer an opposite idea */
+      /* 3 the speaking that belongs to this page: say the reason, then answer an opposite idea.
+           Style as in Start PBL (user, 24 Nov 2026: "i also want the let's go readers and fresh math to follow this style"):
+           "You said: ..." stays after each try; a word is green only when that exact word was heard; three stars ONLY when the
+           whole sentence was said, every word exact and in order; the missed words are saved with the best try (S.sayd) and
+           the Discussion Book shows them in red. */
       const turn = (key, alien, en, ko, frame, frameKo) => new Promise(async done => {
         const plain = frame.replace(/<[^>]+>/g, ''), bold = (/<b>(.*?)<\/b>/.exec(frame) || [])[1] || '', bw = bold.split(' ').filter(Boolean);
         const WD = plain.split(' '), b0 = bw.length ? WD.findIndex((_, i) => bw.every((x, j) => (WD[i + j] || '').replace(/[.,!?]/g, '') === x.replace(/[.,!?]/g, ''))) : -1;
@@ -339,19 +343,21 @@
           <div class="heardl"><i class="sst"><b></b><b></b><b></b></i><em></em></div>
           <div class="sbtn"><button class="go say"><span class="mic"></span><span class="l">Press and say<small>누르고 말해요</small></span></button><button class="pill saidit" hidden><span class="l">I said it!<small>말했어요</small></span></button><button class="go nextt" hidden><span class="l">Next<small>다음</small></span></button></div></div>`;
         const sayB = A.querySelector('.say'), heardE = A.querySelector('.heardl em'), nextB = A.querySelector('.nextt'), manual = A.querySelector('.saidit'), T = window.Talk;
-        let tries = 0, best = 0, bestScore = -1, busyL = false, closed = false;
+        let tries = 0, best = 0, bestScore = -1, bestD = null, busyL = false, closed = false; const NUM = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', centre: 'center', math: 'maths' };   // digits as words; and two spellings the recogniser may write for the same spoken word
         const stars = n => { best = Math.max(best, n); A.querySelectorAll('.sst b').forEach((x, i) => { x.classList.toggle('on', i < best); if (i < n) { x.classList.remove('pop'); void x.offsetWidth; x.classList.add('pop'); } }); };
         const reset = () => { sayB.classList.remove('on'); sayB.querySelector('.l').innerHTML = tries ? 'Say it again<small>다시 말해요</small>' : 'Press and say<small>누르고 말해요</small>'; };
-        const finishT = () => { if (closed) return; closed = true; S.say = S.say || {}; S.say[key] = Math.max(best, S.say[key] || 0); save(); snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
-        nextB.onclick = finishT; manual.onclick = () => { stars(2); gerry('Great speaking!', '말하기 최고!', 'cheer'); finishT(); };
+        const finishT = () => { if (closed) return; closed = true; S.say = S.say || {}; S.sayd = S.sayd || {}; if (best >= (S.say[key] || 0)) { if (bestD) S.sayd[key] = bestD; else delete S.sayd[key]; } S.say[key] = Math.max(best, S.say[key] || 0); save(); snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
+        nextB.onclick = finishT; manual.onclick = () => { bestD = null; stars(2); gerry('Great speaking!', '말하기 최고!', 'cheer'); finishT(); };
         sayB.addEventListener('click', async () => { if (busyL || closed) return; busyL = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';   // nothing talks over the child
-          heardE.textContent = ''; const r = await listen(sayB, w => { heardE.textContent = w; }); busyL = false; if (!alive || closed || !A.contains(sayB)) return; tries++; reset();
+          heardE.textContent = ''; A.querySelectorAll('.line .w').forEach(w => w.classList.remove('hit', 'miss')); const r = await listen(sayB, w => { heardE.textContent = w; }); busyL = false; if (!alive || closed || !A.contains(sayB)) return; tries++; reset();
           if (!r.heard.length || !T) {   // nothing heard (no microphone, too quiet, or a browser that cannot hear words): never leave the child stuck
             if (r.clip) VDB.put(key, r.clip); manual.hidden = false; heardE.textContent = "I couldn't hear the words.";
             return gerry(tries >= 2 ? 'Say it out loud, then press "I said it!"' : "I couldn't hear you. Press the microphone and say it loudly!", tries >= 2 ? '크게 말하고 "말했어요"를 눌러요.' : '잘 안 들렸어요. 마이크를 누르고 크게 말해요!', 'think'); }
-          const sc = T.score(plain, r.heard), st = T.stars(sc); heardE.textContent = '“' + r.heard[0] + '”';
-          A.querySelectorAll('.line .w').forEach(w => { const Wd = T.words(w.textContent)[0] || '', hit = r.heard.some(h => T.words(h).some(x => x === Wd || (x.length > 3 && x.slice(0, 3) === Wd.slice(0, 3)))); w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit); });
-          if (r.clip && sc >= bestScore) { bestScore = sc; VDB.put(key, r.clip); }   // the best try is the one kept for the book
+          const fix = t => T.words(t).map(x => NUM[x] || x), HW = r.heard.map(fix), LW = WD.map(w => fix(w)[0] || '');   // the recogniser writes "8": compare as words
+          const whole = HW.some(H => { let k = 0; for (const x of H) if (x === LW[k]) k++; return k === LW.length; }), missed = LW.map((w, i) => HW.some(H => H.includes(w)) ? -1 : i).filter(i => i >= 0);
+          const sc = T.score(plain, r.heard); let st = T.stars(sc); if ((missed.length || !whole) && st > 2) st = 2; heardE.innerHTML = ''; heardE.append('You said: “' + r.heard[0] + '”');
+          A.querySelectorAll('.line .w').forEach((w, i) => { const hit = !missed.includes(i); w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit); });
+          if (sc >= bestScore) { bestScore = sc; bestD = { miss: missed, heard: r.heard[0] }; if (r.clip) VDB.put(key, r.clip); }   // the best try is the one kept for the book, with its missed words
           stars(st); snd.ding(st);
           if (st === 3) { await gerry(sc >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!', sc >= 95 ? '완벽해요! 정말 잘했어요!' : '말하기 최고!', 'cheer'); return finishT(); }
           nextB.hidden = !(st === 2 || tries >= 3);
@@ -492,13 +498,13 @@
      LEFT the real worksheet page with the child's answers on it, RIGHT what they said on that page: the sentence, their
      speaking stars and "Listen to me!" (their own voice). All the month's pages are there, week after week; a week's pages
      open when that week's stop is done. */
-  function discussionBook(month, after, at) {
+  function discussionBook(month, after, at, backTo) {
     const BK = BOOKS[month]; if (!BK) { toast('This month\'s Discussion Book is coming soon.', '이 달의 디스커션 북은 곧 나와요.'); if (after) after(); return; }
     const c = $('#card'), pg = i => `art/ws/${month}/${String(i + 1).padStart(2, '0')}.webp`;
     let n = -1, audio = null, alive = true, token = 0; const urls = {};   // n = -1 is the cover; then n = the worksheet page, 0 .. BK.n - 1
     // the book grows week by week: a week's pages open when that week's stop is done
     const OPEN = S.done >= month ? BK.weeks.length : S.done === month - 1 ? Math.min(BK.weeks.length, S.stop || 0) : 0, LAST = OPEN * 8 - 1;
-    c.innerHTML = `<div class="dbk"><button class="pill dback"><span>←</span><span class="l">Planet<small>행성으로</small></span></button><h2 class="dtitle">My Discussion Book</h2>
+    c.innerHTML = `<div class="dbk"><button class="pill dback"><span>←</span><span class="l">${backTo ? 'Back<small>돌아가기</small>' : 'Planet<small>행성으로</small>'}</span></button><h2 class="dtitle">My Discussion Book</h2>
       <div class="dwk"><i data-w="-1" class="cv">Cover</i>${BK.weeks.map((_, w) => `<i data-w="${w}"${w < OPEN ? '' : ' class="shut"'}>Week ${w + 1}</i>`).join('')}</div>
       <div class="dbook"><div class="dpg l"><img class="sheet" alt=""><div class="ans"></div></div><div class="dpg r"><div class="dcov"><img src="${BK.cover}" alt=""></div><div class="dsays"></div></div></div>
       <button class="dturn prev" aria-label="Back"></button><button class="dturn next" aria-label="Next"></button>
@@ -517,7 +523,7 @@
       const im = q('.dpg.l .sheet'), R = q('.dpg.r'); im.onload = () => { try { const cv = document.createElement('canvas'); cv.width = cv.height = 1; const x = cv.getContext('2d'); x.drawImage(im, 6, 6, 1, 1, 0, 0, 1, 1); const [r, g, b] = x.getImageData(0, 0, 1, 1).data;
         R.style.background = `rgb(${r},${g},${b})`; R.classList.toggle('dark', r * .3 + g * .59 + b * .11 < 150); } catch (e) {} };
       q('.dpg.l .sheet').src = pg(n); q('.dpg.l .ans').innerHTML = P && d ? `<svg viewBox="0 0 905 1280">${P.ans(d)}</svg>` : '';
-      const says = P && d ? P.says.map((sy, k) => ({ clip: id + '-' + 'ab'[k], a: sy[2], q: sy[5] || sy[0].replace(/\s*(Say it!|Press the button and say it!)$/, '') })) : [], has = await Promise.all(says.map(sy => VDB.get(sy.clip).then(b => !!b))); if (!alive || n !== my) return;
+      const says = P && d ? P.says.map((sy, k) => ({ clip: id + '-' + 'ab'[k], a: (m => m.length ? sy[2].split(' ').map((t, i) => m.includes(i) ? t.replace(/[^<>]+(?![^<]*>)/g, x => x.replace(/^(.*?)([.,!?]*)$/, (_, w, e) => (w ? `<u class="miss">${w}</u>` : '') + e)) : t).join(' ') : sy[2])((((S.sayd || {})[id + '-' + 'ab'[k]] || {}).miss) || []), q: sy[5] || sy[0].replace(/\s*(Say it!|Press the button and say it!)$/, '') })) : [], has = await Promise.all(says.map(sy => VDB.get(sy.clip).then(b => !!b))); if (!alive || n !== my) return;
       q('.dsays').innerHTML = `<small class="wk">Week ${w + 1} · ${String(n % 8 + 1).padStart(2, '0')}</small>` + (says.length ? says.map((sy, i) => `<div class="dsay${says.length > 1 ? ' two' : ''}"><span class="dqq"><b>Q</b>${sy.q}</span><p>${sy.a}</p>
           <button class="listen${has[i] ? '' : ' none'}" data-clip="${sy.clip}"><b></b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36].map((h, j) => `<i style="height:${h * .5}px;--d:${j * -.09}s"></i>`).join('')}</span><em>${has[i] ? 'Listen!' : 'No voice yet'}</em></button>
           <div class="dst">${[0, 1, 2].map(k => `<u class="${k < ((S.say || {})[sy.clip] || 0) ? 'on' : ''}"></u>`).join('')}</div></div>`).join('')
@@ -548,7 +554,7 @@
   async function missionLog(month) {
     const BK = BOOKS[month]; if (!BK) return toast('This month\'s Mission Log is coming soon.', '이 달의 미션 기록은 곧 나와요.');
     const c = $('#card'), D = window.GPTrack ? GPTrack.days() : {}, WK = BK.weeks, MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const keys = await VDB.keys(), allDays = Object.keys(D).filter(k => D[k].fm).sort(); let audio = null, tok = 0;
+    const keys = [], allDays = Object.keys(D).filter(k => D[k].fm).sort(); let audio = null, tok = 0;   // drawn at once; the recordings are filled in below when IndexedDB answers
     const rows = WK.map((W, w) => { const P = WEEKS[W.key], pd = (S.pgd || {})[W.key] || {}, pre = 'w' + (w + 1), plays = {}, days = [];
       for (const k of allDays) { const A = D[k].fm.a || {}; let any = false; for (const n in A) if (n.startsWith(pre) && A[n].p) { plays[n.slice(pre.length)] = (plays[n.slice(pre.length)] || 0) + A[n].p; any = true; } if (any) days.push(k); }
       const clips = P ? P.flatMap((pg, i) => pg.says.map((_, k) => `${W.key}-${i}-${'ab'[k]}`)) : [], got = clips.reduce((n, k) => n + ((S.say || {})[k] || 0), 0), last = days[days.length - 1];
@@ -563,7 +569,9 @@
         <div class="mpg"><span class="ml"><img src="art/ic-game.png" alt="">Pages</span><div class="mgrid">${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<span class="${r.pd[i] ? 'on' : r.plays['p' + (i + 1)] ? 'try' : ''}"><i>${i + 1}</i><em>${r.plays['p' + (i + 1)] ? '×' + r.plays['p' + (i + 1)] : ''}</em></span>`).join('')}</div></div>
         <div class="mact${r.plays.book ? '' : ' z'}"><img src="art/book.png" alt=""><span>Discussion Book</span><b>${x(r.plays.book)}</b></div>
         <div class="mfoot"><span class="mstar"><i></i><b>${r.got}</b><small>/ ${r.max || '–'}</small></span><button class="go lhear" data-w="${r.w}"${r.mine.length ? '' : ' disabled'}><span class="tri"></span>Hear</button></div></div>`).join('')}</div></div>`;
-    c.hidden = false; snd.pop();
+    c.hidden = false; snd.pop(); const box = c.firstElementChild;
+    VDB.keys().then(ks => { if (c.firstElementChild !== box) return; for (const r of rows) r.mine = r.clips.filter(k => ks.includes(k));
+      box.querySelector('.msum div:nth-child(4) b').textContent = ks.length; box.querySelectorAll('.lhear').forEach(b => { b.disabled = !rows[+b.dataset.w].mine.length; }); });
     const stop = () => { tok++; if (audio) { audio.pause(); audio = null; } c.querySelectorAll('.lhear.on').forEach(b => b.classList.remove('on')); };
     c.onclick = async e => { if (e.target.closest('.dback')) { stop(); c.hidden = true; c.onclick = null; c.innerHTML = ''; return; }
       const h = e.target.closest('.lhear'); if (!h || h.disabled) return; if (h.classList.contains('on')) return stop(); stop(); const my = tok; h.classList.add('on');
@@ -693,7 +701,8 @@
   /* for pictures of the sample: index.html#done=8 shows 8 missions done, #done=8&g=1 opens galaxy 2, #done=8&g=1&p=2 lands on its planet 3 */
   const hp = new URLSearchParams(location.hash.slice(1)); if (hp.has('still')) document.body.classList.add('still'); if (hp.has('done')) { S.done = +hp.get('done'); S.stars = S.done * 5; S.stop = +(hp.get('stop') || 0); }
   setStars(); if (hp.has('deco')) S.deco = hp.get('deco').split('').map(Number);
-  if (hp.has('log')) { planet(0, 0); setTimeout(() => missionLog(1), 1800); } else if (hp.has('book')) { planet(0, 0); setTimeout(() => discussionBook(1), 1800); } else if (hp.has('act')) { planet(0, 0); setTimeout(() => ACTS['1-0'](), 1800); } else if (hp.has('map')) journey(); else if (hp.has('game')) { game(hp.get('game') in SHAPES ? hp.get('game') : null); if (hp.has('say')) setTimeout(() => G && (G.run = false, G.speak()), 900); } else if (hp.has('mine')) mine(); else if (hp.has('p')) planet(+hp.get('g') || 0, +hp.get('p')); else if (hp.has('g')) galaxy(+hp.get('g')); else universe(false);
+  if (hp.has('log')) { planet(0, 0); setTimeout(() => missionLog(1), 1800); } else if (hp.has('book')) { let back = null; try { const u = new URL(hp.get('back') || '', location.href); if (hp.get('back') && u.origin === location.origin) back = u.href; } catch (e) {}   // only an address on this same site
+    planet(0, 0); setTimeout(() => discussionBook(parseInt(hp.get('book')) || 1, back ? () => { location.href = back; } : null, null, back), back ? 250 : 1800); } else if (hp.has('act')) { planet(0, 0); setTimeout(() => ACTS['1-0'](), 1800); } else if (hp.has('map')) journey(); else if (hp.has('game')) { game(hp.get('game') in SHAPES ? hp.get('game') : null); if (hp.has('say')) setTimeout(() => G && (G.run = false, G.speak()), 900); } else if (hp.has('mine')) mine(); else if (hp.has('p')) planet(+hp.get('g') || 0, +hp.get('p')); else if (hp.has('g')) galaxy(+hp.get('g')); else universe(false);
   if (hp.has('pass')) setTimeout(passport, 600);
   window.__fmWorld = { get game() { return G; }, journey, startGame: game, get state() { return S; }, get busy() { return busy; }, set(n) { S.done = n; S.stars = n * 5; S.stop = 0; S.deco = []; save(); setStars(); universe(false); } };   // for testing the sample
 })();

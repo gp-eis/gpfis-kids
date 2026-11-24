@@ -53,14 +53,15 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
 .q s{text-decoration:none;color:#f0ab19;font-size:18px;margin-right:2px}
 .q .hear{border:0;cursor:pointer;font:800 15px "Baloo 2";color:#4a2508;background:linear-gradient(#ffe36a,#ffc93c);box-shadow:0 4px 0 #c9921a;border-radius:999px;padding:2px 12px;text-decoration:none;white-space:nowrap}
 .q .hear:active{translate:0 3px;box-shadow:0 1px 0 #c9921a}.q .hear.off{background:#d9cfc2;box-shadow:0 4px 0 #b9aa96;color:#8a7d6c;pointer-events:none}
-.bot{position:absolute;left:36px;right:36px;bottom:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.bot{position:absolute;left:150px;right:36px;bottom:16px;   /* left 150: the shared site puts its round Story Street home button in the bottom-left corner */
+ display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .big{background:linear-gradient(#ffe36a,#ffc93c);border-radius:20px;box-shadow:0 6px 0 #c9921a;padding:5px 10px 6px;text-align:center;font:600 15px "Fredoka","Noto Sans KR";color:#4a2508;animation:drop .5s cubic-bezier(.2,1.5,.4,1) backwards;animation-delay:calc(.4s + var(--k) * .08s)}
 .big b{font:800 36px/1 "Baloo 2"}.big em{font:700 18px "Baloo 2";font-style:normal;opacity:.75;margin-left:4px}.big span{display:block}
 .spark{position:fixed;width:12px;height:12px;border-radius:3px;pointer-events:none;z-index:30}
 </style></head><body>
 <a class="round" id="back" aria-label="Back">←</a><span id="samp" hidden>Sample numbers · 예시</span>
 <div id="stage"></div>
-<script>(function(){var V="mwuqjv9a";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwuqjv9a"></script><script src="../vendor/myvoice.js?v=mwuqjv9a"></script>
+<script>(function(){var V="mwusp8ec";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../../kit/track.js?v=mwusp8ec"></script><script src="../vendor/myvoice.js?v=mwusp8ec"></script>
 <script>
 (async function () {
   'use strict';
@@ -117,4 +118,4 @@ body::before{content:"";position:fixed;inset:0;background:var(--veil)}
     const r = c.querySelector('.chest').getBoundingClientRect(); for (let i = 0; i < 14; i++) { const s = document.createElement('i'); s.className = 'spark'; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px'; s.style.background = ['#ffe36a', '#fff', T.pill, '#ffb347'][i % 4]; document.body.appendChild(s);
       const a = Math.random() * 6.283, d = 60 + Math.random() * 90; s.animate([{ transform: 'translate(0,0) scale(1.2)', opacity: 1 }, { transform: 'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d + 40) + 'px) scale(.2) rotate(240deg)', opacity: 0 }], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => s.remove(); } });
 })();
-</script><script src="../../ext/home.js?v=mwuqjv9a" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwusp8ec" data-home="../../demo/street.html"></script></body></html>

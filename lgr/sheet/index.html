@@ -62,6 +62,8 @@ body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);bac
 .q{font:800 clamp(24px,2.5vw,38px)/1.15 "Baloo 2";margin:4px 0 6px;min-height:2.3em;display:grid;place-items:center}
 #fb{min-height:1.4em;font:700 clamp(15px,1.3vw,19px) "Fredoka";color:#e23b4a}
 #heard{min-height:1.5em;font:600 clamp(15px,1.3vw,19px) "Fredoka";color:#7a6a92;margin-top:2px}
+#tst{min-height:30px;font-size:26px;letter-spacing:3px;color:#e6ddd0}#tst b{font-weight:400}#tst b.on{color:#ffc93c;text-shadow:0 2px 0 #c9921a}
+.mini button:disabled{opacity:.4}
 #heard .x{background:#ffd0d0;color:#c0392b;border-radius:8px;padding:0 .25em;text-decoration:line-through;font-weight:700}
 .talkrow{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:18px;width:100%;margin-top:6px}
 #mate{height:clamp(130px,24vh,230px);filter:drop-shadow(0 6px 8px rgba(0,0,0,.3));pointer-events:none}
@@ -117,9 +119,9 @@ body:not(.reading) #wrap{padding-left:250px}
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwuqjv9a";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwuqjv9a"></script><script src="../book/data/set-a.js?v=mwuqjv9a"></script><script src="../book/scene.js?v=mwuqjv9a"></script><script src="../vendor/talk.js?v=mwuqjv9a"></script>
+<script>(function(){var V="mwusp8ec";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwusp8ec"></script><script src="../book/data/set-a.js?v=mwusp8ec"></script><script src="../book/scene.js?v=mwusp8ec"></script><script src="../vendor/talk.js?v=mwusp8ec"></script>
 <!-- recorded voices: the shared GPFIS kit (the online build fixes these two paths), then our adapter -->
-<script src="../../voice/clips.js?v=mwuqjv9a"></script><script src="../../kit/voice.js?v=mwuqjv9a"></script><script src="../vendor/say.js?v=mwuqjv9a"></script><script src="../vendor/myvoice.js?v=mwuqjv9a"></script>
+<script src="../../voice/clips.js?v=mwusp8ec"></script><script src="../../kit/voice.js?v=mwusp8ec"></script><script src="../vendor/say.js?v=mwusp8ec"></script><script src="../vendor/myvoice.js?v=mwusp8ec"></script>
 <script>
 (function () {
   'use strict';
@@ -167,31 +169,45 @@ body:not(.reading) #wrap{padding-left:250px}
     const book = (window.LGR_SET.books.find(b => b.id === R.id) || {}), pic = book.img ? icon(book.img, 200) : '';
     wrap.innerHTML = '<div class="two pop"><div class="page"><div class="pic">' + pic + '</div><h2>' + R.title + '</h2><ol class="lines">' +
       R.lines.map((l, i) => '<li class="ln" data-i="' + i + '"><span class="no"><b>' + (i + 1) + '</b></span><span class="tx">' + l.split(' ').map((w, k) => '<span class="w" style="--i:' + k + '">' + w + '</span>').join('') + '</span></li>').join('') + '</ol></div>' +
-      '<div class="side"><span class="tag">READ AND SPEAK · 읽고 말하기</span><div class="count">' + R.lines.map(() => '<i></i>').join('') + '</div><div class="qn" id="qn"></div><div class="q" id="q"></div><div id="fb"></div><div id="heard"></div>' +
+      '<div class="side"><span class="tag">READ AND SPEAK · 읽고 말하기</span><div class="count">' + R.lines.map(() => '<i></i>').join('') + '</div><div class="qn" id="qn"></div><div class="q" id="q"></div><div id="fb"></div><div id="heard"></div><div id="tst"></div>' +
       '<div class="talkrow"><img id="mate" src="../art/kingdom/penny/stand.webp" alt="Penny">' + (Talk.canHear ? '<button id="mic" aria-label="Speak">🎤</button>' : '<button class="big" id="said" style="margin-bottom:22px">I said it!</button>') +
-      '<div class="mini"><button id="again" aria-label="Hear the question">🔊</button><button id="slow" aria-label="Hear the answer slowly">🐢</button></div></div></div></div>';
+      '<div class="mini"><button id="listen" aria-label="Listen to the line">🔊</button><button id="again" aria-label="Hear the question again">❓</button><button id="hearme" aria-label="Hear me" disabled>👂</button></div></div></div></div>';
     mateEl = $('#mate');
     const linesEl = $('.lines'), lns = [...document.querySelectorAll('.ln')], dots = [...document.querySelectorAll('.count i')], heardEl = $('#heard'), mic = $('#mic');
-    let qi = Math.max(0, Math.min(9, (+Q.get('q') || 1) - 1)), tries = 0, fix = null, busy = false, take = null;   // take = the child's last try at the whole line
+    /* THE SPEAKING STYLE THE USER APPROVED IN START PBL (24 Nov 2026, night; she asked for it here too):
+       no slow / turtle button · "You said: ..." stays after each try · a word is green only when that EXACT word was heard ·
+       three stars only when the whole line was said right, every word and in order (else two at most) · the BEST try of
+       each line is kept: its sound (vendor/myvoice.js) and, in localStorage 'lgr.said', its stars, the missed words and
+       what was heard: { '<reading id>:<line 0-9>': { s: stars, m: [missed word indexes], h: 'heard text' } }.
+       My Speaking Book shows the missed words in red. */
+    const NUM = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten' };
+    const W = t => Talk.words(t).map(x => NUM[x] || x);
+    const saidAll = () => { try { return JSON.parse(localStorage.getItem('lgr.said') || '{}') || {}; } catch (e) { return {}; } };
+    const starRow = n => '★★★'.split('').map((x, i) => '<b class="' + (i < n ? 'on' : '') + '">★</b>').join('');
+    let qi = Math.max(0, Math.min(9, (+Q.get('q') || 1) - 1)), tries = 0, fix = null, busy = false, best = null, lastClip = null;   // best = the best whole-line try of this line: { s, m, h, clip }
     const word = el => Talk.words(el.textContent)[0] || '';
     const ask = () => {                               // the next question: its sentence lights up in the reading
-      tries = 0; fix = null; heardEl.textContent = ''; linesEl.classList.add('asking');
+      tries = 0; fix = null; best = null; lastClip = null; heardEl.textContent = ''; $('#tst').innerHTML = ''; $('#hearme').disabled = true; linesEl.classList.add('asking');
       lns.forEach((l, i) => { l.classList.toggle('now', i === qi); l.classList.remove('fixing'); if (i === qi) l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); });
       dots.forEach((d, i) => { d.classList.toggle('on', i < qi); d.classList.toggle('at', i === qi); });
       $('#qn').textContent = 'Question ' + (qi + 1) + ' of ' + R.lines.length; $('#q').textContent = R.q10[qi];
       const s = $('.side'); s.classList.remove('shake'); tell('Look at the yellow line. Say it!', { model: [R.q10[qi], 'Look at the yellow line. Say it!'] });
     };
-    const good = async () => { const l = lns[qi]; if (take && window.MyVoice) MyVoice.put(R.id + ':' + qi, take); take = null; l.classList.remove('now', 'fixing'); l.classList.add('done'); l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); cheer(l); pose('cheer');
+    const keepBest = () => { if (!best) return; const all = saidAll(), key = R.id + ':' + qi, old = all[key];   // a later, worse reading never replaces a better one
+      if (old && old.s > best.s) return; all[key] = { s: best.s, m: best.m, h: best.h }; try { localStorage.setItem('lgr.said', JSON.stringify(all)); } catch (e) {} if (best.clip && window.MyVoice) MyVoice.put(key, best.clip); };
+    const good = async () => { const l = lns[qi]; keepBest(); best = null; l.classList.remove('now', 'fixing'); l.classList.add('done'); l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); cheer(l); pose('cheer');
       qi++; if (qi < R.lines.length) { await wait(900); ask(); } else { dots.forEach(d => { d.classList.add('on'); d.classList.remove('at'); }); linesEl.classList.remove('asking'); await tell('You read the whole story!'); await wait(500); next(); } };
-    $('#again').onclick = () => Say(R.q10[qi]); $('#slow').onclick = () => Say(fix ? word(fix[0]) : R.lines[qi], { slow: true });
-    const said = $('#said'); if (said) said.onclick = () => good();
+    $('#again').onclick = () => Say(R.q10[qi]); $('#listen').onclick = () => Say(fix ? word(fix[0]) : R.lines[qi]);
+    $('#hearme').onclick = () => { if (!lastClip) return; Say.stop(); new Audio(lastClip).play().catch(() => {}); };
+    const said = $('#said'); if (said) said.onclick = () => { best = { s: 2, m: [], h: '', clip: null }; good(); };   // no microphone: two stars, as in Start PBL
     if (mic) mic.onclick = async () => {
-      if (busy) return; busy = true; Say.stop(); heardEl.textContent = ''; mic.classList.add('live'); $('#fb').textContent = "I'm listening…";
+      if (busy) return; busy = true; Say.stop(); heardEl.textContent = ''; $('#tst').innerHTML = ''; mic.classList.add('live'); $('#fb').textContent = "I'm listening…";
       const line = R.lines[qi], ln = lns[qi], spans = [...ln.querySelectorAll('.w')];
+      if (!fix) spans.forEach(x => x.classList.remove('hit', 'miss'));   // a new try starts clean
       const r = await Talk.listen({ ms: 6000, onLevel: v => mic.style.setProperty('--lv', v), onWords: t => heardEl.textContent = t });
       mic.classList.remove('live'); busy = false;
       if (!r.heard.length) { $('.side').classList.add('shake'); setTimeout(() => $('.side').classList.remove('shake'), 400); return tell("I couldn't hear you. Say it loudly!"); }
-      heardEl.textContent = r.heard[0]; if (!fix && r.clip) take = r.clip;
+      heardEl.textContent = 'You said: “' + r.heard[0] + '”'; if (r.clip) { lastClip = r.clip; $('#hearme').disabled = false; }
       if (fix) {                                     // practising one missed word
         const el = fix[0], ok = Talk.score(word(el), r.heard) >= 60; el.n = (el.n || 0) + 1;
         if (!ok && el.n < 3) return tell('Almost! Listen: ' + word(el) + '.', { model: ['Almost! Listen.', word(el)] });
@@ -200,17 +216,22 @@ body:not(.reading) #wrap{padding-left:250px}
         fix = null; ln.classList.remove('fixing'); return tell('Now say the whole line!', { model: ['Now say the whole line.', line] });
       }
       tries++;
-      const same = (a, b) => a === b || (a.length > 3 && b.length > 3 && a.slice(0, 3) === b.slice(0, 3)), heardWords = r.heard.map(h => Talk.words(h));
-      spans.forEach(el => { const ok = heardWords.some(H => H.some(x => same(x, word(el)))); el.classList.toggle('hit', ok); el.classList.toggle('miss', !ok); });
+      const same = (a, b) => a === b, heardWords = r.heard.map(W), num = x => NUM[x] || x;   // exact words only (a word that merely starts the same no longer counts)
+      spans.forEach(el => { const ok = heardWords.some(H => H.includes(num(word(el)))); el.classList.toggle('hit', ok); el.classList.toggle('miss', !ok); });
+      // stars: three ONLY for the whole line, every word exact and in order inside one hearing (extra words around it are fine)
+      const LW = W(line), whole = heardWords.some(H => { let k = 0; for (const x of H) if (x === LW[k]) k++; return k === LW.length; });
+      const missIdx = LW.map((w, i) => heardWords.some(H => H.includes(w)) ? -1 : i).filter(i => i >= 0);
+      let stars = Talk.stars(Talk.score(line, r.heard)); if ((missIdx.length || !whole) && stars > 2) stars = 2;
+      $('#tst').innerHTML = starRow(stars); if (!best || stars >= best.s) best = { s: stars, m: missIdx, h: r.heard[0], clip: r.clip || (best && best.clip) || null };
       // an added or out-of-place word: line the two up in order and see what is left over
-      const E = Talk.words(line), raw = r.heard[0].split(' ').filter(Boolean), H = raw.map(w => Talk.words(w)[0] || '');
+      const E = LW, raw = r.heard[0].split(' ').filter(Boolean), H = raw.map(w => num(Talk.words(w)[0] || ''));
       const L = Array.from({ length: E.length + 1 }, () => new Array(H.length + 1).fill(0));
       for (let i = E.length - 1; i >= 0; i--) for (let j = H.length - 1; j >= 0; j--) L[i][j] = same(E[i], H[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
       const keep = new Set(); let i = 0, j = 0;
       while (i < E.length && j < H.length) { if (same(E[i], H[j])) { keep.add(j); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++; }
       const extra = raw.map((w, k) => !keep.has(k) && H[k] ? k : -1).filter(k => k >= 0), missed = spans.filter(el => el.classList.contains('miss'));
-      if (extra.length) heardEl.innerHTML = raw.map((w, k) => extra.includes(k) ? '<span class="x">' + w + '</span>' : w).join(' ');
-      if (!missed.length && !extra.length) { $('#fb').textContent = 'Wonderful!'; return good(); }
+      if (extra.length && !whole) heardEl.innerHTML = 'You said: “' + raw.map((w, k) => extra.includes(k) ? '<span class="x">' + w + '</span>' : w).join(' ') + '”';
+      if (whole) { $('#fb').textContent = 'Wonderful!'; return good(); }
       if (tries >= 3) return tell("Good try! Let's say it together: " + line, { model: ["Good try! Let's say it together.", line] }).then(good);
       if (missed.length && missed.length <= Math.ceil(spans.length / 2)) { fix = missed; ln.classList.add('fixing'); spans.forEach(x => x.classList.toggle('focus', x === fix[0])); return tell('Good try! Say just this word: ' + word(fix[0]) + '.', { model: ['Good try! Say just this word.', word(fix[0])] }); }
       if (extra.length && !missed.length) { const xs = extra.map(k => H[k]).join(' and '); return tell('Almost! I heard an extra word: ' + xs + '.', { model: ['Almost! I heard an extra word.', 'Listen and say it again.', line] }); }
@@ -262,4 +283,4 @@ body:not(.reading) #wrap{padding-left:250px}
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwuqjv9a" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwusp8ec" data-home="../../demo/street.html"></script></body></html>

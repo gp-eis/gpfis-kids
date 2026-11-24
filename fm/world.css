@@ -592,3 +592,8 @@ body.still *, body.still .screen.on { animation: none !important; transition: no
 
 /* on a dark worksheet colour (green, teal) the question is written in white */
 .dpg.r.dark .dqq { color: #fff; } .dpg.r.dark .dqq b { background: #fff; color: #1c2050; }
+
+/* Discussion Book: the words missed in the best try, as in Start PBL's My Speech Book (user, 24 Nov 2026) */
+.dsay p u.miss, .dsay p b u.miss { color: #c23a1e; background: #ffe0d9; border-radius: 6px; padding: 0 4px; text-decoration: underline wavy #e8492e; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+/* speaking screen: a word that was not heard is red, as in Start PBL (user, 24 Nov 2026) */
+.talkp .frame .line span.w.miss, .talkp .frame .line span.w.key.miss { color: #c23a1e; opacity: 1; text-decoration: underline wavy #e8492e; text-underline-offset: 5px; text-decoration-thickness: 2px; border-bottom: 0; }

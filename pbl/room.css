@@ -415,3 +415,9 @@ body.inroom #title { margin-left: 232px; }
 .pdots i.wt.lock { background: #dfe3ec; color: #aab1c4; box-shadow: none; }
 /* the shared video buttons (kit/vctl.js) sit clear of the red close button at the corner */
 .vbox .vc-tools { right: 58px; top: 12px; }
+/* opened by a direct book link (#book=1-1): nothing of the island or room shows behind while the book comes up */
+body.bookonly #act { animation: none; } body.bookonly #inside > :not(#act) { visibility: hidden; } body.bookonly #inside { animation: none; background: #ff8f6b; }
+/* what the child actually said, kept under the sentence; and the missed words marked in the Speech Book */
+.sayit .yous { display: none; margin: 6px 0 0 4px; text-align: left; font-size: 22px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sayit .yous.on { display: block; } .sayit .yous b { color: #6a7190; font-weight: 600; margin-right: 10px; }
+.bk .sent u.miss { text-decoration: underline wavy #e8492e; text-decoration-thickness: 3px; text-underline-offset: 9px; color: #c23a1e; background: #ffe0d9; border-radius: 10px; padding: 0 6px; }

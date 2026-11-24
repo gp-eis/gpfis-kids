@@ -151,6 +151,9 @@ window.Room = (() => {
       if (!was && z.classList.contains('now')) { K().again(z, 'won'); const o = at(z); K().burst(o.x, o.y, 30, 360); } }
   }
   let closing = false;
+  // A DIRECT LINK to a week's Speech Book (the GPFIS Hall of Fame):  index.html?back=<address>#book=1-1  opens that book at once;
+  // its Back and Done buttons then go to the back address (same site only) instead of into the room.
+  const BACK = (() => { try { const b = new URLSearchParams(location.search).get('back'); if (!b || location.hash.indexOf('book=') < 0) return ''; const u = new URL(b, location.href); return u.origin === location.origin ? u.href : ''; } catch (e) { return ''; } })();
   function close(ok) {   // the clouds close over the room and open on the island again
     if (closing) return; closing = true; Crew.hush();
     const fin = () => { closing = false; box.classList.remove('on'); document.body.classList.remove('inroom'); rp = null; ctx.done(ok); };
@@ -176,15 +179,16 @@ window.Room = (() => {
     a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>${t.title}</h2><p class="sub">${sub}</p><div class="body">${body}</div>` +
       (pi >= 0 ? `<div class="pgd">${P.map((p, i) => `<i class="${i === pi ? 'now' : isDone(p.id) ? 'on' : ''}" data-i="${i}">${i + 1}</i>`).join('')}</div>` : '') +
       `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt="">` +
-      `<div class="sayit${stage ? ' speech' : ''}"><div class="row"><i>${stage ? 'Speech Time!' : 'Say it!'}</i><p class="words"></p><div class="res"><b class="st"></b><span class="num"></span></div></div>` +
-      `<div class="row"><button class="hear" title="Listen">🔊</button><button class="slow" title="Listen slowly">🐢</button><button class="me" title="Press and speak">🎤</button>` +
+      `<div class="sayit${stage ? ' speech' : ''}"><div class="row"><i>${stage ? 'Speech Time!' : 'Say it!'}</i><p class="words"></p><div class="res"><b class="st"></b><span class="num"></span></div></div><p class="yous"><b>You said:</b><span></span></p>` +
+      `<div class="row"><button class="hear" title="Listen">🔊</button><button class="me" title="Press and speak">🎤</button>` +
       `<button class="mine" title="Hear me" disabled>🙋</button><span class="heard"></span><button class="saidit">I said it! ✋</button></div></div><button class="ok">${nextT ? 'Next ➜' : flow ? 'Finish ✓' : 'Done ✓'}</button>`;
     a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
     const ok = a.querySelector('.ok'), bar = a.querySelector('.sayit'), txt = bar.querySelector('.words'), me = bar.querySelector('.me'), mine = bar.querySelector('.mine');
-    const heard = bar.querySelector('.heard'), res = bar.querySelector('.res'), manual = bar.querySelector('.saidit');
+    const heard = bar.querySelector('.heard'), res = bar.querySelector('.res'), manual = bar.querySelector('.saidit'), yous = bar.querySelector('.yous');
+    let bestMiss = [], bestHeard = '';   // from the best try: which words of the sentence were not heard, and what was heard instead (both go into the Speech Book)
     let fin = null, line = () => '', played = false, said = false, url = null, after = null, tries = 0, best = 0, listening = false, bestUrl = null, bestS = -1;
     const sync = () => { bar.classList.toggle('on', played); ok.classList.toggle('on', played && said); };
-    const setLine = () => { txt.innerHTML = line().split(' ').map(w => `<span class="w">${w}</span>`).join(' '); res.classList.remove('on'); heard.textContent = ''; };
+    const setLine = () => { txt.innerHTML = line().split(' ').map(w => `<span class="w">${w}</span>`).join(' '); res.classList.remove('on'); heard.textContent = ''; yous.classList.remove('on'); };
     const tell = (msg, speak) => { heard.textContent = msg; if (speak !== false) return say(msg, null, true); };
     const give = (n, s) => {
       best = Math.max(best, n); res.querySelector('.st').innerHTML = '★'.repeat(n) + '<i>' + '★'.repeat(3 - n) + '</i>'; res.querySelector('.num').textContent = s == null ? '' : s + ' / 100';
@@ -195,12 +199,12 @@ window.Room = (() => {
     a.querySelectorAll('.pgd i.on').forEach(x => x.addEventListener('click', () => { if (listening) return; Crew.hush(); K().snd.pop(); goPage(P[+x.dataset.i], flow); }));
     a.querySelector('.back').addEventListener('click', () => { Crew.hush(); a.classList.remove('on'); flow = false; paint(); });
     bar.querySelector('.hear').addEventListener('click', () => { if (!listening) say(line(), txt); });
-    bar.querySelector('.slow').addEventListener('click', () => { if (listening) return; txt.classList.add('saying'); T.say(line(), { slow: true }).then(() => txt.classList.remove('saying')); });
     let clip = null; mine.addEventListener('click', () => { if (url && !listening) { Crew.hush(); clip = new Audio(url); clip.play(); } });
     manual.addEventListener('click', () => { give(2); tell('Great speaking!'); accept(); });
     me.addEventListener('click', async () => {
       if (listening) return; listening = true; Crew.mute(true); if (clip) { try { clip.pause(); } catch (e) {} }   // nothing may talk over the child's recording
       me.classList.add('live'); heard.textContent = "I'm listening…"; K().snd.pop();
+      txt.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss')); yous.classList.remove('on');   // a new try starts clean: the last try's colours and words go
       const long = line().split(' ').length > 8;
       const r = await T.listen({ ms: long ? 18000 : 6000, long, onLevel: v => me.style.setProperty('--lv', v), onWords: w => { heard.textContent = w; } });
       me.classList.remove('live'); me.style.setProperty('--lv', 0); listening = false; Crew.mute(false); tries++;
@@ -210,13 +214,21 @@ window.Room = (() => {
         if (tries >= 2) tell('Say it out loud, then press "I said it!"'); else tell("I couldn't hear you. Press the microphone and say it loudly!");
         return;
       }
-      heard.textContent = r.heard[0];
-      const s = T.score(line(), r.heard), st = T.stars(s);
-      txt.querySelectorAll('.w').forEach(w => {
-        const W = T.words(w.textContent)[0] || '', hit = r.heard.some(h => T.words(h).some(x => x === W || (x.length > 3 && x.slice(0, 3) === W.slice(0, 3))));
-        w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit);
+      // WHAT THE CHILD ACTUALLY SAID stays on its own line under the sentence (the helper's words no longer wipe it)
+      yous.querySelector('span').textContent = '“' + r.heard[0] + '”'; yous.classList.add('on'); heard.textContent = '';
+      // STRICT (user, 24 Nov): three stars only when the WHOLE sentence was said correctly: every word, in order, in one hearing.
+      // The recogniser writes small numbers as digits ("8"), so those count as the word.
+      const NUM = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten' };
+      const HW = r.heard.map(h => T.words(h).map(x => NUM[x] || x)), LW = T.words(line()).map(x => NUM[x] || x);
+      const whole = HW.some(H => { let k = 0; for (const x of H) if (x === LW[k]) k++; return k === LW.length; });
+      const s = T.score(line(), r.heard), missed = []; let st = T.stars(s);
+      txt.querySelectorAll('.w').forEach((w, wi) => {
+        const W = T.words(w.textContent)[0] || '', hit = HW.some(H => H.includes(W));   // the word itself must be heard (a word that only starts the same no longer counts)
+        w.classList.toggle('hit', hit); w.classList.toggle('miss', !hit); if (!hit) missed.push(wi);
       });
-      if (r.clip && s >= bestS) { bestS = s; bestUrl = r.clip; }   // the best try is the one that goes into the book
+      if ((missed.length || !whole) && st > 2) st = 2;   // so the stars always agree with the red words
+      if (s >= bestS) { bestMiss = missed; bestHeard = r.heard[0]; }
+      if (r.clip && s >= bestS) { bestS = s; bestUrl = r.clip; } else if (s > bestS) bestS = s;   // the best try is the one that goes into the book
       give(st, s);
       if (st === 3) { tell(s >= 95 ? 'Perfect! You sound great!' : 'Wonderful speaking!'); accept(); }
       else if (tries >= 3) { tell("Good try! Let's say it together: " + line()); accept(); }
@@ -225,7 +237,7 @@ window.Room = (() => {
     if (!T.canHear) { me.style.display = 'none'; manual.classList.add('on'); }
     ok.addEventListener('click', () => {
       if (!ok.classList.contains('on')) return;
-      D[id] = Object.assign(D[id] || {}, fin ? fin() : {}, { ok: true, said: line(), stars: Math.max(best, (D[id] || {}).stars || 0), at: Date.now() }); save();
+      D[id] = Object.assign(D[id] || {}, fin ? fin() : {}, { ok: true, said: line(), stars: Math.max(best, (D[id] || {}).stars || 0), at: Date.now(), miss: bestMiss, heard: bestHeard }); save();
       if (bestUrl || url) { keepClip(id, bestUrl || url); D[id].voice = 1; save(); }
       const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); paint();
       if (nextT) { Crew.hush(); k.again(a, 'on'); return goPage(nextT, true); }   // straight on to the next worksheet page
@@ -353,7 +365,7 @@ window.Room = (() => {
       const WD = p => MB ? (all[ctx.month][p.wk] || {}) : D, pno = i => MB ? P.slice(0, i + 1).filter(p => p.wk === P[i].wk).length : i + 1;
       const a = box.querySelector('#act'); let n = -1, busy = false, audio = null, urls = {};   // n = -1 is the COVER (the month's worksheet cover); the pages are 0..
       a.style.setProperty('--c', t.col);
-      a.innerHTML = `<button class="back pill">${MB ? '← Island <small>섬으로</small>' : '← Room <small>방으로</small>'}</button><h2>My Speech Book</h2>` +
+      a.innerHTML = `<button class="back pill">${BACK ? '← Back <small>돌아가기</small>' : MB ? '← Island <small>섬으로</small>' : '← Room <small>방으로</small>'}</button><h2>My Speech Book</h2>` +
         `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small><div class="sheet"></div></div><div class="pg r"><div class="cov"><img src="art/pages/${ctx.month}/cover.webp" alt="" onerror="this.remove()"><b class="by"></b></div><div class="sent"></div>` +
         `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
         `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
@@ -397,7 +409,9 @@ window.Room = (() => {
           if (sp.ring) { const [x, y, r] = sp.ring; return v.ok ? `<div class="ring" style="left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px"></div>` : ''; }
           return ''; }).join('');
         $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${p.wk || ctx.week} · ${String(pno(n)).padStart(2, '0')}`;
-        $('.sent').textContent = v.said || '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
+        // the sentence, with the words that were NOT heard in the child's best try marked, so they can see which part to practise
+        const esc = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;'), ms = v.miss || [];
+        $('.sent').innerHTML = v.said ? `<span>${v.said.split(' ').map((w, wi) => ms.includes(wi) ? `<u class="miss">${esc(w)}</u>` : esc(w)).join(' ')}</span>` : '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
         hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
         seenPg.add(n); if (seenPg.size >= P.length && !ok.classList.contains('on')) { ok.classList.add('on'); if (!a.classList.contains('reading')) { K().snd.win(); cheer(); } }
       };
@@ -451,14 +465,15 @@ window.Room = (() => {
         if (all && a.classList.contains('on')) { if (!MB) ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); if (!MB) chat('What a wonderful Speech Book! Press Done.', 2); }
       });
       if (MB) $('.again').remove(); else $('.again').addEventListener('click', () => { if (busy || n < 0) return; stop(); const p = P[n]; goPage(p, false); });
-      $('.back').addEventListener('click', () => { halt = true; stop(); a.classList.remove('on'); if (MB) { K().snd.pop(); box.classList.remove('on', 'mbook'); box.innerHTML = ''; document.body.classList.remove('inroom'); ctx.done(); } });
+      $('.back').addEventListener('click', () => { halt = true; stop(); if (BACK) { location.href = BACK; return; } a.classList.remove('on'); if (MB) { K().snd.pop(); box.classList.remove('on', 'mbook'); box.innerHTML = ''; document.body.classList.remove('inroom'); ctx.done(); } });
       ok.addEventListener('click', () => {
         if (!ok.classList.contains('on')) return; stop();
-        const first = !isDone(t.id); D[t.id] = Object.assign(D[t.id] || {}, { ok: true, at: Date.now() }); save();
+        const first = !isDone(t.id); D[t.id] = Object.assign(D[t.id] || {}, { ok: true, at: Date.now() }); save(); if (BACK) { location.href = BACK; return; }
         const k = K(); k.snd.win(); k.burst(k.W() / 2, 380, 40, 440); a.classList.remove('on'); paint(); crew();
         if (first) setTimeout(() => close(true), 900);   // the whole book has been heard: this place is finished
       });
       const fz0 = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1]; if (fz0) setTimeout(() => { if (+fz0 < 0) { n = 2; show(0); turn(1); } else turn(1); }, 300);
+      const pg0 = +(location.hash.match(/pg=(\d+)/) || [])[1]; if (pg0 && pg0 <= P.length) n = pg0 - 1;   // checking stills: #pg=3 opens the book at page 3
       show(0); chat(MB || isDone(t.id) ? 'Here is your Speech Book again!' : 'This is your Speech Book! Turn the pages and hear yourself.', 2);
       bk.addEventListener('click', () => { if (n < 0) go(1); });   // press the cover to open the book
     },
