@@ -13,6 +13,8 @@ h1 { margin: 0 0 6px; font-size: 34px; } p { margin: 6px 0 18px; font-size: 19px
 button { font: 700 24px Fredoka, sans-serif; border: 0; border-radius: 22px; padding: 16px 26px; margin: 6px; color: #fff; cursor: pointer; }
 #fill { background: #35b24a; box-shadow: 0 6px 0 #23863a; } #clear { background: #ff6b5e; box-shadow: 0 6px 0 #c4443a; } #go { background: #ffb52e; box-shadow: 0 6px 0 #c98512; }
 button:active { transform: translateY(4px); box-shadow: none; }
+body.auto .card > *:not(#wait) { display: none; } #wait { display: none; font-size: 30px; font-weight: 700; } body.auto #wait { display: block; }
+#wait i { display: inline-block; width: 16px; height: 16px; margin: 0 5px; border-radius: 50%; background: #ffb52e; animation: dot 1s ease-in-out infinite; } #wait i:nth-child(2) { animation-delay: .15s; } #wait i:nth-child(3) { animation-delay: .3s; } @keyframes dot { 50% { transform: translateY(-12px); } }
 #log { margin-top: 14px; font-size: 16px; color: #6b4d28; min-height: 22px; white-space: pre-line; }
 </style>
 <main><div class="card">
@@ -20,12 +22,13 @@ button:active { transform: translateY(4px); box-shadow: none; }
   <p>1주차를 모두 끝낸 아이의 기록을 이 기기에 채웁니다.<br>Fills this device with a child who has finished week 1 in all three programmes.</p>
   <button id="fill">Fill week 1 · 채우기</button><button id="clear">Clear · 지우기</button><br><button id="go">Story Street →</button>
   <div id="log"></div>
+  <div id="wait"><i></i><i></i><i></i></div>
 </div></main>
-<script>(function(){var V="mwusp8ec";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>window.GPDemoFill = {}; window.GPDemoClear = {};</script>
-<script src="../kit/track.js?v=mwusp8ec"></script>
-<script src="../pbl/demo-fill.js?v=mwusp8ec" onerror="this.dataset.missing=1"></script>
-<script src="../lgr/demo-fill.js?v=mwusp8ec" onerror="this.dataset.missing=1"></script>
-<script src="../fm/demo-fill.js?v=mwusp8ec" onerror="this.dataset.missing=1"></script>
+<script>(function(){var V="mwutbju5";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>window.GPDemoFill = {}; window.GPDemoClear = {};</script>
+<script src="../kit/track.js?v=mwutbju5"></script>
+<script src="../pbl/demo-fill.js?v=mwutbju5" onerror="this.dataset.missing=1"></script>
+<script src="../lgr/demo-fill.js?v=mwutbju5" onerror="this.dataset.missing=1"></script>
+<script src="../fm/demo-fill.js?v=mwutbju5" onerror="this.dataset.missing=1"></script>
 <script>
 const log = document.getElementById('log'), say = t => { log.textContent += t + '\n'; }, NAME = { pbl: 'Start PBL', lgr: "Let's Go Readers", fm: 'Fresh Math' };
 const dayKey = n => GPTrack.dayKey(new Date(Date.now() - n * 864e5));
@@ -47,6 +50,13 @@ async function fillAll() { await clearAll(); log.textContent = '';
   localStorage.setItem('gpfis.log', JSON.stringify(L)); localStorage.setItem('gpfis.demo', '1'); say('Done.'); }
 const street = () => { location.href = 'street.html'; };
 document.getElementById('fill').onclick = fillAll; document.getElementById('clear').onclick = clearAll; document.getElementById('go').onclick = street;
-const go = new URLSearchParams(location.search).get('go'); if (go === 'fill') fillAll().then(street); if (go === 'clear') clearAll().then(street);
+const Q = new URLSearchParams(location.search), go = Q.get('go'); if (go === 'fill') fillAll().then(street); if (go === 'clear') clearAll().then(street);
+/* go=sample (the GPEIS platform's 맛보기 buttons, for now: user 24 Nov, "we'll have to revert back when i tell you so"):
+   a quiet entrance. Fills week 1 only if this device does not hold the demo child yet, then goes on to the page asked for
+   (to= a path inside this site, e.g. pbl/index.html; default Story Street). No buttons are shown. */
+if (go === 'sample') { document.body.classList.add('auto'); const to = Q.get('to') || '', safe = /^[a-z0-9][a-z0-9_.\/-]*[.]html$/i.test(to) && !to.includes('..') && !to.includes('//');
+  const on = () => { location.replace(safe ? '../' + to : 'street.html'); };
+  let has = false; try { has = localStorage.getItem('gpfis.demo') === '1'; } catch (e) {}
+  if (has) on(); else Promise.race([fillAll(), new Promise(r => setTimeout(r, 25000))]).then(on, on); }
 window.GPDemo = { fillAll, clearAll };
 </script>
