@@ -346,14 +346,14 @@ window.Room = (() => {
     // MY BOOK: the online version of the whole worksheet. One page per activity: the child's work, their sentence,
     // and their own recording ("Hear me!"). "Hear my whole book" plays every page in turn and finishes the place.
     book(t) {
-      const a = box.querySelector('#act'), P = plays(); let n = 0, busy = false, audio = null, urls = {};
+      const a = box.querySelector('#act'), P = plays(); let n = -1, busy = false, audio = null, urls = {};   // n = -1 is the COVER (the month's worksheet cover); the pages are 0..
       a.style.setProperty('--c', t.col);
       a.innerHTML = `<button class="back pill">← Room <small>방으로</small></button><h2>My Speech Book</h2>` +
-        `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small></div><div class="pg r"><div class="sent"></div>` +
+        `<div class="bk"><div class="pg l"><h3></h3><div class="work"></div><small class="ft"></small><div class="sheet"></div></div><div class="pg r"><div class="cov"><img src="art/pages/${ctx.month}/cover.webp" alt="" onerror="this.remove()"><b class="by"></b></div><div class="sent"></div>` +
         `<button class="hearme"><b>▶</b><span class="wv">${[18, 34, 52, 40, 64, 30, 48, 58, 26, 44, 60, 36, 20, 46].map((h, i) => `<i style="height:${h}px;--d:${i * -.09}s"></i>`).join('')}</span><em></em></button>` +
         `<div class="bst"></div><button class="again">🎤 Say it again</button></div></div>` +
         `<button class="bturn prev">‹</button><button class="bturn next">›</button>` +
-        `<div class="pdots">${P.map((_, i) => `<i data-n="${i}">${i + 1}</i>`).join('')}<button class="hearall">▶ Hear my whole book</button></div>` +
+        `<div class="pdots"><i data-n="-1" class="cv">Cover</i>${P.map((_, i) => `<i data-n="${i}">${i + 1}</i>`).join('')}<button class="hearall">▶ Hear my whole book</button></div>` +
         `<img class="hl g" src="art/crew/gerry/stand.webp" alt=""><img class="hl p" src="art/crew/penny/stand.webp" alt=""><button class="ok">Done ✓</button>`;
       a.classList.add('on'); delete a.dataset.hinted; Crew.add(a.querySelector('.hl.p'), 'penny', 3); Crew.add(a.querySelector('.hl.g'), 'gerry', 3);
       const $ = q => a.querySelector(q), ok = $('.ok'), hm = $('.hearme'), bk = $('.bk');
@@ -372,17 +372,29 @@ window.Room = (() => {
       let audioDone = null, halt = false;   // halt = the child pressed Stop
       const stop = () => { if (audio) { try { audio.pause(); } catch (e) {} audio = null; } if (audioDone) { const f = audioDone; audioDone = null; f(); } hm.classList.remove('playing'); Crew.mute(false); Crew.hush(); };
       const show = dir => {
+        // the cover: the book is shut, only the worksheet cover shows, with the child's name on it
+        bk.classList.toggle('cover', n < 0);
+        a.querySelectorAll('.pdots i').forEach(x => x.classList.toggle('on', +x.dataset.n === n));
+        $('.prev').classList.toggle('off', n < 0); $('.next').classList.toggle('off', n === P.length - 1);
+        if (n < 0) { const nm = (Object.values(D).find(x => x && x.name) || {}).name; $('.cov .by').textContent = nm ? 'by ' + nm : ''; return; }
         const p = P[n], v = d(n);
         // each spread wears the colour of its worksheet page, like the printed book (white title on dark colours, dark on light ones)
-        const col = p.col || '#fffaf0', h = col.replace('#', ''), lum = (parseInt(h.slice(0, 2), 16) * .299 + parseInt(h.slice(2, 4), 16) * .587 + parseInt(h.slice(4, 6), 16) * .114) / 255;
+        const col = (p.page && p.pageCol) || p.col || '#fffaf0', h = col.replace('#', '');   // a real worksheet page: the facing page takes ITS colour
+        const lum = (parseInt(h.slice(0, 2), 16) * .299 + parseInt(h.slice(2, 4), 16) * .587 + parseInt(h.slice(4, 6), 16) * .114) / 255;
         [$('.pg.l'), $('.pg.r')].forEach(x => { x.style.setProperty('--pc', col); x.classList.toggle('lt', lum > .7); });
         $('.pg.l h3').innerHTML = `<span>Page ${n + 1}</span>${p.title}`; $('.work').innerHTML = work(p, v);
+        // an activity that matches a printed worksheet page shows THAT page, with the child's own drawing and words placed where they answer
+        // (spots are in the page's own pixels, 905 x 1280; the .sheet box is scaled down to the book page)
+        $('.pg.l').classList.toggle('sheeted', !!p.page);
+        $('.pg.l .sheet').innerHTML = !p.page ? '' : `<img class="pgimg" src="${p.page}" alt="">` + (p.spots || []).map(sp => {
+          if (sp.draw) { const [x, y, w, h] = sp.draw; return v.draw ? `<img class="mine" src="${v.draw}" alt="" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;${sp.oval ? 'clip-path:ellipse(50% 50%);' : ''}${sp.rot ? `rotate:${sp.rot}deg;` : ''}">` : ''; }
+          if (sp.text) { const tx = sp.text(v) || ''; return tx ? `<div class="ink" style="left:${sp.at[0]}px;top:${sp.at[1]}px;font-size:${sp.size}px;${sp.rot ? `rotate:${sp.rot}deg;` : ''}">${String(tx).replace(/</g, '&lt;')}</div>` : ''; }
+          if (sp.ring) { const [x, y, r] = sp.ring; return v.ok ? `<div class="ring" style="left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px"></div>` : ''; }
+          return ''; }).join('');
         $('.pg.l .ft').textContent = `START PBL · ${ctx.month} · WEEK ${ctx.week} · ${String(n + 1).padStart(2, '0')}`;
         $('.sent').textContent = v.said || '…'; $('.bst').innerHTML = '★'.repeat(v.stars || 0) + '<i>' + '★'.repeat(3 - (v.stars || 0)) + '</i>';
         hm.querySelector('em').textContent = v.voice ? 'Hear me!' : 'Listen!';
-        a.querySelectorAll('.pdots i').forEach((x, i) => x.classList.toggle('on', i === n));
         seenPg.add(n); if (seenPg.size >= P.length && !ok.classList.contains('on')) { ok.classList.add('on'); if (!a.classList.contains('reading')) { K().snd.win(); cheer(); } }
-        $('.prev').classList.toggle('off', n === 0); $('.next').classList.toggle('off', n === P.length - 1);
       };
       // TURN THE PAGE like a real book: the page lifts at its outer edge and swings over the spine.
       // Its front is the page you were on; its back is the page you land on.
@@ -390,10 +402,11 @@ window.Room = (() => {
       const turn = m => {
         if (m === n || flipping) return; flipping = true;
         const dir = m > n ? 1 : -1, pl = $('.pg.l'), pr = $('.pg.r'), oldL = pl.cloneNode(true), oldR = pr.cloneNode(true);
-        n = m; show(0);
+        const fromCover = n < 0; n = m; show(0);
         const newL = pl.cloneNode(true), newR = pr.cloneNode(true);
         const cover = dir > 0 ? oldL : oldR, front = dir > 0 ? oldR : oldL, back = dir > 0 ? newL : newR;
-        cover.classList.add('cover'); bk.appendChild(cover);                    // the side that is still hidden under the turning page
+        if (fromCover) front.classList.add('iscover'); if (n < 0) back.classList.add('iscover');   // the turning page is the cover itself
+        cover.classList.add('cover'); if (!fromCover) bk.appendChild(cover);                    // the side that is still hidden under the turning page
         const f = document.createElement('div'); f.className = 'flp ' + (dir > 0 ? 'r' : 'l');
         front.classList.add('fside'); back.classList.add('bside'); f.append(front, back); bk.appendChild(f);
         const fz = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1];   // checking stills: #flip=0.5 stops the page half-way round (minus = turning back)
@@ -414,8 +427,8 @@ window.Room = (() => {
         hm.classList.remove('playing');
       };
       // Hear me: press again to stop
-      hm.addEventListener('click', async () => { if (a.classList.contains('reading')) return; if (busy) { stop(); return; } busy = true; stop(); K().snd.pop(); await playPage(); busy = false; });
-      const go = k2 => { if (busy || flipping) return; const m = n + k2; if (m < 0 || m >= P.length) return wrong(bk); stop(); turn(m); };
+      hm.addEventListener('click', async () => { if (n < 0 || a.classList.contains('reading')) return; if (busy) { stop(); return; } busy = true; stop(); K().snd.pop(); await playPage(); busy = false; });
+      const go = k2 => { if (busy || flipping) return; const m = n + k2; if (m < -1 || m >= P.length) return wrong(bk); stop(); turn(m); };
       $('.next').addEventListener('click', () => go(1)); $('.prev').addEventListener('click', () => go(-1));
       a.querySelectorAll('.pdots i').forEach(x => x.addEventListener('click', () => { if (busy || flipping) return; const m = +x.dataset.n; if (m === n) return; stop(); turn(m); }));
       // Hear my whole book: every page in turn. While it plays the button is a STOP button.
@@ -432,7 +445,7 @@ window.Room = (() => {
         a.classList.remove('reading'); ha.textContent = '▶ Hear my whole book'; busy = false;
         if (all && a.classList.contains('on')) { ok.classList.add('on'); clap(); cheer(); const k = K(); let i = 0; const iv = setInterval(() => { k.burst(rnd(150, k.W() - 150), rnd(120, 420), 16, 320); if (++i > 6) clearInterval(iv); }, 220); chat('What a wonderful Speech Book! Press Done.', 2); }
       });
-      $('.again').addEventListener('click', () => { if (busy) return; stop(); const p = P[n]; goPage(p, false); });
+      $('.again').addEventListener('click', () => { if (busy || n < 0) return; stop(); const p = P[n]; goPage(p, false); });
       $('.back').addEventListener('click', () => { stop(); a.classList.remove('on'); });
       ok.addEventListener('click', () => {
         if (!ok.classList.contains('on')) return; stop();
@@ -442,6 +455,7 @@ window.Room = (() => {
       });
       const fz0 = (location.hash.match(/flip=(-?[\d.]+)/) || [])[1]; if (fz0) setTimeout(() => { if (+fz0 < 0) { n = 2; show(0); turn(1); } else turn(1); }, 300);
       show(0); chat(isDone(t.id) ? 'Here is your Speech Book again!' : 'This is your Speech Book! Turn the pages and hear yourself.', 2);
+      bk.addEventListener('click', () => { if (n < 0) go(1); });   // press the cover to open the book
     },
     // a few quick questions, one card at a time: look or listen, then tap the right answer
     pick(t) {
@@ -526,9 +540,11 @@ window.Room = (() => {
       art: 'art/room-house.jpg', tv: [.483, .01, .166, .18], key: 'Who am I?',
       video: 'video/1-1.mp4',   // the week's opening video, made in start-pbl/video/week-1 (stand-in voice until Sunny is recorded)
       things: [
-        { id: 'mirror', zone: [.018, .34, .135, .46], title: 'Who am I?', col: '#6fb1e6', type: 'mirror', sub: 'Draw your face in the magic mirror. Then tap the letters of your name.', line: v => `My name is ${v.name}.` },
+        { id: 'mirror', zone: [.018, .34, .135, .46], title: 'Who am I?', col: '#6fb1e6', type: 'mirror', sub: 'Draw your face in the magic mirror. Then tap the letters of your name.', line: v => `My name is ${v.name}.`,
+          page: 'art/pages/1/01.webp', pageCol: '#6fb1e4', spots: [{ draw: [220, 334, 464, 538], oval: 1 }, { text: v => v.name, at: [498, 1132], size: 58 }] },   // worksheet week 1 · 01: the drawing goes in the mirror, the name on the line
         { id: 'tablet', zone: [.152, .45, .105, .15], title: 'Hello! I am Emma.', col: '#ffd23f', type: 'call', sub: 'Emma is calling you! Answer the call.', who: 'Emma', kid: 'art/ws/emma.png',
-          lines: ['Hello! I am Emma.', 'I am eight.', 'I like drawing.', 'I like soccer.', 'I am friendly.'], ask: 'How old is Emma? Pop the balloon!', opts: [6, 7, 8], ans: 8, line: () => 'Emma is eight.' },
+          lines: ['Hello! I am Emma.', 'I am eight.', 'I like drawing.', 'I like soccer.', 'I am friendly.'], ask: 'How old is Emma? Pop the balloon!', opts: [6, 7, 8], ans: 8, line: () => 'Emma is eight.',
+          page: 'art/pages/1/02.webp', pageCol: '#ffd23f', spots: [{ ring: [636, 902, 62] }] },   // worksheet week 1 · 02: the 8 is circled
         { id: 'frames', zone: [.272, .133, .168, .16], title: 'Sam and Lily', col: '#f6a58f', type: 'sort', sub: 'Sam likes music. Lily likes animals. Drag each thing to the right friend!', big: 'We are different!',
           targets: [{ img: 'art/ws/sam.png', text: 'Sam likes music.' }, { img: 'art/ws/lily.png', text: 'Lily likes animals.' }], items: [['🎸', 0], ['🐶', 1], ['🥁', 0], ['🐱', 1], ['🎤', 0], ['🐰', 1]], line: () => 'We are different.' },
         { id: 'board', zone: [.457, .207, .228, .218], title: 'Words about me', col: '#4fae62', type: 'mind', sub: 'Catch the words that are true for you. Two or more!', centre: 'ME',
@@ -536,7 +552,8 @@ window.Room = (() => {
         { id: 'shelf', zone: [.26, .335, .186, .255], title: 'What am I good at?', col: '#b9a5e6', type: 'toys', sub: 'Tap a toy to see its trick. Take the ones you are good at!', lead: 'I am good at',
           items: [['✏️', 'drawing', 'scrib'], ['🎵', 'singing', 'sing'], ['👟', 'running', 'run'], ['📖', 'reading', 'flip'], ['🧱', 'building', 'stack'], ['❤️', 'helping', 'beat']], say: w => `I am good at ${w}.`, line: v => `I am good at ${v.good[0] || '…'}.` },
         { id: 'easel', zone: [.676, .266, .102, .35], title: 'This is me!', col: '#e8492e', type: 'paint', sub: 'Paint yourself. Add stamps! Then pick what you like.', lead: 'I like',
-          likes: [['✏️', 'drawing'], ['⚽', 'soccer'], ['🎵', 'music'], ['🐶', 'animals'], ['📖', 'books'], ['🧱', 'blocks']], say: w => `I like ${w}.`, line: v => `I like ${v.like}.` },
+          likes: [['✏️', 'drawing'], ['⚽', 'soccer'], ['🎵', 'music'], ['🐶', 'animals'], ['📖', 'books'], ['🧱', 'blocks']], say: w => `I like ${w}.`, line: v => `I like ${v.like}.`,
+          page: 'art/pages/1/08.webp', pageCol: '#f277a8', spots: [{ draw: [196, 318, 512, 610], rot: -3 }, { text: v => v.like ? `I like ${v.like}.` : '', at: [300, 958], size: 40, rot: -3 }] },   // worksheet week 1 · 08: the drawing goes in the photo, their words under it
         { id: 'book', zone: [.455, .446, .203, .17], title: 'My book about me', col: '#ff8f6b', type: 'book', sub: 'Your own book! Turn the pages.', line: () => 'This is my book about me.' },
         { id: 'stage', zone: [.777, .128, .223, .51], title: 'Hello, everyone!', col: '#27a7a0', type: 'stage', sub: 'Speech Time! Open the curtain and tell everyone who you are.' }
       ],

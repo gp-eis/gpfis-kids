@@ -373,3 +373,39 @@ body.inroom #title { margin-left: 232px; }
 
 /* 'My Speech Book' is a longer name: fit it under the picture */
 .hub .stn.sp { width: 156px; } .hub .stn.sp b { font-size: 17px; white-space: nowrap; }
+
+/* ===== My Speech Book is TALL, like the printed worksheet (24 Nov): the left page can be the real worksheet page ===== */
+#act h2 + .bk, .bk { top: 96px; width: 904px; height: 640px; }
+.bk .pg { width: 430px; top: 16px; bottom: 16px; }
+.flp { width: 430px; }
+.bk .work { top: 96px; bottom: 44px; }
+.bk .sent { top: 56px; height: 180px; font-size: 42px; }
+.hearme { top: 276px; }
+.bk .bst { top: 410px; }
+.bk .again { bottom: 36px; }
+.bturn { top: 380px; } .bturn.prev { left: calc(50% - 560px); } .bturn.next { left: calc(50% + 476px); }
+.pdots { top: 752px; }
+#act:has(.bk) h2 { top: 28px; font-size: 44px; }
+/* the real page: drawn at its own size (905 x 1280) and scaled to the book page, so answer spots are simply page pixels */
+.bk .sheet { display: none; position: absolute; left: 0; top: 0; width: 905px; height: 1280px; transform-origin: 0 0; transform: scale(.47514); }
+.bk .pg.sheeted .sheet { display: block; } .bk .pg.sheeted > h3, .bk .pg.sheeted > .work, .bk .pg.sheeted > .ft { display: none; }
+.bk .pg.sheeted { background: #fff; overflow: hidden; }
+.bk .sheet .pgimg { position: absolute; left: 0; top: 0; width: 905px; height: 1280px; }
+.bk .sheet .mine { position: absolute; object-fit: contain; }
+.bk .sheet .ink { position: absolute; font-family: Fredoka, sans-serif; font-weight: 600; color: #1f4fc4; white-space: nowrap; line-height: 1; transform-origin: 0 100%; }
+.bk .sheet .ring { position: absolute; border: 11px solid #e8492e; border-radius: 50%; box-sizing: border-box; rotate: -8deg; }
+
+/* the Speech Book's COVER: the month's worksheet cover, shown shut in the middle; the book slides open to its first page */
+.bk { transition: translate .55s cubic-bezier(.4, 0, .3, 1), background-color .3s, box-shadow .3s; }
+.bk .cov { display: none; position: absolute; inset: 0; border-radius: inherit; overflow: hidden; background: #3d7fb8; cursor: pointer; }
+.bk .cov img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bk .cov .top { position: absolute; left: 50%; top: 5.2%; translate: -50% 0; background: #fff; color: var(--ink); border-radius: 22px; padding: 5px 20px; font-size: 21px; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 0 rgba(0, 0, 0, .15); }
+.bk .cov .by { position: absolute; left: 0; right: 0; bottom: 1.1%; text-align: center; color: #fff; font-size: 19px; font-weight: 700; text-shadow: 0 2px 0 rgba(0, 0, 0, .2); }
+.bk.cover { translate: calc(-50% - 221px) 0; background: transparent; box-shadow: none; }
+.bk.cover .pg.l { visibility: hidden; }
+.bk.cover .pg.r { box-shadow: 0 14px 0 rgba(0, 40, 90, .25), 10px 0 0 #fff, 16px 0 0 #e3e7f0; border-radius: 6px 16px 16px 6px; }
+.bk.cover .pg.r > *:not(.cov) { display: none; } .bk.cover .cov { display: block; }
+.flp .pg .cov { display: none; } .flp .pg.iscover > *:not(.cov) { display: none; } .flp .pg.iscover .cov { display: block; }
+.bk.cover .flp .pg { visibility: visible; }
+.pdots i.cv { width: auto; padding: 0 16px; border-radius: 24px; font-size: 18px; }
+#act:has(.bk.cover) .bturn.prev { opacity: 0; }
