@@ -215,11 +215,16 @@
   let gAudio = null, gTick = 0;
   function gerry(en, ko, rest = 'stand') {   // Gerry says a line: bubble + voice + talking mouth; resolves when he has finished
     return new Promise(done => { const g = $('#gy'), bub = $('#gsay'); if (!g) return done();
-      if (gAudio) { gAudio.onended = gAudio.onerror = null; gAudio.pause(); } clearInterval(gTick); clearTimeout(gerry.t);
+      if (gAudio) { gAudio.onended = gAudio.onerror = null; gAudio.pause(); } clearInterval(gTick); clearTimeout(gerry.t); if (gerry.end) gerry.end(true);
       bub.innerHTML = `${en}<small>${ko}</small>`; bub.classList.remove('in'); void bub.offsetWidth; bub.classList.add('in');
       let open = true, over = false; g.src = 'art/gerry/talk.webp'; gTick = setInterval(() => { open = !open; g.src = `art/gerry/${open ? 'talk' : 'stand'}.webp`; }, 170);
-      const end = () => { if (over) return; over = true; clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = `art/gerry/${rest}.webp`; done(); };
-      const k = vid(en); if (window.FMCLIPS && FMCLIPS[k]) { gAudio = new Audio(`voice/${k}.mp3`); gAudio.onended = end; gAudio.onerror = end; gAudio.play().catch(() => {}); }
+      const end = cut => { if (over) return; over = true; if (cut !== true) { clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = `art/gerry/${rest}.webp`; } done(); }; gerry.end = end;
+      /* voice: 1 the kids' site's shared recorded Gerry (gpfis-site/kit/voice.js) when this line has a clip there,
+         2 this sample's own stand-in clip, 3 the shared kit's fallback (the browser's reading voice) */
+      const k = vid(en), V = window.Voice;
+      if (V && V.has(en, 'gerry')) V.say(en, { who: 'gerry' }).then(end);
+      else if (window.FMCLIPS && FMCLIPS[k]) { gAudio = new Audio(`voice/${k}.mp3`); gAudio.onended = end; gAudio.onerror = end; gAudio.play().catch(() => {}); }
+      else if (V) V.say(en, { who: 'gerry' }).then(end);
       gerry.t = setTimeout(end, Math.max(1500, en.length * 85)); });   // also the way on when sound is off
   }
   const ACTS = {
@@ -234,7 +239,7 @@
         <div class="shelf">${SH.map((q, i) => `<span class="slot" data-i="${i}"><svg viewBox="0 0 300 300"><g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="16" stroke-linejoin="round">${q.d}</g></svg><b></b></span>`).join('')}</div>
         <img id="gy" src="art/gerry/wave.webp" alt=""><div id="gsay"></div><div class="arena"></div></div>`;
       c.hidden = false; snd.pop(); const A = c.querySelector('.arena');
-      const out = ok => { alive = false; if (gAudio) gAudio.pause(); clearInterval(gTick); c.hidden = true; c.onclick = null; c.innerHTML = ''; finish(ok); };
+      const out = ok => { alive = false; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); c.hidden = true; c.onclick = null; c.innerHTML = ''; finish(ok); };
 
       /* 1 the lesson video */
       const video = async () => {
@@ -256,7 +261,7 @@
       const turn = (alien, en, ko, frame, frameKo) => new Promise(async done => {
         A.innerHTML = `<div class="talkp">${alien ? '<div class="claim"><img src="art/alien.png" alt=""><span>“A circle has no points!”<small>“동그라미에는 점이 없어!”</small></span></div>' : ''}
           <div class="frame"><span>Say it:</span>${frame}<small>${frameKo}</small></div><button class="go say"><span class="mic"></span><span class="l">Press and say<small>누르고 말해요</small></span></button></div>`;
-        A.querySelector('.say').onclick = async e => { const b = e.currentTarget; if (b.classList.contains('on')) return; if (gAudio) gAudio.pause(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
+        A.querySelector('.say').onclick = async e => { const b = e.currentTarget; if (b.classList.contains('on')) return; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); clearTimeout(gerry.t); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp';
           await listen(b); if (!alive) return; snd.win(); burst((W * 1.01 + 490) / 2, 380, 50, 13); $('#gy').src = 'art/gerry/thumb.webp'; setTimeout(done, 700); };
         await gerry(en, ko, alien ? 'think' : 'point'); });
       const speak = async () => {

@@ -71,10 +71,12 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
 </style></head><body>
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div></div>
 <div id="wrap"></div>
-<script>(function(){var V="mwu5ds19";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwu5ds19"></script><script src="../book/data/set-a.js?v=mwu5ds19"></script><script src="../book/scene.js?v=mwu5ds19"></script><script src="../vendor/talk.js?v=mwu5ds19"></script>
+<script>(function(){var V="mwu7ccx5";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../sheet/data.js?v=mwu7ccx5"></script><script src="../book/data/set-a.js?v=mwu7ccx5"></script><script src="../book/scene.js?v=mwu7ccx5"></script><script src="../vendor/talk.js?v=mwu7ccx5"></script>
+<script src="../../voice/clips.js?v=mwu7ccx5"></script><script src="../../kit/voice.js?v=mwu7ccx5"></script><script src="../vendor/say.js?v=mwu7ccx5"></script>
 <script>
 (function () {
   'use strict';
+  Say.who = 'gerry';   // Gerry reads the dictation
   const $ = s => document.querySelector(s), wrap = $('#wrap'), Q = new URLSearchParams(location.search);
   const icon = (img, w) => window.LGR_SCENE.icon(img, w).split('"art/').join('"../book/art/');
   const ALL = window.LGR_SHEETS, WEEK = { 1: 'a', 2: 'b', 3: 'c', 4: 'd' };
@@ -94,7 +96,7 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
     wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Dictation <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(r => {
       const b = books.find(x => x.id === r.id), [my, ...rest] = r.title.split(' '), inner = '<b>' + my + ' <span>' + rest.join(' ') + '</span></b>' + (b ? icon(b.img, b.img === 'apple' || b.img === 'arrow' ? 150 : 210) : '') + (got.includes(r.id) ? '<i>⭐</i>' : '');
       return r.q10 ? '<a class="bk" style="background:' + (b ? b.color : '#e9d9bf') + '" href="?r=' + r.id + '&w=' + wk + '&back=' + encodeURIComponent(BACK) + '">' + inner + '</a>' : '<span class="bk" style="background:#cdbfae;opacity:.5">' + inner + '</span>'; }).join('') + '</div></div>';
-    Talk.say('Pick a reading!'); return;
+    Say('Pick a reading!'); return;
   }
 
   $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
@@ -108,7 +110,7 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
 
   // the horn: tap to hear, the turtle to hear it slowly
   const HORN = '<div class="play"><button id="horn" aria-label="Listen"><img src="../art/kingdom/toy-dictation.png" alt=""></button><button class="sm" id="slow" aria-label="Slowly">🐢</button></div>';
-  function horn(text) { const h = $('#horn'), play = slow => { speechSynthesis.cancel(); h.classList.add('playing'); Talk.say(text, { slow }).then(() => h.classList.remove('playing')); };
+  function horn(text) { const h = $('#horn'), play = slow => { Say.stop(); h.classList.add('playing'); Say(text, { slow }).then(() => h.classList.remove('playing')); };
     h.onclick = () => play(false); $('#slow').onclick = () => play(true); setTimeout(() => play(false), 500); }
 
   // tiles: tap them in order; a wrong one shakes, the right one flies into the next slot
@@ -120,7 +122,7 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
       if (t.textContent !== pieces[k]) return shake(t);
       t.classList.add('used'); const s = slots[k]; s.textContent = pieces[k]; s.classList.remove('next'); s.classList.add('in'); Talk.pop(); k++;
       if (k < pieces.length) return slots[k].classList.add('next');
-      card.querySelector('.slots').classList.add('done'); card.querySelectorAll('.tile').forEach(x => x.classList.add('used')); cheer(card.querySelector('.slots')); await Talk.say(said); await wait(500); then();
+      card.querySelector('.slots').classList.add('done'); card.querySelectorAll('.tile').forEach(x => x.classList.add('used')); cheer(card.querySelector('.slots')); await Say(said); await wait(500); then();
     });
   }
   // 1 WORD: build the word you hear from letter tiles (two extra letters mixed in)
@@ -143,17 +145,17 @@ a.bk:hover{transform:translateY(-6px) rotate(-1.2deg)}a.bk:active{transform:tran
     const wipe = () => { cx.save(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.restore(); inked = false; };
     $('#clear').onclick = () => { wipe(); Talk.pop(); };
     $('#show').onclick = () => { if (!inked) { shake($('.pad')); $('#hint').textContent = 'Write it first! · 먼저 써 보세요'; return; }
-      $('#ans').textContent = WRITE; $('#hint').textContent = 'Is yours the same? · 내가 쓴 것과 같나요?'; $('#show').hidden = true; $('#ok').hidden = false; $('#retry').hidden = false; Talk.say(WRITE, { slow: true }); };
-    $('#retry').onclick = () => { wipe(); $('#ans').textContent = ''; $('#hint').textContent = ''; $('#show').hidden = false; $('#ok').hidden = true; $('#retry').hidden = true; Talk.say(WRITE); };
+      $('#ans').textContent = WRITE; $('#hint').textContent = 'Is yours the same? · 내가 쓴 것과 같나요?'; $('#show').hidden = true; $('#ok').hidden = false; $('#retry').hidden = false; Say(WRITE, { slow: true }); };
+    $('#retry').onclick = () => { wipe(); $('#ans').textContent = ''; $('#hint').textContent = ''; $('#show').hidden = false; $('#ok').hidden = true; $('#retry').hidden = true; Say(WRITE); };
     $('#ok').onclick = async () => { cheer($('.pad')); await wait(700); next(); };
   }
   function finish() {
     const got = done(); if (!got.includes(R.id)) { got.push(R.id); try { localStorage.setItem('lgr.dictations', JSON.stringify(got)); } catch (e) {} }
     [...$('#dots').children].forEach(d => d.classList.add('on'));
     fresh('<div class="stars">★★★</div><div class="ask">You did the dictation!</div><div class="hint">' + R.title + '</div><div class="bar"><a class="big" href="' + BACK + '">Back to the cabin</a><a class="big w2" href="?w=' + wk + '&back=' + encodeURIComponent(BACK) + '">Another reading</a></div>');
-    Talk.say('You did the dictation! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
+    Say('You did the dictation! Great job!'); Talk.ding(3); const b = card.getBoundingClientRect(); for (let i = 0; i < 4; i++) setTimeout(() => Talk.burst(b.left + Math.random() * b.width, b.top + Math.random() * b.height, 18), i * 220);
   }
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));
   go();
 })();
-</script><script src="../../ext/home.js?v=mwu5ds19" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwu7ccx5" data-home="../../demo/street.html"></script></body></html>

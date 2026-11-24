@@ -36,9 +36,10 @@
       spans.forEach((sp, i) => { setTimeout(() => { if (n === sayId) spans.forEach((x, k) => x.classList.toggle('on', k === i)); }, t); t += 330 + sp.textContent.length * 45; });
       setTimeout(() => { if (n === sayId) spans.forEach(x => x.classList.remove('on')); }, t + 200);
     }
+    if (window.Say) return void Say(text);          // Penny's recorded voice (vendor/say.js); text may be [part, part]
     if (!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .8; u.pitch = 1.2; speechSynthesis.speak(u);
+    const u = new SpeechSynthesisUtterance([].concat(text).join(' ')); u.lang = 'en-US'; u.rate = .8; u.pitch = 1.2; speechSynthesis.speak(u);
   }
   const kor = t => '<div class="kor"' + (ko ? '' : ' hidden') + '>' + t + '</div>';
 
@@ -66,11 +67,11 @@
         const b = document.createElement('button'); b.className = 'tile'; b.textContent = w.t;
         b.onclick = () => {
           if (w.verb) { b.classList.add('ok'); say(w.t); setTimeout(() => { round++; round < list.length ? ask() : own(); }, 1100); }
-          else { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); say('Hmm! ' + plain(p.en)); }
+          else { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); say(['Hmm!', plain(p.en)]); }
         };
         tiles.appendChild(b);
       });
-      if (talked) say('Find the action word! ' + plain(p.en));
+      if (talked) say(['Find the action word!', plain(p.en)]);
     }
     function own() {
       const o = B.activity.own;
@@ -98,7 +99,7 @@
   addEventListener('pointerdown', () => { talked = true; }, { once: true });
   function go(i) {
     at = Math.max(0, Math.min(LAST, i)); sayId++;
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if (window.Say) Say.stop(); else if ('speechSynthesis' in window) speechSynthesis.cancel();
     page.classList.remove('turn'); void page.offsetWidth; page.classList.add('turn');
     if (at === 0) cover(); else if (at <= N) sentencePage(at - 1); else if (at === N + 1) activity(); else ending();
     prev.disabled = at === 0;

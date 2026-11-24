@@ -117,7 +117,9 @@ body:not(.reading) #wrap{padding-left:250px}
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwu5ds19";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwu5ds19"></script><script src="../book/data/set-a.js?v=mwu5ds19"></script><script src="../book/scene.js?v=mwu5ds19"></script><script src="../vendor/talk.js?v=mwu5ds19"></script>
+<script>(function(){var V="mwu7ccx5";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwu7ccx5"></script><script src="../book/data/set-a.js?v=mwu7ccx5"></script><script src="../book/scene.js?v=mwu7ccx5"></script><script src="../vendor/talk.js?v=mwu7ccx5"></script>
+<!-- recorded voices: the shared GPFIS kit (the online build fixes these two paths), then our adapter -->
+<script src="../../voice/clips.js?v=mwu7ccx5"></script><script src="../../kit/voice.js?v=mwu7ccx5"></script><script src="../vendor/say.js?v=mwu7ccx5"></script>
 <script>
 (function () {
   'use strict';
@@ -129,8 +131,8 @@ body:not(.reading) #wrap{padding-left:250px}
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const bubble = $('#bubble'); let sayNow = '', mateEl = $('#help');
   const pose = p => { mateEl.src = '../art/kingdom/penny/' + p + '.webp'; };
-  function tell(text, o) { const fb = $('#fb'); (fb || bubble).textContent = text; sayNow = (o && o.model) || text; pose('talk'); return Talk.say(sayNow).then(() => pose('stand')); }
-  $('#hear').onclick = () => Talk.say(sayNow);
+  function tell(text, o) { const fb = $('#fb'); (fb || bubble).textContent = text; sayNow = (o && o.model) || text; pose('talk'); return Say(sayNow).then(() => pose('stand')); }
+  $('#hear').onclick = () => Say(sayNow);
   let card = null;
   const fresh = html => { document.body.classList.remove('reading'); mateEl = $('#help'); wrap.innerHTML = '<div id="card" class="pop">' + html + '</div>'; card = $('#card'); };
   const shake = el => { el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); Talk.boop && Talk.boop(); };
@@ -147,7 +149,7 @@ body:not(.reading) #wrap{padding-left:250px}
       return r.q10 ? '<a class="bk" style="background:' + (b ? b.color : '#e9d9bf') + '" href="?r=' + r.id + '&w=' + wk + '&back=' + encodeURIComponent(BACK) + '">' + inner + '</a>' : '<span class="bk" style="background:#cdbfae;opacity:.5">' + inner + '</span>'; };
     document.body.classList.add('reading'); mateEl = $('#help');
     wrap.innerHTML = '<div class="shelf pop"><h1>My ' + WEEK[wk].toUpperCase() + ' Speaking <small>' + got.filter(g => list.some(r => r.id === g)).length + ' / ' + list.length + '</small></h1><div class="covers">' + list.map(cover).join('') + '</div></div>';
-    Talk.say('Pick a reading!'); return;
+    Say('Pick a reading!'); return;
   }
 
   $('#back').href = '?w=' + wk + '&back=' + encodeURIComponent(BACK);
@@ -175,14 +177,14 @@ body:not(.reading) #wrap{padding-left:250px}
       lns.forEach((l, i) => { l.classList.toggle('now', i === qi); l.classList.remove('fixing'); if (i === qi) l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); });
       dots.forEach((d, i) => { d.classList.toggle('on', i < qi); d.classList.toggle('at', i === qi); });
       $('#qn').textContent = 'Question ' + (qi + 1) + ' of ' + R.lines.length; $('#q').textContent = R.q10[qi];
-      const s = $('.side'); s.classList.remove('shake'); tell('Look at the yellow line. Say it!', { model: R.q10[qi] + ' Look at the yellow line. Say it!' });
+      const s = $('.side'); s.classList.remove('shake'); tell('Look at the yellow line. Say it!', { model: [R.q10[qi], 'Look at the yellow line. Say it!'] });
     };
     const good = async () => { const l = lns[qi]; l.classList.remove('now', 'fixing'); l.classList.add('done'); l.querySelectorAll('.w').forEach(w => w.classList.remove('hit', 'miss', 'focus')); cheer(l); pose('cheer');
       qi++; if (qi < R.lines.length) { await wait(900); ask(); } else { dots.forEach(d => { d.classList.add('on'); d.classList.remove('at'); }); linesEl.classList.remove('asking'); await tell('You read the whole story!'); await wait(500); next(); } };
-    $('#again').onclick = () => Talk.say(R.q10[qi]); $('#slow').onclick = () => Talk.say(fix ? word(fix[0]) : R.lines[qi], { slow: true });
+    $('#again').onclick = () => Say(R.q10[qi]); $('#slow').onclick = () => Say(fix ? word(fix[0]) : R.lines[qi], { slow: true });
     const said = $('#said'); if (said) said.onclick = () => good();
     if (mic) mic.onclick = async () => {
-      if (busy) return; busy = true; speechSynthesis.cancel(); heardEl.textContent = ''; mic.classList.add('live'); $('#fb').textContent = "I'm listening…";
+      if (busy) return; busy = true; Say.stop(); heardEl.textContent = ''; mic.classList.add('live'); $('#fb').textContent = "I'm listening…";
       const line = R.lines[qi], ln = lns[qi], spans = [...ln.querySelectorAll('.w')];
       const r = await Talk.listen({ ms: 6000, onLevel: v => mic.style.setProperty('--lv', v), onWords: t => heardEl.textContent = t });
       mic.classList.remove('live'); busy = false;
@@ -190,10 +192,10 @@ body:not(.reading) #wrap{padding-left:250px}
       heardEl.textContent = r.heard[0];
       if (fix) {                                     // practising one missed word
         const el = fix[0], ok = Talk.score(word(el), r.heard) >= 60; el.n = (el.n || 0) + 1;
-        if (!ok && el.n < 3) return tell('Almost! Listen: ' + word(el) + '.', { model: 'Almost! Listen. ' + word(el) + '.' });
+        if (!ok && el.n < 3) return tell('Almost! Listen: ' + word(el) + '.', { model: ['Almost! Listen.', word(el)] });
         el.classList.remove('miss', 'focus'); el.classList.add('hit'); cheer(el); fix.shift();
-        if (fix.length) { spans.forEach(x => x.classList.toggle('focus', x === fix[0])); return tell('Say just this word: ' + word(fix[0]) + '.', { model: 'Say just this word. ' + word(fix[0]) + '.' }); }
-        fix = null; ln.classList.remove('fixing'); return tell('Now say the whole line!', { model: 'Now say the whole line. ' + line });
+        if (fix.length) { spans.forEach(x => x.classList.toggle('focus', x === fix[0])); return tell('Say just this word: ' + word(fix[0]) + '.', { model: ['Say just this word.', word(fix[0])] }); }
+        fix = null; ln.classList.remove('fixing'); return tell('Now say the whole line!', { model: ['Now say the whole line.', line] });
       }
       tries++;
       const same = (a, b) => a === b || (a.length > 3 && b.length > 3 && a.slice(0, 3) === b.slice(0, 3)), heardWords = r.heard.map(h => Talk.words(h));
@@ -207,10 +209,10 @@ body:not(.reading) #wrap{padding-left:250px}
       const extra = raw.map((w, k) => !keep.has(k) && H[k] ? k : -1).filter(k => k >= 0), missed = spans.filter(el => el.classList.contains('miss'));
       if (extra.length) heardEl.innerHTML = raw.map((w, k) => extra.includes(k) ? '<span class="x">' + w + '</span>' : w).join(' ');
       if (!missed.length && !extra.length) { $('#fb').textContent = 'Wonderful!'; return good(); }
-      if (tries >= 3) return tell("Good try! Let's say it together: " + line).then(good);
-      if (missed.length && missed.length <= Math.ceil(spans.length / 2)) { fix = missed; ln.classList.add('fixing'); spans.forEach(x => x.classList.toggle('focus', x === fix[0])); return tell('Good try! Say just this word: ' + word(fix[0]) + '.', { model: 'Good try! Say just this word. ' + word(fix[0]) + '.' }); }
-      if (extra.length && !missed.length) { const xs = extra.map(k => H[k]).join(' and '); return tell('Almost! I heard an extra word: ' + xs + '.', { model: 'Almost! I heard an extra word. ' + xs + '. Listen and say it again. ' + line }); }
-      tell('Good try! Listen and say it again.', { model: 'Good try! Listen and say it again. ' + line });
+      if (tries >= 3) return tell("Good try! Let's say it together: " + line, { model: ["Good try! Let's say it together.", line] }).then(good);
+      if (missed.length && missed.length <= Math.ceil(spans.length / 2)) { fix = missed; ln.classList.add('fixing'); spans.forEach(x => x.classList.toggle('focus', x === fix[0])); return tell('Good try! Say just this word: ' + word(fix[0]) + '.', { model: ['Good try! Say just this word.', word(fix[0])] }); }
+      if (extra.length && !missed.length) { const xs = extra.map(k => H[k]).join(' and '); return tell('Almost! I heard an extra word: ' + xs + '.', { model: ['Almost! I heard an extra word.', 'Listen and say it again.', line] }); }
+      tell('Good try! Listen and say it again.', { model: ['Good try! Listen and say it again.', line] });
     };
     ask();
   }
@@ -221,7 +223,7 @@ body:not(.reading) #wrap{padding-left:250px}
     fresh('<span class="tag">2 · PHONICS · 파닉스</span><div class="ask">Tap the words that start with <b style="color:#e23b4a">' + R.L.toUpperCase() + R.L + '</b>.</div><div class="words">' + R.start.map(w => '<button class="wd">' + w + '</button>').join('') + '</div>');
     tell('Tap the words that start with ' + R.L.toUpperCase() + '.', { model: 'Tap the words that start with the letter ' + R.L + '.' });
     card.querySelectorAll('.wd').forEach(b => b.onclick = async () => {
-      if (b.classList.contains('ring')) return; Talk.say(b.textContent);
+      if (b.classList.contains('ring')) return; Say(b.textContent);
       if (b.textContent[0] !== R.L) return shake(b);
       b.classList.add('ring'); cheer(b); if (++got === need) { card.querySelectorAll('.wd:not(.ring)').forEach(x => x.classList.add('dim')); await wait(1100); next(); }
     });
@@ -230,10 +232,10 @@ body:not(.reading) #wrap{padding-left:250px}
   function firstLetter(k = 0) {
     const w = R.first[k], pool = shuffle([R.L, ...shuffle('abcdmst'.split('').filter(c => c !== R.L)).slice(0, 2)]);
     fresh('<span class="tag">2 · PHONICS · 첫 글자</span><div class="ask">What is the first letter?</div><div class="line"><span class="gap" id="gap">&nbsp;</span>' + w.slice(1) + '</div><div class="letters">' + pool.map(c => '<button class="lt">' + c + '</button>').join('') + '</div>');
-    tell('What is the first letter of ' + w + '?');
+    tell('What is the first letter of ' + w + '?', { model: ['What is the first letter?', w] });
     card.querySelectorAll('.lt').forEach(b => b.onclick = async () => {
       if (b.textContent !== R.L) return shake(b);
-      $('#gap').textContent = R.L; cheer($('#gap')); Talk.say(w); await wait(1200); k + 1 < R.first.length ? firstLetter(k + 1) : next();
+      $('#gap').textContent = R.L; cheer($('#gap')); Say(w); await wait(1200); k + 1 < R.first.length ? firstLetter(k + 1) : next();
     });
   }
   // ================= 3 NAMING AND DOING WORDS: colour the six story words with the right pot =================
@@ -244,7 +246,7 @@ body:not(.reading) #wrap{padding-left:250px}
     tell('Pick a colour, then tap the words.', { model: 'Blue for naming words. Orange for doing words. Pick a colour, then tap the words.' });
     card.querySelectorAll('.pot').forEach(p => p.onclick = () => { pot = p.dataset.p; Talk.pop(); card.querySelectorAll('.pot').forEach(x => x.classList.toggle('on', x === p)); });
     card.querySelectorAll('.wd').forEach(b => b.onclick = async () => {
-      if (b.classList.contains('n') || b.classList.contains('v')) return; Talk.say(b.textContent);
+      if (b.classList.contains('n') || b.classList.contains('v')) return; Say(b.textContent);
       if (b.dataset.t !== pot) return shake(b);
       b.classList.add(pot); cheer(b); if (--left === 0) { await wait(1000); next(); }
     });
@@ -258,4 +260,4 @@ body:not(.reading) #wrap{padding-left:250px}
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwu5ds19" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwu7ccx5" data-home="../../demo/street.html"></script></body></html>

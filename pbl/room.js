@@ -37,9 +37,15 @@ window.Room = (() => {
   // ---------- talking and listening ----------
   let rc = [];   // the two helpers in the room (crew.js pose pictures)
   // every line is said by Penny or Gerry (crew.js): voice, talking pose, and a speech bubble unless the words are already lit up on screen
-  function say(text, el, quiet) {
+  // The children on the phone (Emma, Mia, Tom, Amy ...) speak with three voices the user chose on 24 Nov: the girls take turns
+  // with SUNNY and BELLA, boys are HARRY. A new child is added here; an unknown name gets one of the two girl voices by its letters.
+  const KID_VOICE = { emma: 'sunny', mia: 'bella', amy: 'sunny', lily: 'bella', tom: 'harry', sam: 'harry', ben: 'harry' };
+  const kidVoice = name => { const k = String(name || '').toLowerCase().replace(/[^a-z]/g, ''); return KID_VOICE[k] || ([...k].reduce((a, c) => a + c.charCodeAt(0), 0) % 2 ? 'sunny' : 'bella'); };
+  // who: 'penny' | 'gerry' when the page says which helper speaks; any other name = a voice for a child on the phone (sunny, bella, harry; no helper's mouth moves)
+  function say(text, el, quiet, who) {
     if (el) el.classList.add('saying');
-    return Crew.say(text, { level: 2, quiet: !!el || quiet }).then(() => { if (el) el.classList.remove('saying'); });
+    const o = { level: 2, quiet: !!el || quiet }; if (who === 'penny' || who === 'gerry') o.who = who; else if (who) o.voice = who;
+    return Crew.say(text, o).then(() => { if (el) el.classList.remove('saying'); });
   }
   const chat = (a, level = 1) => Crew.say(Array.isArray(a) ? Crew.pick(a) : a, { level });
   let praiseT = 0, wrongT = 0;
@@ -255,7 +261,7 @@ window.Room = (() => {
         `<div class="pop"><b>${t.ask}</b><div class="bal">${t.opts.map((n, i) => `<button data-v="${n}" style="--h:${[205, 8, 130][i % 3]}"><i${String(n).length > 2 ? ' class="wide"' : ''}>${n}</i></button>`).join('')}</div></div>`);
       const call = s.a.querySelector('.call'), ps = [...s.a.querySelectorAll('.bub p')], pop = s.a.querySelector('.pop'); let ringing = true;
       (async () => { while (ringing && s.a.classList.contains('on')) { K().snd.ding(7); await wait(220); K().snd.ding(9); await wait(900); } })();
-      const talk = async () => { for (const p of ps) { if (!s.a.classList.contains('on')) return; p.classList.add('in'); await say(p.textContent, p); } pop.classList.add('on'); K().snd.boing(); };
+      const talk = async () => { for (const p of ps) { if (!s.a.classList.contains('on')) return; p.classList.add('in'); await say(p.textContent, p, false, kidVoice(t.who)); } pop.classList.add('on'); K().snd.boing(); };
       s.a.querySelector('.pick').addEventListener('click', () => { ringing = false; call.classList.add('live'); K().snd.win(); cheer(); setTimeout(talk, 500); });
       s.a.querySelector('.again').addEventListener('click', talk);
       s.a.querySelectorAll('.bal button').forEach(b => b.addEventListener('click', () => {
@@ -327,7 +333,7 @@ window.Room = (() => {
       const bub = s.a.querySelector('.bub p'), opts = s.a.querySelector('.opts'), qb = [...s.a.querySelectorAll('.qs button')]; let left = t.qs.length;
       qb.forEach((b, i) => b.addEventListener('click', async () => {
         if (b.classList.contains('tick')) return; const q = t.qs[i]; K().snd.pop(); qb.forEach(x => x.classList.toggle('cur', x === b));
-        opts.innerHTML = ''; await say(q.q); bub.textContent = q.say; K().again(bub.parentElement, 'yes'); await say(q.say, bub);
+        opts.innerHTML = ''; await say(q.q); bub.textContent = q.say; K().again(bub.parentElement, 'yes'); await say(q.say, bub, false, /^(penny|gerry)$/i.test(t.who || '') ? t.who.toLowerCase() : undefined);
         opts.innerHTML = `<b>What did ${t.who} say?</b>` + q.opts.map(([e, w]) => `<button class="lk" data-w="${w}"><i>${e}</i>${w}</button>`).join('');
         opts.querySelectorAll('.lk').forEach(o => o.addEventListener('click', () => {
           if (o.dataset.w !== q.a) return wrong(o);
@@ -674,5 +680,5 @@ window.Room = (() => {
     }
   };
   addEventListener('resize', () => setTimeout(lay, 0));   // after sky.js has measured the new window (this file loads first, so its listener runs first)
-  return { open, lay, data: () => all, rooms: ROOMS, play: id => { const t = R.things.find(x => x.id === id); if (t) TYPES[t.type](t); }, voice: VDB };
+  return { open, lay, data: () => all, rooms: ROOMS, kidVoice, play: id => { const t = R.things.find(x => x.id === id); if (t) TYPES[t.type](t); }, voice: VDB };
 })();
