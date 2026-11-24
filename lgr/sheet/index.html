@@ -9,7 +9,7 @@
                   reading, and the child SAYS it. A missed word is practised alone; an added word is crossed out.
      2 PHONICS  - tap the words that start with the letter; pick the first letter of two words
      3 NAMING AND DOING WORDS - colour six story words with the naming pot or the doing pot
-   Story lines, phonics words and naming/doing words come from the worksheet's own data; the ten questions are in
+   Story lines, phonics words and nouns and verbs come from the worksheet's own data; the ten questions are in
    tools/make_sheet_data.cjs (3 from the paper, 7 drafted). Speaking uses the shared kit vendor/talk.js (free browser
    listener: it hears words, not sounds).
    ?w=1 lists the week's readings; ?r=a-airplane opens one; ?back=URL is where the back arrow goes; ?step=N jumps.
@@ -73,7 +73,7 @@ body::before{content:"";position:fixed;inset:0;background:rgba(60,14,10,.55);bac
 .big{border:0;border-radius:999px;background:linear-gradient(#ffe36a,#ffc93c);box-shadow:0 6px 0 #c9921a;font:800 24px "Baloo 2";color:#4a2508;padding:8px 34px;cursor:pointer;display:inline-block}
 .big:active{translate:0 4px;box-shadow:0 2px 0 #c9921a}
 
-/* ---------- 2 PHONICS and 3 NAMING/DOING: one card in the middle ---------- */
+/* ---------- 2 PHONICS and 3 NOUNS AND VERBS: one card in the middle ---------- */
 #dots{display:flex;gap:8px;flex:none}
 #dots i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.35);border:3px solid #fff}#dots i.on{background:#ffd23f}
 .line{font:800 clamp(26px,3.4vw,46px)/1.2 "Baloo 2";margin:8px 0}
@@ -117,9 +117,9 @@ body:not(.reading) #wrap{padding-left:250px}
 <div id="top"><a class="round" id="back" aria-label="Back">←</a><div id="title"></div><div id="dots"></div><button class="round" id="hear" aria-label="Listen">🔊</button></div>
 <div id="wrap"></div>
 <img id="help" src="../art/kingdom/penny/stand.webp" alt="Penny"><div id="bubble"></div>
-<script>(function(){var V="mwu7ccx5";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwu7ccx5"></script><script src="../book/data/set-a.js?v=mwu7ccx5"></script><script src="../book/scene.js?v=mwu7ccx5"></script><script src="../vendor/talk.js?v=mwu7ccx5"></script>
+<script>(function(){var V="mwuf15y6";try{fetch("../../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="data.js?v=mwuf15y6"></script><script src="../book/data/set-a.js?v=mwuf15y6"></script><script src="../book/scene.js?v=mwuf15y6"></script><script src="../vendor/talk.js?v=mwuf15y6"></script>
 <!-- recorded voices: the shared GPFIS kit (the online build fixes these two paths), then our adapter -->
-<script src="../../voice/clips.js?v=mwu7ccx5"></script><script src="../../kit/voice.js?v=mwu7ccx5"></script><script src="../vendor/say.js?v=mwu7ccx5"></script>
+<script src="../../voice/clips.js?v=mwuf15y6"></script><script src="../../kit/voice.js?v=mwuf15y6"></script><script src="../vendor/say.js?v=mwuf15y6"></script>
 <script>
 (function () {
   'use strict';
@@ -238,12 +238,12 @@ body:not(.reading) #wrap{padding-left:250px}
       $('#gap').textContent = R.L; cheer($('#gap')); Say(w); await wait(1200); k + 1 < R.first.length ? firstLetter(k + 1) : next();
     });
   }
-  // ================= 3 NAMING AND DOING WORDS: colour the six story words with the right pot =================
+  // ================= 3 NOUNS AND VERBS (user, 24 Nov: the real terms, not "naming/doing words"): colour the six story words with the right pot =================
   function namingDoing() {
     let pot = 'n', left = R.nv.length;
-    fresh('<span class="tag">3 · NAMING AND DOING WORDS · 이름 말과 움직임 말</span><div class="ask">Colour the words!</div><div class="pots"><button class="pot n on" data-p="n">Naming word<small>이름 말</small></button><button class="pot v" data-p="v">Doing word<small>움직임 말</small></button></div>' +
+    fresh('<span class="tag">3 · NOUNS AND VERBS · 명사와 동사</span><div class="ask">Colour the words!</div><div class="pots"><button class="pot n on" data-p="n">Noun<small>명사</small></button><button class="pot v" data-p="v">Verb<small>동사</small></button></div>' +
       '<div class="words">' + shuffle(R.nv).map(([w, t]) => '<button class="wd" data-t="' + t + '">' + w + '</button>').join('') + '</div>');
-    tell('Pick a colour, then tap the words.', { model: 'Blue for naming words. Orange for doing words. Pick a colour, then tap the words.' });
+    tell('Pick a colour, then tap the words.', { model: 'Blue for nouns. Orange for verbs. Pick a colour, then tap the words.' });
     card.querySelectorAll('.pot').forEach(p => p.onclick = () => { pot = p.dataset.p; Talk.pop(); card.querySelectorAll('.pot').forEach(x => x.classList.toggle('on', x === p)); });
     card.querySelectorAll('.wd').forEach(b => b.onclick = async () => {
       if (b.classList.contains('n') || b.classList.contains('v')) return; Say(b.textContent);
@@ -260,4 +260,4 @@ body:not(.reading) #wrap{padding-left:250px}
   if (Q.get('step')) at = Math.max(0, Math.min(STEPS.length - 1, +Q.get('step')));   // for checking pictures
   go();
 })();
-</script><script src="../../ext/home.js?v=mwu7ccx5" data-home="../../demo/street.html"></script></body></html>
+</script><script src="../../ext/home.js?v=mwuf15y6" data-home="../../demo/street.html"></script></body></html>

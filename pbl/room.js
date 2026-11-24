@@ -524,6 +524,7 @@ window.Room = (() => {
     // Island 1 · place 1 · ME (ME, YOU & WE week 1): the house
     '1-1': {
       art: 'art/room-house.jpg', tv: [.483, .01, .166, .18], key: 'Who am I?',
+      video: 'video/1-1.mp4',   // the week's opening video, made in start-pbl/video/week-1 (stand-in voice until Sunny is recorded)
       things: [
         { id: 'mirror', zone: [.018, .34, .135, .46], title: 'Who am I?', col: '#6fb1e6', type: 'mirror', sub: 'Draw your face in the magic mirror. Then tap the letters of your name.', line: v => `My name is ${v.name}.` },
         { id: 'tablet', zone: [.152, .45, .105, .15], title: 'Hello! I am Emma.', col: '#ffd23f', type: 'call', sub: 'Emma is calling you! Answer the call.', who: 'Emma', kid: 'art/ws/emma.png',

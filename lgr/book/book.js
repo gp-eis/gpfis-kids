@@ -61,7 +61,7 @@
     const list = B.activity.find, stars = k => '<div class="stars">' + list.map((_, j) => '<span class="' + (j < k ? 'on' : '') + '">⭐</span>').join('') + '</div>';
     function ask() {
       const p = B.pages[list[round]];
-      page.innerHTML = '<div class="center"><h2>Find the action word!</h2>' + stars(round) + '<div class="tiles"></div>' + kor(p.ko) + '</div>';
+      page.innerHTML = '<div class="center"><h2>Find the verb!</h2>' + stars(round) + '<div class="tiles"></div>' + kor(p.ko) + '</div>';
       const tiles = page.querySelector('.tiles');
       words(p.en).forEach(w => {
         const b = document.createElement('button'); b.className = 'tile'; b.textContent = w.t;
@@ -71,7 +71,7 @@
         };
         tiles.appendChild(b);
       });
-      if (talked) say(['Find the action word!', plain(p.en)]);
+      if (talked) say(['Find the verb!', plain(p.en)]);
     }
     function own() {
       const o = B.activity.own;

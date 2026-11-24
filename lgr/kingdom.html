@@ -143,7 +143,8 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   <div id="title"></div><button class="round" id="snd" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#4a2508"/><path id="sw" d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14" fill="none" stroke="#4a2508" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>
 <div id="toast"></div><div id="flash"></div>
 <div id="player" hidden><div class="box"><button class="round x" id="closeV" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="#4a2508" stroke-width="4" stroke-linecap="round"/></svg></button><div id="vbody" style="width:100%;height:100%;display:grid;place-items:center"></div></div></div>
-<script>(function(){var V="mwu7ccx5";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script>
+<script>(function(){var V="mwuf15y6";try{fetch("../version.txt?"+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.href)}).catch(function(){})}catch(e){}if(window.top===window.self){var m=function(){var d=document.createElement("div");d.textContent=V;d.style.cssText="position:fixed;right:3px;bottom:2px;z-index:2147483647;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,.35);padding:1px 3px;border-radius:3px;pointer-events:none";document.body&&document.body.appendChild(d)};document.body?m():addEventListener("DOMContentLoaded",m)}})();</script><script src="../voice/clips.js?v=mwuf15y6"></script><script src="../kit/voice.js?v=mwuf15y6"></script><script src="vendor/say.js?v=mwuf15y6"></script>
+<script>
 (function () {
   'use strict';
   const $ = s => document.querySelector(s), world = $('#world'), bg = $('#bg'), ART = 'art/kingdom/', Q = new URLSearchParams(location.search);
@@ -180,7 +181,13 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   const snd = { pop: () => tone(420, 880, .12), step: () => tone(240, 180, .06, .035, 'triangle'), nope: () => tone(300, 200, .2, .07, 'triangle'), boing: () => tone(180, 520, .22, .1, 'triangle'),
     ding: () => { tone(880, 880, .15); tone(1320, 1320, .25, .08, 'sine', .1); }, whoosh: () => tone(200, 1600, .7, .07, 'sawtooth'), creak: () => tone(140, 320, .35, .06, 'square'),
     win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, f, .22, .1, 'triangle', i * .12)), big: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f, .3, .1, 'triangle', i * .11)) };
-  $('#snd').onclick = () => { muted = !muted; $('#sw').style.display = muted ? 'none' : ''; if (!muted) snd.pop(); };
+  // ---- Gerry and Penny speak (24 Nov 2026): one short line per moment, one after another, never while the page is muted.
+  // Every line is listed in tools/make_voice_lines.cjs so it gets a recorded clip; without one the browser's voice says it.
+  let line = Promise.resolve(), nudgeT = 0;
+  const say = (who, text) => { line = line.then(() => (muted || !window.Say) ? null : Promise.race([Say(text, { who }), wait(5000)])).catch(() => {}); return line; };
+  const hush = () => { clearTimeout(nudgeT); if (window.Say) Say.stop(); };
+  const touched = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;     // browsers stay silent until the first tap
+  $('#snd').onclick = () => { muted = !muted; if (muted) hush(); $('#sw').style.display = muted ? 'none' : ''; if (!muted) snd.pop(); };
 
   // ---- small helpers ----
   const near = y => Math.max(.55, Math.min(1.08, .58 + (y - 470) / 400 * .46)); let dfn = near; const depth = y => dfn(y);       // far things are smaller
@@ -252,12 +259,14 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
       b.innerHTML = '<span class="hit" style="left:' + (hit[0] - x) + 'px;top:' + (hit[1] - y) + 'px;width:' + hit[2] + 'px;height:' + hit[3] + 'px"></span>' + (open ? (rubyDone ? '<span class="st">★</span>' : '<i class="mk"></i>') : '<span class="lk">' + LOCK + '</span>') + '<span class="sg" style="background:' + col + '">' + name + '<small>' + ko + '</small></span>'; world.appendChild(b);
       b.addEventListener('animationend', e => { if (e.animationName === 'shake3') b.classList.remove('shake'); });
       b.onclick = async () => { if (busy) return;
-        if (!open) { again(b, 'shake'); snd.nope(); toast(name + ' is still asleep!', ko + ' · 곧 열려요'); return; }
-        busy = true; snd.pop(); const mk = b.querySelector('.mk'); if (mk) mk.remove(); sparks(x, y + 30, 16, 140);
+        if (!open) { again(b, 'shake'); snd.nope(); toast(name + ' is still asleep!', ko + ' · 곧 열려요'); say('gerry', 'Not yet. Ruby first!'); return; }
+        busy = true; snd.pop(); const mk = b.querySelector('.mk'); if (mk) mk.remove(); sparks(x, y + 30, 16, 140); say('penny', 'Whee! Here we go!');
         await gc.roll(GOLD.slice(GPARK + 1), 170); snd.whoosh(); flash(() => { location.hash = '#/ruby'; });
       }; });
     gc.put(GOLD[0][0], GOLD[0][1]); await wait(500); await gc.roll(GOLD.slice(1, GPARK + 1), 170);
     busy = false;
+    const hello = () => { if (location.hash && location.hash !== '#/') return; say('penny', 'Hello, readers!'); say('gerry', 'Pick a land!'); };
+    if (touched()) hello(); else addEventListener('pointerdown', () => setTimeout(hello, 50), { once: true });
   }
 
   // ================= 0. THE VALLEY: one world, six places on a mine-cart track =================
@@ -319,9 +328,9 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     if (from === 'cave') {                             // back out of the cave: they walk down to the cart and climb in
       cart.at = STOP; cart.put(TRACK[STOP][0], TRACK[STOP][1]); cart.riders(false); pen.put(232, 712); ger.put(205, 716); pen.el.classList.remove('gone'); ger.el.classList.remove('gone');
       await wait(400); await Promise.all([pen.go(310, 745, 170), wait(200).then(() => ger.go(270, 750, 170))]);
-      await Promise.all([pen.dive(cart.x + 20, cart.y - 70), ger.dive(cart.x - 30, cart.y - 70)]); cart.riders(true); snd.pop();
+      await Promise.all([pen.dive(cart.x + 20, cart.y - 70), ger.dive(cart.x - 30, cart.y - 70)]); cart.riders(true); snd.pop(); say('gerry', 'Hop in the cart!');
     } else {                                           // the start of a visit: the cart rolls in from the edge of the map
-      cart.put(TRACK[0][0], TRACK[0][1]); await wait(500); await cart.roll(TRACK.slice(1, PARK + 1)); cart.at = PARK;
+      cart.put(TRACK[0][0], TRACK[0][1]); await wait(500); await cart.roll(TRACK.slice(1, PARK + 1)); cart.at = PARK; say('penny', 'Welcome to Ruby Valley!');
     }
     busy = false;
   }
@@ -352,25 +361,25 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
       // a finished week can be opened again (user, 21 Nov): tap its treasure and they go back into that week's cabin
       if (b.classList.contains('tre')) { busy = true; again(b, 'squash'); snd.ding(); sparks(b.x, b.y - b.w * .6, 14, 120); toast(WEEKS[w][1] + '!', WEEKS[w][0] + ' · 다시 하기');
         await both(b.x + b.w * .9, b.y + 60, b.w * 1.8); snd.whoosh(); sparks(b.x, b.y - b.w * .5, 26, 190); await pen.dive(b.x, b.y - b.w * .5); await ger.dive(b.x, b.y - b.w * .5); return flash(() => { location.hash = '#/w/' + w; }); }
-      if (b.classList.contains('locked')) { again(b, 'shake'); snd.nope(); toast('Finish week ' + cur + ' first!', cur + '주차를 먼저 해요'); return; }
+      if (b.classList.contains('locked')) { again(b, 'shake'); snd.nope(); toast('Finish week ' + cur + ' first!', cur + '주차를 먼저 해요'); if (w === cur + 1) say('gerry', 'This one is next.'); return; }
       busy = true; snd.pop(); const mk = b.querySelector('.mk'); if (mk) mk.remove();
       await both(b.x + b.w * .95, b.y + 46, b.w * 1.9);                 // Penny to the right of the chest, Gerry to its left
       again(b, 'rattle'); snd.creak(); await wait(850);
       b.querySelector('.im').src = ART + 'chest-open.png'; again(b, 'squash'); b.insertAdjacentHTML('beforeend', '<span class="portal"></span>'); snd.whoosh(); sparks(b.x, b.y - b.w * .6, 26, 190); await wait(650);
-      const px = b.x, py = b.y - b.w * .52;
+      const px = b.x, py = b.y - b.w * .52; say('penny', 'Jump in!');
       await pen.dive(px, py); await ger.dive(px, py); await wait(150);
       flash(() => { location.hash = '#/w/' + w; });
     }; });
     if (arrive === 'gate') {                          // they walk in from the cart outside the gate
-      pen.put(175, 478); ger.put(120, 470); await wait(350); await both(home[0], home[1]);
+      pen.put(175, 478); ger.put(120, 470); await wait(350); await both(home[0], home[1]); say('gerry', 'Look! Treasure chests!'); if (cur <= 4) say('penny', 'Tap the chest!');
     } else if (arrive && arrive.startsWith('built')) { // back out of the chest: the chest becomes the treasure they made
       const w = +arrive.slice(5), b = chests[w]; b.insertAdjacentHTML('beforeend', '<span class="portal"></span>');
       pen.put(b.x + 210, b.y + 150); ger.put(b.x + 70, b.y + 160); pen.el.classList.add('gone'); ger.el.classList.add('gone');
       await wait(450); await pen.land(b.x, b.y - b.w * .5); await ger.land(b.x, b.y - b.w * .5); await wait(250);
       snd.whoosh(); sparks(b.x, b.y - b.w * .5, 34, 230); b.remove();
       const t = treasure(w, 'tre pop'); t.week = w; t.onclick = chests[w].onclick; chests[w] = t;
-      snd.big(); await wait(350); sparks(t.x, t.y - t.w * .7, 40, 260); pen.pose(5); ger.pose(5); toast('You made the ' + WEEKS[w][1] + '!', WEEKS[w][0] + ' · 미션 완료!'); await wait(1500); pen.pose(1); ger.pose(1);
-      const nx = chests[w + 1]; if (nx) { nx.classList.remove('locked'); again(nx, 'squash'); nx.insertAdjacentHTML('beforeend', '<i class="mk"></i>'); snd.ding(); }
+      snd.big(); await wait(350); sparks(t.x, t.y - t.w * .7, 40, 260); pen.pose(5); ger.pose(5); toast('You made the ' + WEEKS[w][1] + '!', WEEKS[w][0] + ' · 미션 완료!'); say('penny', 'You did it, reader!'); await wait(1500); pen.pose(1); ger.pose(1);
+      const nx = chests[w + 1]; if (nx) { say('gerry', 'The next chest is open!'); nx.classList.remove('locked'); again(nx, 'squash'); nx.insertAdjacentHTML('beforeend', '<i class="mk"></i>'); snd.ding(); }
       else { toast('Ruby Explorer!', '루비 탐험가가 되었어요'); for (let i = 0; i < 5; i++) setTimeout(() => sparks(300 + Math.random() * 1100, 250 + Math.random() * 300, 26, 220), i * 260); snd.big(); }
       $('#title').querySelector('small').textContent = 'Ruby · 1 · ' + (current() > 4 ? 'all four weeks done!' : 'Week ' + current());
     } else { pen.put(home[0], home[1]); ger.put(home[0] - 110, home[1] - 12); }
@@ -395,19 +404,22 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
       const dx = SLOTS[i][0] - b.x, dy = SLOTS[i][1] - (b.y - b.w * .6);
       await Promise.race([f.animate([{ transform: 'translate(0,0) scale(.3) rotate(0)' }, { transform: 'translate(' + dx * .5 + 'px,' + (dy - 160) + 'px) scale(1.6) rotate(200deg)', offset: .55 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1) rotate(360deg)' }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' }).finished, wait(1200)]);
       f.remove(); world.insertAdjacentHTML('beforeend', '<div class="slot in" data-slot="' + i + '" style="left:' + SLOTS[i][0] + 'px;top:' + SLOTS[i][1] + 'px">' + STAR + '</div>'); snd.pop(); sparks(SLOTS[i][0], SLOTS[i][1], 12, 90);
-      mark(); if (!next()) { await wait(500); finish(); }
+      mark(); const got = order.filter(p => parts(w)[p]).length;
+      if (got === 1) say('penny', 'You got a ruby star!'); else if (got === 2) say('penny', 'Two stars! Keep going!'); else if (got === 3) say('gerry', 'Three stars! One more!');
+      if (!next()) { await wait(500); finish(); }
     }
     async function finish() {                          // four stars become the week's treasure, then back out through the chest
       busy = true; await both(900, 720); snd.whoosh();
       const stars = [...world.querySelectorAll('.slot')];
       await Promise.all(stars.map(s => Promise.race([s.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(' + (864 - parseFloat(s.style.left)) + 'px,' + (300 - parseFloat(s.style.top)) + 'px) scale(.4) rotate(360deg)' }], { duration: 700, easing: 'ease-in', fill: 'forwards' }).finished, wait(900)])));
       stars.forEach(s => s.remove()); sparks(864, 300, 40, 260); snd.big();
-      const t = thing('t' + w, 864, 470, 210, 'noshadow pop'); t.style.zIndex = 900; toast('You made the ' + WEEKS[w][1] + '!', '보물 완성!'); pen.pose(5); ger.pose(5);
+      const t = thing('t' + w, 864, 470, 210, 'noshadow pop'); t.style.zIndex = 900; toast('You made the ' + WEEKS[w][1] + '!', '보물 완성!'); pen.pose(5); ger.pose(5); say('gerry', 'Four stars! Look at your treasure!');
       await wait(1900); setDone(w); await pen.dive(864, 120); await ger.dive(864, 120);
       flash(() => { sessionStorage.setItem('lgr2.arrive', 'built' + w); location.hash = '#/cave'; });
     }
     Object.values(toys).forEach(b => b.onclick = async () => {
-      if (busy) return; busy = true; snd.pop(); const id = b.id2, [sx, sy] = stand(b);
+      if (busy) return; busy = true; snd.pop(); const id = b.id2, [sx, sy] = stand(b); clearTimeout(nudgeT);
+      say(...{ watch: ['gerry', "Let's watch!"], abc: ['penny', "Let's read!"], sheet: ['penny', "Let's speak!"], dictation: ['gerry', "Let's write!"] }[id]);
       await both(sx, sy, b.x < 836 ? -105 : 105); again(b, 'squash'); snd.boing(); await wait(380); busy = false;
       if (parts(w)[id]) sparks(b.x, b.y - b.w * .6, 10, 100);
       if (id === 'watch') return play('videos/A-1-w' + w + '-essay.mp4', () => { if (!parts(w).watch) give('watch'); });
@@ -423,6 +435,10 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     // arriving: they drop in from above, out of the light
     pen.put(home[0], home[1]); ger.put(home[0] - 125, home[1] - 12); pen.el.classList.add('gone'); ger.el.classList.add('gone');
     await wait(350); await pen.land(864, 120); await ger.land(864, 120); mark(); busy = false;
+    // a hello only when they arrive from the cave (not on the way back from an activity), then one reminder if nothing happens
+    if (!['lgr2.dict', 'lgr2.sheet', 'lgr2.abc'].some(k => sessionStorage.getItem(k) == w) && next()) {
+      if (order.some(p => parts(w)[p])) say('gerry', 'What is next?'); else say('penny', 'Four quests. Pick one!');
+      clearTimeout(nudgeT); nudgeT = setTimeout(() => { if (!busy && $('#player').hidden && location.hash === '#/w/' + w) say('penny', 'Tap a quest!'); }, 20000); }
     // back from a reading book: Alphabet Reading counts once a book has been read
     // back from the online worksheet: the Sheet star comes once one of this week's worksheets is finished
     // back from Dictation: its star comes once one of this week's dictations is finished
@@ -441,7 +457,7 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
     fetch(src, { method: 'HEAD' }).then(r => r.ok && /video/.test(r.headers.get('content-type') || '')).catch(() => false).then(ok => { $('#vbody').innerHTML = ok ? '<video controls autoplay playsinline src="' + src + '"></video>' : '<p>Daily Essay video<br>coming soon!</p>'; }); }
   $('#closeV').onclick = () => { $('#player').hidden = true; $('#vbody').innerHTML = ''; snd.pop(); const a = afterV; afterV = null; if (a) a(); };
 
-  function route() {
+  function route() { clearTimeout(nudgeT);
     document.body.classList.remove('front');
     const m = location.hash.match(/^#\/w\/([1-4])$/);
     if (m && +m[1] <= current() ) return cabin(+m[1]);
@@ -452,4 +468,4 @@ html,body{height:100%;overflow:hidden;background:#2a0d0a;font-family:"Fredoka","
   }
   addEventListener('hashchange', route); route();
 })();
-</script><script src="../ext/home.js?v=mwu7ccx5" data-home="../demo/street.html"></script></body></html>
+</script><script src="../ext/home.js?v=mwuf15y6" data-home="../demo/street.html"></script></body></html>

@@ -243,7 +243,11 @@
 
       /* 1 the lesson video */
       const video = async () => {
-        A.innerHTML = `<div class="tv"><div class="scr"><button class="playb" aria-label="Play"></button><span>A Circle Has No Vertices<small>The lesson video plays here (not made yet)</small></span></div><button class="go next">Play the game<small>게임 하러 가요</small></button></div>`;
+        // the week's lesson video (forest-math/video/week1-circles, copied to world/video/): big play button, tap the picture to pause
+        A.innerHTML = `<div class="tv"><div class="scr vid"><video src="video/fm01-week1-circles.mp4" poster="video/fm01-week1-circles.jpg" playsinline preload="metadata"></video><button class="playb" aria-label="Play"></button></div><button class="go next">Play the game<small>게임 하러 가요</small></button></div>`;
+        const v = A.querySelector('video'), pb = A.querySelector('.playb');
+        v.onplay = () => { pb.hidden = true; if (gAudio) gAudio.pause(); if (window.Voice) Voice.stop(); clearInterval(gTick); if ($('#gy')) $('#gy').src = 'art/gerry/stand.webp'; };   // Gerry is quiet while the video talks
+        v.onpause = () => { pb.hidden = false; }; v.onended = () => { pb.hidden = false; A.querySelector('.next').classList.add('ready'); if ($('#gy')) $('#gy').src = 'art/gerry/thumb.webp'; };
         await gerry("Hi! I'm Gerry! First, let's watch the video.", '안녕! 나는 게리야! 먼저 영상을 봐요.', 'point'); };
       /* 2 the game: catch the vertices of each shape as it flies in */
       const next = async () => { if (!alive) return; cur++; got = 0; lock = true;
@@ -266,20 +270,22 @@
         await gerry(en, ko, alien ? 'think' : 'point'); });
       const speak = async () => {
         await turn(false, 'Why does a circle have no vertices? Press the button and say it!', '동그라미는 왜 꼭짓점이 없을까요? 버튼을 누르고 말해요!', 'A circle has no vertices because it is <b>round all around</b>.', '동그라미는 둥글어서 꼭짓점이 없어요.'); if (!alive) return;
-        await turn(true, 'Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertex.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.'); if (!alive) return;
+        await turn(true, 'Uh-oh! The alien says a circle has no points. Is that right? Tell him!', '외계인이 동그라미에는 점이 없대요. 맞을까요? 말해 줘요!', 'No! A circle has <b>many points</b>, but no vertices.', '아니에요! 동그라미에는 점이 아주 많지만 꼭짓점은 없어요.'); if (!alive) return;
         A.innerHTML = ''; burst(W / 2, 360, 80, 15); await gerry('Great talking! You get a star!', '말하기 최고! 별을 받아요!', 'cheer'); await wait(500); if (alive) out(true); };
 
       c.onclick = e => {
         if (e.target.closest('.x')) return out(false);
         if (e.target.closest('.ws')) { const im = document.createElement('div'); im.className = 'wsview'; im.innerHTML = '<img src="art/ws/fm01-w1-04.png" alt="">'; im.onclick = ev => { ev.stopPropagation(); im.remove(); }; c.appendChild(im); return; }
-        if (e.target.closest('.next') || e.target.closest('.playb')) { snd.pop(); gerry("Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!', 'cheer').then(next); A.innerHTML = ''; return; }
+        if (e.target.closest('.playb')) { const v = A.querySelector('video'); if (v) v.play().catch(() => {}); return; }
+        if (e.target.closest('.scr.vid video')) { const v = e.target; if (!v.paused) v.pause(); return; }
+        if (e.target.closest('.next')) { const v = A.querySelector('video'); if (v) v.pause(); snd.pop(); gerry("Now let's play! Catch the vertices!", '이제 놀아요! 꼭짓점을 잡아요!', 'cheer').then(next); A.innerHTML = ''; return; }
         if (lock || cur < 0 || cur >= SH.length) return; const q = SH[cur], at = pt(e), ship = A.querySelector('.ship');
         const vx = e.target.closest('.vx');
         if (vx) { if (vx.classList.contains('on')) return; vx.classList.add('on'); vx.setAttribute('r', 22); got++; const cn = A.querySelector('.count'); cn.textContent = got; cn.classList.remove('bump'); void cn.offsetWidth; cn.classList.add('bump'); snd.ding(got); burst(at[0], at[1], 18, 7);
           if (got === q.v.length) solved(); else gerry(NUM[got - 1], NUMK[got - 1], 'point'); return; }
         if (e.target.closest('.zero')) { if (q.v.length) { snd.nope(); gerry('Look again! Where do two sides meet?', '다시 봐요! 두 변이 만나는 곳은 어디일까요?', 'think'); } else { const cn = A.querySelector('.count'); cn.classList.add('bump'); solved(); } return; }
         if (e.target.closest('.shape')) { ship.classList.remove('roll', 'nope'); void ship.offsetWidth;
-          if (q.v.length) { ship.classList.add('nope'); snd.nope(); gerry('A vertex is where two sides meet. Try again!', '꼭짓점은 두 변이 만나는 곳이에요. 다시 해 봐요!', 'point'); }
+          if (q.v.length) { ship.classList.add('nope'); snd.nope(); gerry('Vertices are where two sides meet. Try again!', '꼭짓점은 두 변이 만나는 곳이에요. 다시 해 봐요!', 'point'); }
           else { ship.classList.add('roll'); snd.boing(); gerry('Hee hee! It is round all around. No sides meet!', '히히! 둥글둥글해요. 만나는 변이 없어요!', 'think'); } }
       };
       video();
@@ -342,9 +348,9 @@
      Then two speaking turns: say what you did, and tell the alien why it is wrong (first taste of debate). Stars come
      AFTER speaking. "Press and say" is a stand-in: the shared listen-and-speak piece of the kids' site will replace it. */
   const SHAPES = {
-    circle: { en: 'circle', pl: 'circles', ko: '동그라미', col: '#ff6b7d', svg: '<circle cx="50" cy="50" r="30"/>', wrong: 'A circle has corners!', right: 'No! A circle is <b>round</b>. It has <b>no</b> corners.', rko: '아니에요! 동그라미는 둥글어요. 꼭짓점이 없어요.' },
-    triangle: { en: 'triangle', pl: 'triangles', ko: '세모', col: '#2fc48d', svg: '<polygon points="50,18 84,78 16,78"/>', wrong: 'A triangle has four corners!', right: 'No! A triangle has <b>three</b> corners.', rko: '아니에요! 세모는 꼭짓점이 세 개예요.' },
-    square: { en: 'square', pl: 'squares', ko: '네모', col: '#4a8cff', svg: '<rect x="22" y="22" width="56" height="56" rx="4"/>', wrong: 'A square has three corners!', right: 'No! A square has <b>four</b> corners.', rko: '아니에요! 네모는 꼭짓점이 네 개예요.' },
+    circle: { en: 'circle', pl: 'circles', ko: '동그라미', col: '#ff6b7d', svg: '<circle cx="50" cy="50" r="30"/>', wrong: 'A circle has vertices!', right: 'No! A circle is <b>round</b>. It has <b>no</b> vertices.', rko: '아니에요! 동그라미는 둥글어요. 꼭짓점이 없어요.' },
+    triangle: { en: 'triangle', pl: 'triangles', ko: '세모', col: '#2fc48d', svg: '<polygon points="50,18 84,78 16,78"/>', wrong: 'A triangle has four vertices!', right: 'No! A triangle has <b>three</b> vertices.', rko: '아니에요! 세모는 꼭짓점이 세 개예요.' },
+    square: { en: 'square', pl: 'squares', ko: '네모', col: '#4a8cff', svg: '<rect x="22" y="22" width="56" height="56" rx="4"/>', wrong: 'A square has three vertices!', right: 'No! A square has <b>four</b> vertices.', rko: '아니에요! 네모는 꼭짓점이 네 개예요.' },
   };
   const NUMW = ['zero', 'one', 'two', 'three', 'four', 'five'];
   const token = k => `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#fff"/><circle cx="50" cy="50" r="48" fill="url(#tk)" opacity=".5"/><g fill="${SHAPES[k].col}" stroke="rgba(0,0,0,.18)" stroke-width="3" stroke-linejoin="round">${SHAPES[k].svg}</g><ellipse cx="34" cy="24" rx="16" ry="7" fill="#fff" opacity=".8"/></svg>`;
