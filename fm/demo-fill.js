@@ -2,8 +2,8 @@
    the recording (just use the repeat sound of the character / or the built-in if there is not line recorded)").
    Loaded ONLY by gpfis-site/demo/fill.html; the world itself never loads this file, so a real child's device is never touched.
      GPDemoFill.fm()   writes planet 1, week 1 (stop 1 of 4) as finished: the 8 pages' answers, the speaking stars, the video
-                       seen, the stop done (so My book opens at week 1) and one voice clip per sentence in IndexedDB 'fm-voice'.
-                       Weeks 2-4 stay not started.
+                       seen, the stop done (so My book opens at week 1). The save only, no network. Weeks 2-4 stay not started.
+     GPDemoVoice.fm()  puts one voice clip per sentence into IndexedDB 'fm-voice' (run afterwards, in the background).
      GPDemoClear.fm()  removes everything Fresh Math keeps on this device.
    The clips are a free Windows built-in voice saying each sentence (demo/say/<key>.mp3, made beforehand by a script): Gerry's
    recorded lines are the QUESTIONS, none of them is the child's sentence. Does not call GPTrack (fill.html adds the days). */
@@ -23,9 +23,12 @@
     S = Object.assign({ done: 0, stars: 0, stop: 0, deco: [] }, S);
     S.pgd = Object.assign({}, S.pgd, { [WK]: PGD }); S.say = Object.assign({}, S.say, SAY); S.sayd = Object.assign({}, S.sayd, SAYD); S.book = Object.assign({}, S.book, { [WK]: 1 }); S.vid = Object.assign({}, S.vid, { [WK]: 1 });
     if (S.done < 1 && S.stop < 1) { S.stop = 1; S.stars = Math.max(S.stars, 1); }   // stop 1 of planet 1 done: one star, My book opens at week 1
-    const clips = {}; for (const k in SAY) { const r = await fetch(HERE + 'demo/say/' + k + '.mp3'); if (!r.ok) throw new Error('voice file missing: ' + k); clips[k] = await r.blob(); }
-    const d = await db(); await tx(d, st => { for (const k in clips) st.put(clips[k], k); }); d.close();
-    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(KEY, JSON.stringify(S));   // the save only: no network, instant (the boss: the entrance must not wait)
+  };
+  // the 9 voice clips, loaded afterwards in the background by the site (kit/track.js); all at once, safe to run twice, never touches the save
+  (window.GPDemoVoice = window.GPDemoVoice || {}).fm = async () => {
+    const got = await Promise.all(Object.keys(SAY).map(async k => { const r = await fetch(HERE + 'demo/say/' + k + '.mp3'); if (!r.ok) throw new Error('voice file missing: ' + k); return [k, await r.blob()]; }));
+    const d = await db(); await tx(d, st => { for (const [k, b] of got) st.put(b, k); }); d.close();
   };
   window.GPDemoClear.fm = async () => { localStorage.removeItem(KEY); const d = await db(); await tx(d, st => st.clear()); d.close(); };
 })();

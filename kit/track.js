@@ -73,4 +73,12 @@
       if (n) { save(L); try { localStorage.setItem('gpfis.snap', JSON.stringify(snap)); } catch (e) {} } return n; },
     reset() { try { localStorage.removeItem('gpfis.snap'); } catch (e) {} try { localStorage.removeItem(KEY); } catch (e) {} }
   };
+  /* demo child (25 Nov): if this device holds the demo but not yet its recordings, fetch them now in a hidden frame, so the
+     맛보기 entrance never has to wait for them. Only when demo/fill.html's programmes split their recordings off. */
+  try { const d = localStorage.getItem('gpfis.demo'), me = document.currentScript && document.currentScript.src;
+    if (d && localStorage.getItem('gpfis.demovoice') !== d && me && location.pathname.indexOf("demo/fill.html") < 0) {
+      const go = () => { if (document.getElementById('gpDemoVoice')) return; const f = document.createElement('iframe'); f.id = 'gpDemoVoice'; f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+        f.style.cssText = 'position:fixed;width:1px;height:1px;left:-9px;top:-9px;opacity:0;border:0;pointer-events:none';
+        f.src = me.replace(/kit[/]track[.]js.*$/, 'demo/fill.html?go=voices'); document.body.appendChild(f); };
+      document.body ? setTimeout(go, 400) : addEventListener('DOMContentLoaded', () => setTimeout(go, 400)); } } catch (e) {}
 })();
