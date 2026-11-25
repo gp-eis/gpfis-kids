@@ -44,6 +44,8 @@
   };
   window.GPDemoClear.pbl = async () => {
     localStorage.removeItem(PAGES); localStorage.removeItem(SHIP);
-    await new Promise(res => { const r = indexedDB.deleteDatabase('spbl-voice'); r.onsuccess = r.onerror = r.onblocked = () => res(); });
+    // The clips are EMPTIED, not the whole store deleted (25 Nov): deleting waits for every other open Start PBL page to let go of the
+    // store, and could then finish late, AFTER the new clips had been put in, wiping them (seen on the live site: six clips gone).
+    try { const d = await db(); await new Promise(res => { const tx = d.transaction('clips', 'readwrite'); tx.objectStore('clips').clear(); tx.oncomplete = tx.onerror = tx.onabort = () => res(); }); d.close(); } catch (e) {}
   };
 })();
